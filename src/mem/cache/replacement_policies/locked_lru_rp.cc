@@ -117,10 +117,6 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
         if(!candidateData ->locked)
             count++;
     }
-    if (count < 2){
-        warn("not enough unlocked ways did not lock");
-        return;
-    }
     data->locked = true;
 }
 
