@@ -70,6 +70,23 @@ class ReplaceableEntry;
 /**
  * A common base class of Cache tagstore objects.
  */
+/**
+ * Resolve the context id to tag a tag-lookup/allocation key with.
+ * Context-aware indexing policies use this to distinguish which context
+ * issued the request; policies that don't key off per-request context
+ * simply ignore the field.
+ */
+inline ContextID
+contextIdFor(const PacketPtr pkt)
+{
+    // Only trust the requestor's context id on a fully-formed request
+    // packet; a default/sentinel command means this packet was
+    // synthesized internally rather than carrying real requestor
+    // context, so fall back to InvalidContextID in that case.
+    return (pkt->cmd == MemCmd::InvalidCmd) ? pkt->req->contextId()
+                                            : InvalidContextID;
+}
+
 class BaseTags : public ClockedObject
 {
   protected:
