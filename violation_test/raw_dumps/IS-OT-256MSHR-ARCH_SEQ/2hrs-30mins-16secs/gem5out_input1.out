@@ -1,0 +1,17 @@
+gem5 Simulator System.  http://gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 compiled Feb 11 2024 05:29:28
+gem5 started Feb 11 2024 07:59:09
+gem5 executing on cf2cb910775e, pid 2963209
+command line: /code/gem5-docker/build/X86/gem5.opt --debug-flags=Squashed --debug-file=log.out --outdir=/code/gem5-docker/m5out_IS-OT-256MSHR-ARCH_SEQ_core13 /code/gem5-docker/configs/example/se.py -c debug_IS-OT-256MSHR-ARCH_SEQ_core13/one/test_case_28_33031720.out --cpu-type=DerivO3CPU --l1d_size=32kB --l1i_size=32kB --l2cache --ruby --l1traces --num-cpu=1 --needsTSO=0 --scheme=SpectreSafeInvisibleSpec --rel-max-tick=5000000 --checkpoint-dir=/code/gem5-docker/checkpoint_IS-OT-256MSHR-ARCH_SEQ_core13 --checkpoint-at-end
+
+info: Standard input is not a terminal, disabling listeners.
+**********
+info: Configure for DerivO3CPU. needsTSO=0; scheme=SpectreSafeInvisibleSpec
+**********
+Global frequency set at 1000000000000 ticks per second
+Info: simulation uses scheme: SpectreSafeInvisibleSpec; needsTSO=0; allowSpecBuffHit=0
+**** REAL SIMULATION ****
+Exiting @ tick 698500 because exiting with last active thread context
+Writing Micro-checkpoint

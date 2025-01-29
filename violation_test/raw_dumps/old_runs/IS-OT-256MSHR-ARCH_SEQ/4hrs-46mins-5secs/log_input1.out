@@ -1,0 +1,1025 @@
+    500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:0]
+   1000: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x401000
+  74001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1000, block addr 0x1000
+  74501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1000, block addr 0x1000
+  78000: system.cpu.iew.lsq.thread0: Store request - PC 0x401015, SQ: [sn:4], Paddr 0x3ff8, Vaddr 0x584ff8
+ 137001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1040, block addr 0x1040
+ 150501: system.cpu.iew.lsq: Received D$ response for packet addr 0x3ff8, block addr 0x3fc0
+ 199501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1080, block addr 0x1080
+ 262001: system.cpu.fetch: Waking up from cache miss for packet addr 0x10c0, block addr 0x10c0
+ 265500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4010e7, SQ: [sn:37], Paddr 0x2000, Vaddr 0x583000
+ 265500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4010e7, SQ: [sn:37], Paddr 0x2000, Vaddr 0x583000
+ 324501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 329501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2000, block addr 0x2000
+ 339000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401101, SQ: [sn:48], Paddr 0x28fc, Vaddr 0x5838fc
+ 339000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401101, SQ: [sn:48], Paddr 0x28fc, Vaddr 0x5838fc
+ 390501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 395501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 397000: system.cpu.iew.lsq.thread0: Store request - PC 0x401101, SQ: [sn:50], Paddr 0x28fc, Vaddr 0x5838fc
+ 398500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:137]
+ 399000: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x401180
+ 400001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 402500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40110d, SQ: [sn:54], Paddr 0x227c, Vaddr 0x58327c
+ 402500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40110d, SQ: [sn:54], Paddr 0x227c, Vaddr 0x58327c
+ 402500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 402500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 402500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 403000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401145, SQ: [sn:110], Paddr 0x28fc, Vaddr 0x5838fc
+ 403000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401145, Paddr 0x28fc, Vaddr 0x5838fc
+ 403000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401145, SQ: [sn:110], Paddr 0x28fc, Vaddr 0x5838fc
+ 403000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401150, SQ: [sn:115], Paddr 0x29fc, Vaddr 0x5839fc
+ 403000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401150, Paddr 0x29fc, Vaddr 0x5839fc
+ 403000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401150, SQ: [sn:115], Paddr 0x29fc, Vaddr 0x5839fc
+ 403000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 403000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 403501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 404000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 404000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 404000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 404000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 404000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 404501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 405000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 405000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 405000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 405000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 405000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 405501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 406000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 406000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 406000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 406000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 406000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 406501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 407000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 407000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 407000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 407000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 407000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 407501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 408000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 408000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 408000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 408000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 408000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 408501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 409000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 409000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 409000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 409000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 409000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 409501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 410000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 410000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 410000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 410000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 410000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 410501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 411000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 411000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 411000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 411000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 411000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 411501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 412000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 412000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 412000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 412000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 412000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 412501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 413000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 413000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 413000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 413000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 413000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 413501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 414000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 414000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 414000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 414000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 414000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 414501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 415000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 415000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 415000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 415000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 415000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 415501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 416000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 416000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 416000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 416000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 416000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 416501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 417000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 417000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 417000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 417000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 417000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 417501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 418000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 418000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 418000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 418000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 418000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 418501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 419000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 419000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 419000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 419000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 419000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 419501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 420000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 420000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 420000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 420000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 420000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 420501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 421000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 421000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 421000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 421000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 421000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 421501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 422000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 422000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 422000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 422000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 422000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 422501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 423000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 423000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 423000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 423000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 423000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 423501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 424000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 424000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 424000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 424000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 424000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 424501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 425000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 425000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 425000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 425000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 425000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 425501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 426000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 426000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 426000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 426000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 426000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 426501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 427000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 427000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 427000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 427000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 427000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 427501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 428000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 428000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 428000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 428000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 428000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 428501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 429000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 429000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 429000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 429000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 429000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 429501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 430000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 430000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 430000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 430000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 430000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 430501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 431000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 431000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 431000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 431000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 431000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 431501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 432000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 432000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 432000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 432000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 432000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 432501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 433000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 433000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 433000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 433000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 433000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 433501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 434000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 434000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 434000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 434000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 434000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 434501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 435000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 435000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 435000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 435000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 435000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 435501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 436000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 436000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 436000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 436000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 436000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 436501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 437000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 437000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 437000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 437000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 437000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 437501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 438000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 438000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 438000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 438000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 438000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 438501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 439000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 439000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 439000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 439000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 439000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 439501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 440000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 440000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 440000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 440000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 440000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 440501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 441000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 441000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 441000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 441000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 441000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 441501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 442000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 442000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 442000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 442000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 442000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 442501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 443000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 443000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 443000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 443000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 443000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 443501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 444000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 444000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 444000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 444000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 444000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 444501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 445000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 445000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 445000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 445000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 445000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 445501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 446000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 446000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 446000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 446000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 446000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 446501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 447000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 447000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 447000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 447000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 447000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 447501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 448000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 448000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 448000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 448000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 448000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 448501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 449000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 449000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 449000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 449000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 449000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 449501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 450000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 450000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 450000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 450000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 450000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 450501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 451000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 451000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 451000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 451000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 451000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 451501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 452000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 452000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 452000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 452000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 452000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 452501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 453000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 453000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 453000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 453000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 453000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 453501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 454000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 454000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 454000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 454000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 454000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 454501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 454501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 455000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 455000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 455000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 455000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 455000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 455001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 455501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 456000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 456000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 456000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 456000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 456000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 456501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 457000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 457000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 457000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 457000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 457000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 457501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 458000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 458000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 458000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 458000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 458000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 458501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 459000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 459000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 459000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 459000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 459000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 459500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 459500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 459501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 459502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 460000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 460000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401118, SQ: [sn:59], Paddr 0x227c, Vaddr 0x58327c
+ 460000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 460000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 460000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 460000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 460501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 460502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 461000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 461000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40112f, SQ: [sn:70], Paddr 0x227c, Vaddr 0x58327c
+ 461000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 461000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 461000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 461000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 461000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 461500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:124], Paddr 0x23fc, Vaddr 0x5833fc
+ 461500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 461500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40115f, SQ: [sn:124], Paddr 0x23fc, Vaddr 0x5833fc
+ 461501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 461502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 462000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 462000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 462000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 462000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 462000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 462500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 462501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 462502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 463000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 463000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 463000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 463000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 463000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 463000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011b3, SQ: [sn:157], Paddr 0x28fc, Vaddr 0x5838fc
+ 463000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x4011b3, Paddr 0x28fc, Vaddr 0x5838fc
+ 463501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 463502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 464000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 464000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 464000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 464000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 464000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 464000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 464500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011b3, SQ: [sn:157], Paddr 0x28fc, Vaddr 0x5838fc
+ 464500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x4011b3, Paddr 0x28fc, Vaddr 0x5838fc
+ 464500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011b3, SQ: [sn:157], Paddr 0x28fc, Vaddr 0x5838fc
+ 464501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2900, block addr 0x2900
+ 464502: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 464503: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 465000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 465000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 465000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 465000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 465000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 465000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 465000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 465001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 465501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 465502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 466000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 466000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 466000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 466000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 466500: system.cpu.iew.lsq.thread0: Store request - PC 0x4011b3, SQ: [sn:159], Paddr 0x28fc, Vaddr 0x5838fc
+ 466501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 467000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 467000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 467000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 467000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 467501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 468000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 468000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 468000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 468000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 468501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 469000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 469000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 469000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 469000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 469501: system.cpu.iew.lsq: Received D$ response for packet addr 0x29fc, block addr 0x29c0
+ 469502: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 470000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 470000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 470000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 470000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40119a, Paddr 0x29fc, Vaddr 0x5839fc
+ 470000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 470501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 471000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 471000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 471000: system.cpu.iew.lsq.thread0: Store request - PC 0x401150, SQ: [sn:118], Paddr 0x29fc, Vaddr 0x5839fc
+ 471500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011b3, SQ:157, Paddr:0x28fc, Vaddr:0x5838fc
+ 471501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 472000: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:145]
+ 472000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x4011b3, SQ: [sn:157], Paddr 0x28fc, Vaddr 0x5838fc
+ 472000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40119a, SQ: [sn:146], Paddr 0x29fc, Vaddr 0x5839fc
+ 472000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Store: PC 0x4011b3, SQ: [sn:159], Paddr 0x28fc, Vaddr 0x5838fc
+ 472000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 472000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 472000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011a7, SQ:151, Paddr:0, Vaddr:0
+ 472000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40119a, SQ:146, Paddr:0x29fc, Vaddr:0x5839fc
+ 472501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 473000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 473000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 473001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 473501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 474000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 474000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 474500: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x4011c0
+ 474501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 475000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 475000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 475501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 476000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 476000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 476501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 477000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 477000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 477501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 478000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 478000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 478000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011b3, SQ: [sn:173], Paddr 0x28fc, Vaddr 0x5838fc
+ 478000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x4011b3, Paddr 0x28fc, Vaddr 0x5838fc
+ 478000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011b3, SQ: [sn:173], Paddr 0x28fc, Vaddr 0x5838fc
+ 478501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 478502: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 479000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 479000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 479501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 480000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 480000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 480000: system.cpu.iew.lsq.thread0: Store request - PC 0x4011b3, SQ: [sn:175], Paddr 0x28fc, Vaddr 0x5838fc
+ 480501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 481000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 481000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 481501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 482000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 482000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 482501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 483000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 483000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 483501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 484000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 484000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 484501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 485000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 485000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 485501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 486000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 486000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 486501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 487000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 487000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 487501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 488000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 488000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 488501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 489000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 489000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 489501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 490000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 490000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 490501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 491000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 491000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 491501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 492000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 492000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 492501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 493000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 493000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 493501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 494000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 494000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 494501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 495000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 495000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 495501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 496000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 496000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 496501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 497000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 497000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 497501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 498000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 498000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 498501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 499000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 499000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 499501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 500000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 500000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 500501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 501000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 501000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 501501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 502000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 502000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 502501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 503000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 503000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 503501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 504000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 504000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 504501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 505000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 505000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 505501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 506000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 506000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 506501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 507000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 507000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 507501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 508000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 508000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 508501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 509000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 509000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 509501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 510000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 510000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 510501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 511000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 511000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 511501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 512000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 512000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 512501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 513000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 513000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 513501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 514000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 514000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 514501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 515000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 515000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 515501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 516000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 516000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 516501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 517000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 517000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 517501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 518000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 518000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 518501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 519000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 519000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 519501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 520000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 520000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 520501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 520501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 521000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 521000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 521001: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 521501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 522000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 522000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 522501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 523000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 523000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 523501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 524000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 524000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 524501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 525000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 525000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 525501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2280, block addr 0x2280
+ 525502: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 526000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 526000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 526000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 526501: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 526502: system.cpu.iew.lsq: Received D$ response for packet addr 0x2280, block addr 0x2280
+ 527000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 527000: system.cpu.iew.lsq.thread0: Store request - PC 0x40112f, SQ: [sn:72], Paddr 0x227c, Vaddr 0x58327c
+ 528000: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:73]
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x4011b3, SQ: [sn:173], Paddr 0x28fc, Vaddr 0x5838fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40119a, SQ: [sn:162], Paddr 0x29fc, Vaddr 0x5839fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40116a, SQ: [sn:129], Paddr 0x28fc, Vaddr 0x5838fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40115f, SQ: [sn:124], Paddr 0x23fc, Vaddr 0x5833fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401150, SQ: [sn:115], Paddr 0x29fc, Vaddr 0x5839fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401145, SQ: [sn:110], Paddr 0x28fc, Vaddr 0x5838fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401137, SQ: [sn:74], Paddr 0x227c, Vaddr 0x58327c
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Store: PC 0x4011b3, SQ: [sn:175], Paddr 0x28fc, Vaddr 0x5838fc
+ 528000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Store: PC 0x401150, SQ: [sn:118], Paddr 0x29fc, Vaddr 0x5839fc
+ 528000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011ca, SQ:185, Paddr:0, Vaddr:0
+ 528000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011be, SQ:179, Paddr:0, Vaddr:0
+ 528500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011b3, SQ:173, Paddr:0x28fc, Vaddr:0x5838fc
+ 529000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011a7, SQ:167, Paddr:0, Vaddr:0
+ 529000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40119a, SQ:162, Paddr:0x29fc, Vaddr:0x5839fc
+ 529500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011b3, SQ:157, Paddr:0x28fc, Vaddr:0x5838fc
+ 530000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011a7, SQ:151, Paddr:0, Vaddr:0
+ 530000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40119a, SQ:146, Paddr:0x29fc, Vaddr:0x5839fc
+ 530501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 530501: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 531000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 531000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401125, SQ: [sn:64], Paddr 0x23fc, Vaddr 0x5833fc
+ 531000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40116a, SQ:129, Paddr:0x28fc, Vaddr:0x5838fc
+ 531500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40115f, SQ:124, Paddr:0x23fc, Vaddr:0x5833fc
+ 531501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 532000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401150, SQ:115, Paddr:0x29fc, Vaddr:0x5839fc
+ 532500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401145, SQ:110, Paddr:0x28fc, Vaddr:0x5838fc
+ 534500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401137, SQ:74, Paddr:0x227c, Vaddr:0x58327c
+ 535501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2900, block addr 0x2900
+ 539001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 540501: system.cpu.iew.lsq: Received D$ response for packet addr 0x29fc, block addr 0x29c0
+ 541500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401145, SQ: [sn:269], Paddr 0x28fc, Vaddr 0x5838fc
+ 541500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401145, Paddr 0x28fc, Vaddr 0x5838fc
+ 541500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401145, SQ: [sn:269], Paddr 0x28fc, Vaddr 0x5838fc
+ 541500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401150, SQ: [sn:274], Paddr 0x29fc, Vaddr 0x5839fc
+ 541500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401150, Paddr 0x29fc, Vaddr 0x5839fc
+ 541500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401150, SQ: [sn:274], Paddr 0x29fc, Vaddr 0x5839fc
+ 541501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 542001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 542500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 542500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 542500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 542500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 543001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 543500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 543500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 543500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 543500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 544001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 544500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:296]
+ 544500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 544500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 544500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 544500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 545001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 545500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 545500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 545500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 545500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 545501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 546001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 546500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 546500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 546500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 546500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 547001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 547500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 547500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 547500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 547500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 547501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 548001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 548500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 548500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 548500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 548500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 549001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 549500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 549500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 549500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 549500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 550001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 550500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 550500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 550500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 550500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 551001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 551500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 551500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 551500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 551500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 552001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 552500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 552500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 552500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 552500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 553001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 553500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 553500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 553500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 553500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 554001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 554500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 554500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 554500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 554500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 555001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 555500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 555500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 555500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 555500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 556001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 556500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 556500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 556500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 556500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 557001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 557500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 557500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 557500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 557500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 558001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 558500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 558500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 558500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 558500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 559001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 559500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 559500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 559500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 559500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 560001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 560500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 560500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 560500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 560500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 561001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 561500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 561500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 561500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 561500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 562001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 562500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 562500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 562500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 562500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 563001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 563500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 563500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 563500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 563500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 564001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 564500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 564500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 564500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 564500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 565001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 565500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 565500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 565500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 565500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 566001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 566500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 566500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 566500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 566500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 567001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 567500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 567500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 567500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 567500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 568001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 568500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 568500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 568500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 568500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 569001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 569500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 569500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 569500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 569500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 570001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 570500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 570500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 570500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 570500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 571001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 571500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 571500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 571500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 571500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 572001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 572500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 572500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 572500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 572500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 573001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 573500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 573500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 573500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 573500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 574001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 574500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 574500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 574500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 574500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 575001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 575500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 575500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 575500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 575500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 576001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 576500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 576500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 576500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 576500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 577001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 577500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 577500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 577500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 577500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 578001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 578500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 578500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 578500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 578500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 579001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 579500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 579500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 579500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 579500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 580001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 580500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 580500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 580500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 580500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 581001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 581500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 581500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 581500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 581500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 582001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 582500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 582500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 582500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 582500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 583001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 583500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 583500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 583500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 583500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 584001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 584500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 584500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 584500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 584500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 585001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 585500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 585500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 585500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 585500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 586001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 586500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 586500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 586500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 586500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 586501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1200, block addr 0x1200
+ 587001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 587500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 587500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 587500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 587500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 588001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 588500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 588500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 588500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 588500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 589001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 589500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 589500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 589500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 589500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 590001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 590500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 590500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 590500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 590500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 591001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 591500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 591500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 591500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 591500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 591500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 591501: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 592001: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 592002: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 592500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 592500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 593000: system.cpu.iew.lsq.thread0: Store request - PC 0x401125, SQ: [sn:66], Paddr 0x23fc, Vaddr 0x5833fc
+ 593001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 593500: system.cpu.iew.lsq.thread0: Store request - PC 0x40115f, SQ: [sn:285], Paddr 0x23fc, Vaddr 0x5833fc
+ 593500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 593500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40116a, Paddr 0x28fc, Vaddr 0x5838fc
+ 594000: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:282]
+ 594000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40116a, SQ: [sn:288], Paddr 0x28fc, Vaddr 0x5838fc
+ 594000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40115f, SQ: [sn:283], Paddr 0x23fc, Vaddr 0x5833fc
+ 594000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Store: PC 0x40115f, SQ: [sn:285], Paddr 0x23fc, Vaddr 0x5833fc
+ 594000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40116a, SQ:288, Paddr:0x28fc, Vaddr:0x5838fc
+ 594000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40115f, SQ:283, Paddr:0x23fc, Vaddr:0x5833fc
+ 594001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 595001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 595500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401145, Addr 0
+ 596000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401145, Addr 0
+ 596001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 596002: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 596003: system.cpu.iew.lsq: Received D$ response for packet addr 0x227c, block addr 0x2240
+ 596004: system.cpu.iew.lsq: Received D$ response for packet addr 0x2280, block addr 0x2280
+ 596500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401145, Addr 0
+ 596501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 597000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401145, Addr 0
+ 597000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 597001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 597001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2900, block addr 0x2900
+ 597002: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 597500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 597501: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 598000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 598000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40115f, SQ: [sn:385], Paddr 0x23fc, Vaddr 0x5833fc
+ 598000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40115f, Paddr 0x23fc, Vaddr 0x5833fc
+ 598000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40115f, SQ: [sn:385], Paddr 0x23fc, Vaddr 0x5833fc
+ 598500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 598500: system.cpu.iew.lsq.thread0: Store request - PC 0x401145, SQ: [sn:271], Paddr 0x28fc, Vaddr 0x5838fc
+ 598501: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 599000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 599500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 599501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 600000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 600000: system.cpu.iew.lsq.thread0: Store request - PC 0x40115f, SQ: [sn:387], Paddr 0x23fc, Vaddr 0x5833fc
+ 600000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40119a, SQ:417, Paddr:0, Vaddr:0
+ 600500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:398]
+ 600500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 600500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40118a, SQ:408, Paddr:0, Vaddr:0
+ 600500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40117d, SQ:403, Paddr:0, Vaddr:0
+ 601000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 601001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 601500: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 601501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 602000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x401150, Addr 0x558c499f1b80
+ 602001: system.cpu.iew.lsq: Received D$ response for packet addr 0x29fc, block addr 0x29c0
+ 603500: system.cpu.iew.lsq.thread0: Store request - PC 0x401150, SQ: [sn:277], Paddr 0x29fc, Vaddr 0x5839fc
+ 603501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 605000: system.cpu.iew.lsq.thread0: Validate/Expose: PC 0x40115f, Addr 0x558c499f2200
+ 605501: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 606500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011a7, SQ: [sn:450], Paddr 0x203c, Vaddr 0x58303c
+ 606500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011a7, SQ: [sn:450], Paddr 0x203c, Vaddr 0x58303c
+ 607001: system.cpu.iew.lsq: Received D$ response for packet addr 0x203c, block addr 0x2000
+ 607501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1200, block addr 0x1200
+ 608500: system.cpu.iew.lsq.thread0: Store request - PC 0x4011b3, SQ: [sn:458], Paddr 0x28fc, Vaddr 0x5838fc
+ 613001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2900, block addr 0x2900
+ 613501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2900, block addr 0x2900
+ 618001: system.cpu.iew.lsq: Received D$ response for packet addr 0x29fc, block addr 0x29c0
+ 618501: system.cpu.iew.lsq: Received D$ response for packet addr 0x29fc, block addr 0x29c0
+ 618502: system.cpu.iew.lsq: Received D$ response for packet addr 0x23fc, block addr 0x23c0
+ 618503: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0
+ 623500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011be, SQ: [sn:462], Paddr 0x2c52, Vaddr 0x583c52
+ 623500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011be, SQ: [sn:462], Paddr 0x2c52, Vaddr 0x583c52
+ 685001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2c52, block addr 0x2c40
+ 686500: system.cpu.iew.lsq.thread0: Store request - PC 0x4011be, SQ: [sn:464], Paddr 0x2c52, Vaddr 0x583c52
+ 689001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2c52, block addr 0x2c40
+ 691500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011ca, SQ: [sn:468], Paddr 0x28fc, Vaddr 0x5838fc
+ 691500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011ca, SQ: [sn:468], Paddr 0x28fc, Vaddr 0x5838fc
+ 692001: system.cpu.iew.lsq: Received D$ response for packet addr 0x28fc, block addr 0x28c0

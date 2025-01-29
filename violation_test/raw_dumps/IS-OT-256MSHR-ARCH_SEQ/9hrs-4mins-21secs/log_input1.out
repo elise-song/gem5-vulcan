@@ -1,0 +1,197 @@
+    500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:0]
+   1000: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x401000
+  74001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1000, block addr 0x1000
+  74501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1000, block addr 0x1000
+  78000: system.cpu.iew.lsq.thread0: Store request - PC 0x401015, SQ: [sn:4], Paddr 0x3ff8, Vaddr 0x584ff8
+ 137001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1040, block addr 0x1040
+ 150501: system.cpu.iew.lsq: Received D$ response for packet addr 0x3ff8, block addr 0x3fc0
+ 199501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1080, block addr 0x1080
+ 262001: system.cpu.fetch: Waking up from cache miss for packet addr 0x10c0, block addr 0x10c0
+ 265500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4010e7, SQ: [sn:37], Paddr 0x2000, Vaddr 0x583000
+ 265500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4010e7, SQ: [sn:37], Paddr 0x2000, Vaddr 0x583000
+ 324501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 329000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:78, Paddr:0, Vaddr:0
+ 329500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:53]
+ 329500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40112d, SQ:74, Paddr:0, Vaddr:0
+ 329500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401121, SQ:68, Paddr:0, Vaddr:0
+ 329501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2000, block addr 0x2000
+ 330500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40110f, SQ:56, Paddr:0, Vaddr:0
+ 330501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 333500: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x401140
+ 333500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401101, SQ: [sn:46], Paddr 0x2bb8, Vaddr 0x583bb8
+ 333500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401101, SQ: [sn:46], Paddr 0x2bb8, Vaddr 0x583bb8
+ 335500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401121, SQ: [sn:110], Paddr 0x2038, Vaddr 0x583038
+ 335500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401121, Paddr 0x2038, Vaddr 0x583038
+ 335500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401121, SQ: [sn:110], Paddr 0x2038, Vaddr 0x583038
+ 336001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2038, block addr 0x2000
+ 338000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112d, SQ: [sn:116], Paddr 0x2278, Vaddr 0x583278
+ 338000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40112d, Paddr 0x2278, Vaddr 0x583278
+ 338000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40112d, SQ: [sn:116], Paddr 0x2278, Vaddr 0x583278
+ 338000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:120], Paddr 0x2278, Vaddr 0x583278
+ 338000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401135, Paddr 0x2278, Vaddr 0x583278
+ 390001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 390500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:120], Paddr 0x2278, Vaddr 0x583278
+ 390500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401135, Paddr 0x2278, Vaddr 0x583278
+ 390501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 394500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40114e, SQ: [sn:156], Paddr 0x2bb8, Vaddr 0x583bb8
+ 394500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40114e, Paddr 0x2bb8, Vaddr 0x583bb8
+ 395001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2bb8, block addr 0x2b80
+ 395500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:120], Paddr 0x2278, Vaddr 0x583278
+ 395500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401135, Paddr 0x2278, Vaddr 0x583278
+ 395500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40114e, SQ: [sn:156], Paddr 0x2bb8, Vaddr 0x583bb8
+ 395500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40114e, Paddr 0x2bb8, Vaddr 0x583bb8
+ 395500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40114e, SQ: [sn:156], Paddr 0x2bb8, Vaddr 0x583bb8
+ 396001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2bb8, block addr 0x2b80
+ 396500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:120], Paddr 0x2278, Vaddr 0x583278
+ 396500: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401135, Paddr 0x2278, Vaddr 0x583278
+ 397000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401159, SQ: [sn:161], Paddr 0x2a78, Vaddr 0x583a78
+ 397000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401159, Paddr 0x2a78, Vaddr 0x583a78
+ 397000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401159, SQ: [sn:161], Paddr 0x2a78, Vaddr 0x583a78
+ 397000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401173, SQ:176, Paddr:0, Vaddr:0
+ 397500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:50]
+ 397500: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401159, SQ: [sn:161], Paddr 0x2a78, Vaddr 0x583a78
+ 397500: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40114e, SQ: [sn:156], Paddr 0x2bb8, Vaddr 0x583bb8
+ 397500: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401135, SQ: [sn:120], Paddr 0x2278, Vaddr 0x583278
+ 397500: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40112d, SQ: [sn:116], Paddr 0x2278, Vaddr 0x583278
+ 397500: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401121, SQ: [sn:110], Paddr 0x2038, Vaddr 0x583038
+ 397500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401166, SQ:170, Paddr:0, Vaddr:0
+ 398000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401159, SQ:161, Paddr:0x2a78, Vaddr:0x583a78
+ 398500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40114e, SQ:156, Paddr:0x2bb8, Vaddr:0x583bb8
+ 398500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401141, SQ:150, Paddr:0, Vaddr:0
+ 398501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 400001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2278, block addr 0x2240
+ 400500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:120, Paddr:0x2278, Vaddr:0x583278
+ 401000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40112d, SQ:116, Paddr:0x2278, Vaddr:0x583278
+ 401000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401121, SQ:110, Paddr:0x2038, Vaddr:0x583038
+ 402000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:78, Paddr:0, Vaddr:0
+ 402000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40112d, SQ:74, Paddr:0, Vaddr:0
+ 402500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401121, SQ:68, Paddr:0, Vaddr:0
+ 403000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40110f, SQ:56, Paddr:0, Vaddr:0
+ 407501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 408500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40110f, SQ: [sn:183], Paddr 0x2a78, Vaddr 0x583a78
+ 410000: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:190]
+ 410000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:205, Paddr:0, Vaddr:0
+ 410500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40112d, SQ:201, Paddr:0, Vaddr:0
+ 411000: system.cpu.fetch: Out of MSHRs when attempting to read PC block 0x401180
+ 411000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401121, SQ:195, Paddr:0, Vaddr:0
+ 456001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 456500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40110f, SQ: [sn:183], Paddr 0x2a78, Vaddr 0x583a78
+ 456501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 461001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2a78, block addr 0x2a40
+ 461500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40110f, SQ: [sn:183], Paddr 0x2a78, Vaddr 0x583a78
+ 461500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40110f, SQ: [sn:183], Paddr 0x2a78, Vaddr 0x583a78
+ 520001: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 525001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2a78, block addr 0x2a40
+ 527500: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:187]
+ 527500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011cc, SQ:317, Paddr:0, Vaddr:0
+ 527500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011bf, SQ:311, Paddr:0, Vaddr:0
+ 528000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011b2, SQ:303, Paddr:0, Vaddr:0
+ 528500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011a6, SQ:298, Paddr:0, Vaddr:0
+ 528501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 529000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401199, SQ:292, Paddr:0, Vaddr:0
+ 529500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40118b, SQ:284, Paddr:0, Vaddr:0
+ 529500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40117f, SQ:280, Paddr:0, Vaddr:0
+ 530000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401173, SQ:275, Paddr:0, Vaddr:0
+ 530500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401166, SQ:269, Paddr:0, Vaddr:0
+ 531500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:205, Paddr:0, Vaddr:0
+ 532000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40112d, SQ:201, Paddr:0, Vaddr:0
+ 532000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401121, SQ:195, Paddr:0, Vaddr:0
+ 536001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 537500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401121, SQ: [sn:366], Paddr 0x20f8, Vaddr 0x5830f8
+ 537500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401121, SQ: [sn:366], Paddr 0x20f8, Vaddr 0x5830f8
+ 539001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 541000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40114e, SQ: [sn:412], Paddr 0x2bb8, Vaddr 0x583bb8
+ 541000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x40114e, Paddr 0x2bb8, Vaddr 0x583bb8
+ 541000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40114e, SQ: [sn:412], Paddr 0x2bb8, Vaddr 0x583bb8
+ 541000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401159, SQ: [sn:417], Paddr 0x2a78, Vaddr 0x583a78
+ 541000: system.cpu.iew.lsq.thread0: InvisiSpec - Spec Read Request for PC 0x401159, Paddr 0x2a78, Vaddr 0x583a78
+ 541000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401159, SQ: [sn:417], Paddr 0x2a78, Vaddr 0x583a78
+ 541501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2bb8, block addr 0x2b80
+ 541501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 541502: system.cpu.iew.lsq: Received D$ response for packet addr 0x2a78, block addr 0x2a40
+ 585001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1200, block addr 0x1200
+ 593001: system.cpu.iew.lsq: Received D$ response for packet addr 0x20f8, block addr 0x20c0
+ 595000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40112d, SQ: [sn:372], Paddr 0x2df8, Vaddr 0x583df8
+ 595000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40112d, SQ: [sn:372], Paddr 0x2df8, Vaddr 0x583df8
+ 595000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:376], Paddr 0x2df8, Vaddr 0x583df8
+ 656501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 657000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:376], Paddr 0x2df8, Vaddr 0x583df8
+ 657000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401135, SQ: [sn:376], Paddr 0x2df8, Vaddr 0x583df8
+ 657501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 658000: system.cpu.iew.lsq.thread0: Store request - PC 0x40112d, SQ: [sn:374], Paddr 0x2df8, Vaddr 0x583df8
+ 658500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011bf, SQ:468, Paddr:0, Vaddr:0
+ 659000: system.cpu.iew.lsq.thread0: Squashing from SQ [sn:375]
+ 659000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401159, SQ: [sn:417], Paddr 0x2a78, Vaddr 0x583a78
+ 659000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x40114e, SQ: [sn:412], Paddr 0x2bb8, Vaddr 0x583bb8
+ 659000: system.cpu.iew.lsq.thread0: LSQUnit - Squashed Load: PC 0x401135, SQ: [sn:376], Paddr 0x2df8, Vaddr 0x583df8
+ 659000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011b2, SQ:460, Paddr:0, Vaddr:0
+ 659000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x4011a6, SQ:455, Paddr:0, Vaddr:0
+ 659500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401199, SQ:449, Paddr:0, Vaddr:0
+ 660000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40118b, SQ:441, Paddr:0, Vaddr:0
+ 660000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40117f, SQ:437, Paddr:0, Vaddr:0
+ 660500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401173, SQ:432, Paddr:0, Vaddr:0
+ 661000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401166, SQ:426, Paddr:0, Vaddr:0
+ 661500: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401159, SQ:417, Paddr:0x2a78, Vaddr:0x583a78
+ 661501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1100, block addr 0x1100
+ 662000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x40114e, SQ:412, Paddr:0x2bb8, Vaddr:0x583bb8
+ 662000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401141, SQ:406, Paddr:0, Vaddr:0
+ 662501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1140, block addr 0x1140
+ 664000: system.cpu.rob: SQUASH FILTER - Squashing on load PC:0x401135, SQ:376, Paddr:0x2df8, Vaddr:0x583df8
+ 666001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 667000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401135, SQ: [sn:514], Paddr 0x2df8, Vaddr 0x583df8
+ 667000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401135, SQ: [sn:514], Paddr 0x2df8, Vaddr 0x583df8
+ 667501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 668001: system.cpu.fetch: Waking up from cache miss for packet addr 0x1180, block addr 0x1180
+ 670501: system.cpu.fetch: Waking up from cache miss for packet addr 0x11c0, block addr 0x11c0
+ 671000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40114e, SQ: [sn:550], Paddr 0x2bb8, Vaddr 0x583bb8
+ 671000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40114e, SQ: [sn:550], Paddr 0x2bb8, Vaddr 0x583bb8
+ 671000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401159, SQ: [sn:555], Paddr 0x2a78, Vaddr 0x583a78
+ 671000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401159, SQ: [sn:555], Paddr 0x2a78, Vaddr 0x583a78
+ 671501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2bb8, block addr 0x2b80
+ 671502: system.cpu.iew.lsq: Received D$ response for packet addr 0x2a78, block addr 0x2a40
+ 674501: system.cpu.fetch: Waking up from cache miss for packet addr 0x1200, block addr 0x1200
+ 675500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401141, SQ: [sn:544], Paddr 0x2056, Vaddr 0x583056
+ 675500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401141, SQ: [sn:544], Paddr 0x2056, Vaddr 0x583056
+ 737001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 738500: system.cpu.iew.lsq.thread0: Store request - PC 0x401141, SQ: [sn:547], Paddr 0x2056, Vaddr 0x583056
+ 741001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 746000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401166, SQ: [sn:564], Paddr 0x2056, Vaddr 0x583056
+ 746000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401166, SQ: [sn:564], Paddr 0x2056, Vaddr 0x583056
+ 746501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 748000: system.cpu.iew.lsq.thread0: Store request - PC 0x401166, SQ: [sn:566], Paddr 0x2056, Vaddr 0x583056
+ 750501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 753000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401173, SQ: [sn:570], Paddr 0x2bb8, Vaddr 0x583bb8
+ 753000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401173, SQ: [sn:570], Paddr 0x2bb8, Vaddr 0x583bb8
+ 753000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40117f, SQ: [sn:575], Paddr 0x2938, Vaddr 0x583938
+ 753000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40117f, SQ: [sn:575], Paddr 0x2938, Vaddr 0x583938
+ 753000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40118b, SQ: [sn:579], Paddr 0x2938, Vaddr 0x583938
+ 753000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x401199, SQ: [sn:587], Paddr 0x2056, Vaddr 0x583056
+ 753000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x401199, SQ: [sn:587], Paddr 0x2056, Vaddr 0x583056
+ 753501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2bb8, block addr 0x2b80
+ 753502: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 754000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40118b, SQ: [sn:579], Paddr 0x2938, Vaddr 0x583938
+ 755000: system.cpu.iew.lsq.thread0: Store request - PC 0x401199, SQ: [sn:590], Paddr 0x2056, Vaddr 0x583056
+ 755000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011b2, SQ: [sn:598], Paddr 0x20f8, Vaddr 0x5830f8
+ 755000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011b2, SQ: [sn:598], Paddr 0x20f8, Vaddr 0x5830f8
+ 755501: system.cpu.iew.lsq: Received D$ response for packet addr 0x20f8, block addr 0x20c0
+ 756000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40118b, SQ: [sn:579], Paddr 0x2938, Vaddr 0x583938
+ 757000: system.cpu.iew.lsq.thread0: Store request - PC 0x4011b2, SQ: [sn:601], Paddr 0x20f8, Vaddr 0x5830f8
+ 814501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2938, block addr 0x2900
+ 815000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x40118b, SQ: [sn:579], Paddr 0x2938, Vaddr 0x583938
+ 815000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x40118b, SQ: [sn:579], Paddr 0x2938, Vaddr 0x583938
+ 815501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2938, block addr 0x2900
+ 817500: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011a6, SQ: [sn:593], Paddr 0x2938, Vaddr 0x583938
+ 817500: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011a6, SQ: [sn:593], Paddr 0x2938, Vaddr 0x583938
+ 818001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2938, block addr 0x2900
+ 819500: system.cpu.iew.lsq.thread0: Store request - PC 0x4011a6, SQ: [sn:595], Paddr 0x2938, Vaddr 0x583938
+ 819501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040
+ 822001: system.cpu.iew.lsq: Received D$ response for packet addr 0x2938, block addr 0x2900
+ 822002: system.cpu.iew.lsq: Received D$ response for packet addr 0x20f8, block addr 0x20c0
+ 827000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011bf, SQ: [sn:606], Paddr 0x2df8, Vaddr 0x583df8
+ 827000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011bf, SQ: [sn:606], Paddr 0x2df8, Vaddr 0x583df8
+ 827501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 829000: system.cpu.iew.lsq.thread0: Store request - PC 0x4011bf, SQ: [sn:608], Paddr 0x2df8, Vaddr 0x583df8
+ 831501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2df8, block addr 0x2dc0
+ 834000: system.cpu.iew.lsq.thread0: Attempting load request - PC 0x4011cc, SQ: [sn:612], Paddr 0x2056, Vaddr 0x583056
+ 834000: system.cpu.iew.lsq.thread0: Successfully sent out load request - PC 0x4011cc, SQ: [sn:612], Paddr 0x2056, Vaddr 0x583056
+ 834501: system.cpu.iew.lsq: Received D$ response for packet addr 0x2056, block addr 0x2040

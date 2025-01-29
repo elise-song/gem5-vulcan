@@ -1,0 +1,121 @@
+
+results/10hrs-18mins-13secs/test_case_input2.out:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000401000 <_start>:
+  401000:	48 c7 c4 00 50 58 00 	mov    $0x585000,%rsp
+  401007:	48 c7 c5 00 50 58 00 	mov    $0x585000,%rbp
+  40100e:	48 c7 c0 82 00 00 00 	mov    $0x82,%rax
+  401015:	50                   	push   %rax
+  401016:	9d                   	popfq  
+  401017:	48 b8 80 95 1e 00 c0 	movabs $0x3420c0001e9580,%rax
+  40101e:	20 34 00 
+  401021:	49 b8 80 95 1e 00 c0 	movabs $0x3420c0001e9580,%r8
+  401028:	20 34 00 
+  40102b:	4c 09 c0             	or     %r8,%rax
+  40102e:	48 bb 00 95 2e 00 00 	movabs $0x127700002e9500,%rbx
+  401035:	77 12 00 
+  401038:	49 b8 00 95 2e 00 00 	movabs $0x127700002e9500,%r8
+  40103f:	77 12 00 
+  401042:	4c 09 c3             	or     %r8,%rbx
+  401045:	48 b9 40 00 20 00 c0 	movabs $0xa5fc000200040,%rcx
+  40104c:	5f 0a 00 
+  40104f:	49 b8 40 00 20 00 c0 	movabs $0xa5fc000200040,%r8
+  401056:	5f 0a 00 
+  401059:	4c 09 c1             	or     %r8,%rcx
+  40105c:	48 ba c0 56 23 00 40 	movabs $0xbbf40002356c0,%rdx
+  401063:	bf 0b 00 
+  401066:	49 b8 c0 56 23 00 40 	movabs $0xbbf40002356c0,%r8
+  40106d:	bf 0b 00 
+  401070:	4c 09 c2             	or     %r8,%rdx
+  401073:	48 be 80 d9 02 00 80 	movabs $0x2842800002d980,%rsi
+  40107a:	42 28 00 
+  40107d:	49 b8 80 d9 02 00 80 	movabs $0x2842800002d980,%r8
+  401084:	42 28 00 
+  401087:	4c 09 c6             	or     %r8,%rsi
+  40108a:	48 bf 80 a9 3f 00 40 	movabs $0x213f40003fa980,%rdi
+  401091:	3f 21 00 
+  401094:	49 b8 80 a9 3f 00 40 	movabs $0x213f40003fa980,%r8
+  40109b:	3f 21 00 
+  40109e:	4c 09 c7             	or     %r8,%rdi
+  4010a1:	49 c7 c0 00 00 00 00 	mov    $0x0,%r8
+  4010a8:	49 c7 c1 00 00 00 00 	mov    $0x0,%r9
+  4010af:	49 c7 c2 00 00 00 00 	mov    $0x0,%r10
+  4010b6:	49 c7 c3 00 00 00 00 	mov    $0x0,%r11
+  4010bd:	49 c7 c4 00 00 00 00 	mov    $0x0,%r12
+  4010c4:	49 c7 c5 00 00 00 00 	mov    $0x0,%r13
+  4010cb:	49 c7 c7 00 00 00 00 	mov    $0x0,%r15
+  4010d2:	49 c7 c6 00 30 58 00 	mov    $0x583000,%r14
+  4010d9:	48 c7 c4 f8 3f 58 00 	mov    $0x583ff8,%rsp
+  4010e0:	48 c7 c5 f8 3f 58 00 	mov    $0x583ff8,%rbp
+  4010e7:	4d 8b 16             	mov    (%r14),%r10
+  4010ea:	49 c7 c2 00 00 00 00 	mov    $0x0,%r10
+  4010f1:	4d 8d 76 3c          	lea    0x3c(%r14),%r14
+  4010f5:	0f ae f0             	mfence 
+
+00000000004010f8 <.bb_main.entry>:
+  4010f8:	eb 00                	jmp    4010fa <.bb_main.0>
+
+00000000004010fa <.bb_main.0>:
+  4010fa:	48 25 ff 0f 00 00    	and    $0xfff,%rax
+  401100:	41 30 1c 06          	xor    %bl,(%r14,%rax,1)
+  401104:	48 81 e1 ff 0f 00 00 	and    $0xfff,%rcx
+  40110b:	66 41 0f 40 1c 0e    	cmovo  (%r14,%rcx,1),%bx
+  401111:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  401118:	41 85 0c 36          	test   %ecx,(%r14,%rsi,1)
+  40111c:	48 81 e2 ff 0f 00 00 	and    $0xfff,%rdx
+  401123:	f0 41 f7 14 16       	lock notl (%r14,%rdx,1)
+  401128:	eb 00                	jmp    40112a <.bb_main.1>
+
+000000000040112a <.bb_main.1>:
+  40112a:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  401131:	f0 41 f6 14 36       	lock notb (%r14,%rsi,1)
+  401136:	48 25 ff 0f 00 00    	and    $0xfff,%rax
+  40113c:	49 83 24 06 8c       	andq   $0xffffffffffffff8c,(%r14,%rax,1)
+  401141:	71 02                	jno    401145 <.bb_main.2>
+  401143:	eb 34                	jmp    401179 <.bb_main.3>
+
+0000000000401145 <.bb_main.2>:
+  401145:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  40114c:	41 80 24 36 f3       	andb   $0xf3,(%r14,%rsi,1)
+  401151:	48 25 ff 0f 00 00    	and    $0xfff,%rax
+  401157:	41 83 0c 06 9d       	orl    $0xffffff9d,(%r14,%rax,1)
+  40115c:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  401163:	41 0f 4d 0c 36       	cmovge (%r14,%rsi,1),%ecx
+  401168:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  40116f:	66 41 0f 4a 3c 36    	cmovp  (%r14,%rsi,1),%di
+  401175:	72 02                	jb     401179 <.bb_main.3>
+  401177:	eb 57                	jmp    4011d0 <.bb_main.exit>
+
+0000000000401179 <.bb_main.3>:
+  401179:	80 e1 ad             	and    $0xad,%cl
+  40117c:	48 81 e7 ff 0f 00 00 	and    $0xfff,%rdi
+  401183:	49 0f 4c 0c 3e       	cmovl  (%r14,%rdi,1),%rcx
+  401188:	48 81 e7 ff 0f 00 00 	and    $0xfff,%rdi
+  40118f:	41 30 3c 3e          	xor    %dil,(%r14,%rdi,1)
+  401193:	48 81 e2 ff 0f 00 00 	and    $0xfff,%rdx
+  40119a:	49 81 0c 16 00 00 00 	orq    $0x40000000,(%r14,%rdx,1)
+  4011a1:	40 
+  4011a2:	49 0f bd 3c 16       	bsr    (%r14,%rdx,1),%rdi
+  4011a7:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  4011ae:	66 41 09 0c 36       	or     %cx,(%r14,%rsi,1)
+  4011b3:	7a 02                	jp     4011b7 <.bb_main.4>
+  4011b5:	eb 19                	jmp    4011d0 <.bb_main.exit>
+
+00000000004011b7 <.bb_main.4>:
+  4011b7:	48 81 e2 ff 0f 00 00 	and    $0xfff,%rdx
+  4011be:	f0 49 f7 14 16       	lock notq (%r14,%rdx,1)
+  4011c3:	48 81 e6 ff 0f 00 00 	and    $0xfff,%rsi
+  4011ca:	66 f0 41 09 14 36    	lock or %dx,(%r14,%rsi,1)
+
+00000000004011d0 <.bb_main.exit>:
+  4011d0:	0f ae f0             	mfence 
+  4011d3:	4d 8d 76 c4          	lea    -0x3c(%r14),%r14
+
+00000000004011d7 <.exit>:
+  4011d7:	0f ae e8             	lfence 
+  4011da:	48 c7 c0 3c 00 00 00 	mov    $0x3c,%rax
+  4011e1:	48 31 ff             	xor    %rdi,%rdi
+  4011e4:	0f 05                	syscall 

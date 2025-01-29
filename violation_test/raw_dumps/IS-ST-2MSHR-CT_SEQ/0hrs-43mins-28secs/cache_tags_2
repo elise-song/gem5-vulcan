@@ -1,0 +1,9 @@
+## Cache tags generated: Sat Feb 10 09:34:28 2024
+
+[system.ruby.l1_cntrl0.L1Icache]
+addresses=4096 4160 4224 4288 4352 4416 4480 4544
+replacements=0 0 0 0 0 0 0 0
+
+[system.ruby.l1_cntrl0.L1Dcache]
+addresses=8192 8320 9216 9792 11520 11776 16320
+replacements=0 0 0 0 0 0 0
