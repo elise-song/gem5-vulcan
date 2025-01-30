@@ -26,7 +26,6 @@
 #include "arch/x86/regs/int.hh"
 
 static constexpr uint64_t maxCodeSize = 512;
-static constexpr uint64_t maxSandboxSize = 8192;
 static constexpr uint64_t maxRegistersSize = 64;
 
 // random 64-bit integers representing operations which Revizor/Gem5 asks Gem5/Revizor to do
@@ -351,7 +350,6 @@ void RevizorIPC::traceTestCase() {
     std::vector<uint8_t> input;
     input.resize(inputSize, 0);
     recv(&input[0], inputSize);
-    assert(registersStart <= maxSandboxSize);
     assert(inputSize - registersStart <= maxRegistersSize);
     // we have disabled checking input hashes because it was
     // very slow for large inputs
@@ -359,7 +357,6 @@ void RevizorIPC::traceTestCase() {
     // assert(hashBytes(&input[0], inputSize) == inputHash);
     uint8_t *sandbox = vaddrToHost(addresses.at("sandbox"));
     uint8_t *registers = vaddrToHost(addresses.at("registers"));
-    memset(sandbox, 0, maxSandboxSize);
     memcpy(sandbox, &input[0], registersStart);
     memset(registers, 0, maxRegistersSize);
     memcpy(registers, &input[registersStart], inputSize - registersStart);
