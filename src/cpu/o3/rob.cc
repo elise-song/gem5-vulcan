@@ -44,11 +44,18 @@
 #include <cstdio>
 #include <list>
 
-#include "base/logging.hh"
+#include "base/stats/group.hh"
+#include "base/stats/units.hh"
+#include "base/trace.hh"
+#include "base/types.hh"
+#include "cpu/inst_seq.hh"
+#include "cpu/o3/cpu.hh"
 #include "cpu/o3/dyn_inst.hh"
+#include "cpu/o3/dyn_inst_ptr.hh"
 #include "cpu/o3/limits.hh"
 #include "debug/Fetch.hh"
 #include "debug/ROB.hh"
+#include "enums/SMTQueuePolicy.hh"
 #include "params/BaseO3CPU.hh"
 
 namespace gem5
@@ -724,6 +731,11 @@ ROB::squash(InstSeqNum squash_num, ThreadID tid)
     doneSquashing[tid] = false;
 
     squashedSeqNum[tid] = squash_num;
+
+    if (cpu->protectionEnabled) {
+        visibilityPointSeqNum[tid] =
+            std::max(visibilityPointSeqNum[tid], squash_num);
+    }
 
     if (!instList[tid].empty()) {
         InstIt tail_thread = instList[tid].end();
