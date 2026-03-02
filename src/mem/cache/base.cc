@@ -451,37 +451,26 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
     }
 }
 
-// int i = 0;
-// int sum = 0;
 void
 BaseCache::recvTimingReq(PacketPtr pkt)
 {
-    // if (i < 256){
-    //     DPRINTF(Cache, "%d B4 HIJACK pkt: %s addr 0x%llx data %d, size %d \n", i, pkt->print(), pkt->getAddr(), (pkt->getSize() >= 4) ? pkt->getBE<int>() : 0, pkt->getSize());
-    //     DPRINTF(Cache, "%d B4 HIJACK req: paddr 0x%llx vaddr 0x%llx, size %d\n", i, pkt->req->getPaddr(), pkt->req->getVaddr(), pkt->req->getSize());
-    //     Addr hijack_addr = i * 64;
-    //     pkt->setAddr(hijack_addr);
-    //     pkt->req->setPaddr(hijack_addr);
-    //     pkt->setSize(blkSize);
-    //     pkt->setBE(i);
-    //     pkt->cmd = MemCmd::WriteReq;
-    //     DPRINTF(Cache, "%d HIJACKED pkt: %s addr 0x%llx data %d, size %d \n", i, pkt->print(), pkt->getAddr(), pkt->getBE<int>(), pkt->getSize());
-    //     DPRINTF(Cache, "%d HIJACKED req: paddr 0x%llx vaddr 0x%llx, size %d\n", i, pkt->req->getPaddr(), pkt->req->getVaddr(), pkt->req->getSize());
-        
-    // } else if (i < 512){
-    //     DPRINTF(Cache, "%d B4 HIJACK pkt: %s addr 0x%llx data %d, size %d \n", i, pkt->print(), pkt->getAddr(), (pkt->getSize() >= 4) ? pkt->getBE<int>() : 0, pkt->getSize());
-    //     DPRINTF(Cache, "%d B4 HIJACK req: paddr 0x%llx vaddr 0x%llx, size %d\n", i, pkt->req->getPaddr(), pkt->req->getVaddr(), pkt->req->getSize());
-    //     Addr hijack_addr = (i - 256) * 64;
-    //     pkt->setAddr(hijack_addr);
-    //     pkt->req->setPaddr(hijack_addr);
-    //     pkt->setSize(blkSize);
-    //     pkt->cmd = MemCmd::ReadReq;
-    //     DPRINTF(Cache, "%d HIJACKED pkt: %s addr 0x%llx data %d, size %d \n", i, pkt->print(), pkt->getAddr(), (pkt->getSize() >= 4) ? pkt->getBE<int>() : 0, pkt->getSize());
-    //     DPRINTF(Cache, "%d HIJACKED req: paddr 0x%llx vaddr 0x%llx, size %d\n", i, pkt->req->getPaddr(), pkt->req->getVaddr(), pkt->req->getSize());
-    // } else if (i == 512){
-    //     DPRINTF(Cache, "%d SUM: %d\n", i, sum);
-    // }
-    // i++;
+    // what is the PACKET's type of request, address, data, and size?
+
+    // what is the REQUEST's address (physical and virtual) and size?
+
+    // hijack time: set a new address for the first 256 requests, where each
+    // request touches a different block. hint: set both the packet's address
+    // and the request's physical address
+
+    // set a new size
+
+    // choose read or write, and change the request type
+    // hint: check out MemCmd in packet.hh
+
+    // if you chose write, you can also set the data in the packet
+    // hint: check out packet_access.hh. What is endianness?
+
+    // verify that you changed the packet and request as expected
 
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
@@ -2713,7 +2702,7 @@ CpuSidePort::CpuSidePort(const std::string &_name, BaseCache& _cache,
 ///////////////
 bool
 BaseCache::MemSidePort::recvTimingResp(PacketPtr pkt)
-{ 
+{
     cache->recvTimingResp(pkt);
     return true;
 }
