@@ -4,6 +4,7 @@ from gem5.components.memory.single_channel import SingleChannelDDR3_1600
 from gem5.simulate.simulator import Simulator
 from gem5.utils.override import *
 from just_dcache_hierarchy import JustDCacheHierarchy
+from prime_probe_generator import PrimeProbeGenerator
 
 
 
@@ -12,9 +13,7 @@ cache_hierarchy = JustDCacheHierarchy()
 memory = SingleChannelDDR3_1600(size="2GiB")
 
 # https://www.gem5.org/assets/files/hpca2023-tutorial/gem5-tutorial-hpca-2023.pdf slide 51
-generator = LinearGenerator(
-        duration="1ms", rate="32GiB/s", max_addr=memory.get_size(), rd_perc=0, data_limit=16384
-    )
+generator = PrimeProbeGenerator()
 
 board = TestBoard(
     clk_freq="3GHz",
