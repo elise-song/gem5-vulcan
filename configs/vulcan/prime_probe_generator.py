@@ -68,6 +68,18 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                 write,
                 dataLimit,
             )
+        # victim accesses secret data
+        top_secret = 0xcafe000
+        yield self.generator.createLinear(
+            duration, 
+            top_secret,
+            top_secret + accessSize,
+            accessSize,
+            period,
+            period,
+            read,
+            dataLimit
+        )
         # probe phase - read from each block to probe the cache
         for j in range(256):
             startAddr = j * 64 # block size=64 bytes
