@@ -455,22 +455,55 @@ void
 BaseCache::recvTimingReq(PacketPtr pkt)
 {
     // what is the PACKET's type of request, address, data, and size?
-
+    //bool is_read  = pkt -> isRead();
+    //bool is_write = pkt -> isWrite();
+    //Addr pAddr = pkt -> getAddr();
+    //uint8_t* pData = nullptr;
+    // if (pkt->hasData()) {
+    //    pData = pkt->getPtr<uint8_t>();
+    //}
+    //unsigned pSize = pkt -> getSize();
+    RequestPtr request = pkt -> req; 
+    printf("Addr: 0x%lx\n", pkt -> getAddr());
+    printf("Paddr: 0x%lx\n", request -> getPaddr());
+    printf("Size: %u\n", request -> getSize());
+    printf("Cmd: %s\n", pkt->cmd.toString().c_str());
     // what is the REQUEST's address (physical and virtual) and size?
-
+    Addr rPhysicalAddr = request -> getPaddr();
+    Addr rVirtualAddr = 0;
+    if (request->hasVaddr()) {
+        rVirtualAddr = request->getVaddr();
+    }
+    unsigned rSize = request -> getSize();
     // hijack time: set a new address for the first 256 requests, where each
     // request touches a different block. hint: set both the packet's address
     // and the request's physical address
-
-    // set a new size
-
-    // choose read or write, and change the request type
-    // hint: check out MemCmd in packet.hh
-
-    // if you chose write, you can also set the data in the packet
-    // hint: check out packet_access.hh. What is endianness?
-
-    // verify that you changed the packet and request as expected
+    Addr start = 0x0000;
+    static int count = 0;
+    if (count < 256){
+        printf("count: %d\n", count);
+        pkt -> setAddr(start + (count * 64));
+        request -> setPaddr(start + (count * 64));
+        count++;
+        // set a new size
+        //pkt -> setSize(4);
+        // choose read or write, and change the request type
+        // hint: check out MemCmd in packet.hh
+        if (!pkt -> isWrite())
+            pkt -> cmd = MemCmd::WriteReq;
+        // if you chose write, you can also set the data in the packet
+        // hint: check out packet_access.hh. What is endianness?
+        if (pkt->hasData() && pkt->isWrite())
+            pkt->set<uint8_t>(84, ByteOrder::little);
+        // verify that you changed the packet and request as expected
+        uint8_t* data = pkt -> getPtr<uint8_t>();
+        if (pkt->hasData()) {
+            uint8_t* data = pkt->getPtr<uint8_t>();
+            printf("Data: %u\n", *data);
+            printf("Updated Cmd: %s\n", pkt->cmd.toString().c_str());
+        }       
+    }
+    
 
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
