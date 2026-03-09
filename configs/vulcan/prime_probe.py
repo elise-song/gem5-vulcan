@@ -5,8 +5,7 @@ from gem5.simulate.simulator import Simulator
 from gem5.utils.override import *
 from just_dcache_hierarchy import JustDCacheHierarchy
 from prime_probe_generator import PrimeProbeGenerator
-
-
+from check_mapping import CheckMapping
 
 
 cache_hierarchy = JustDCacheHierarchy()
@@ -32,3 +31,5 @@ print("memory size: " + str(memory.get_size()))
 
 simulator = Simulator(board=board)
 simulator.run()
+
+print("success rate ", CheckMapping("configs/vulcan/debug.txt"))
