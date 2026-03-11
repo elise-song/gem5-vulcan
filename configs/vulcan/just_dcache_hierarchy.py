@@ -2,6 +2,9 @@ from m5.objects import (
     BadAddr,
     Cache,
     SystemXBar,
+    BaseSetAssoc,
+    Ceaser,
+    TaggedSetAssociative
 )
 from gem5.components.boards.abstract_board import AbstractBoard
 from gem5.components.cachehierarchies.abstract_cache_hierarchy import (
@@ -12,7 +15,6 @@ from gem5.components.cachehierarchies.classic.abstract_classic_cache_hierarchy i
 )
 from gem5.isas import ISA
 from gem5.utils.override import *
-
 
 class DCache(Cache):
     """Simple data cache with default values, direct mapped, no prefetcher"""
@@ -25,10 +27,11 @@ class DCache(Cache):
     response_latency = 2
     mshrs = 4
     tgts_per_mshr = 20
+    tags = BaseSetAssoc()
+    tags.indexing_policy = Ceaser()
 
     def __init__(self):
         super().__init__()
-        pass
 
     def connectCPU(self, cpu):
         """Connect this cache's port to a CPU dcache port"""
