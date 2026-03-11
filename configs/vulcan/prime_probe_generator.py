@@ -18,7 +18,7 @@ from gem5.components.processors.abstract_generator import (
 
 
 class PrimeProbeGeneratorCore(AbstractGeneratorCore):
-    def __init__(self, secret_keys):
+    def __init__(self, victim_accesses, num_sets):
         super().__init__()
         """ The prime and probe core interface.
 
@@ -27,7 +27,8 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
         inject the synthetic traffic.
 
         """
-        self._secret_keys = secret_keys
+        self._victim_accesses = victim_accesses
+        self._num_sets = num_sets
         self.generator = PyTrafficGen()
 
     @overrides(AbstractCore)
@@ -47,17 +48,17 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
 
         :rtype: Iterator[BaseTrafficGen]
         """
-        duration = 60000 #ticks
+        duration = 80000 #ticks
         accessSize = 4
-        period = 30000
+        period = 40000
         dataLimit = 0
         startAddr = 0
         read = 100
         write = 0
 
-        for secret in self._secret_keys:
+        for secret in self._victim_accesses:
             # prime phase - write to each block to prime the cache
-            for i in range(256):
+            for i in range(self._num_sets):
                 startAddr = i * 64 # block size=64 bytes
                 endAddr = startAddr + accessSize
                 yield self.generator.createLinear(
@@ -70,6 +71,7 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     write,
                     dataLimit,
                 )
+            yield self.generator.createIdle(10*duration)
             # victim accesses secret data
             yield self.generator.createLinear(
                 duration, 
@@ -81,8 +83,10 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                 read,
                 dataLimit
             )
+            yield self.generator.createIdle(10*duration)
+
             # probe phase - read from each block to probe the cache
-            for j in range(256):
+            for j in range(self._num_sets):
                 startAddr = j * 64 # block size=64 bytes
                 endAddr = startAddr + accessSize
                 yield self.generator.createLinear(
@@ -95,7 +99,8 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     read,
                     dataLimit,
                 )
-            
+            yield self.generator.createIdle(10*duration)
+        # After all memory accesses, synchronize all accesses with this access
         # end traffic 
         yield self.generator.createExit(0)
 
@@ -107,14 +112,14 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
 
 
 class PrimeProbeGenerator(AbstractGenerator):
-    def __init__(self, secret_keys):
+    def __init__(self, victim_accesses, num_sets):
         """The prime and probe generator
 
         This class defines an external interface to create a list containing one 
         PrimeProbeGeneratorCore that can replace the processing core on the board.
 
         """
-        super().__init__(cores=[PrimeProbeGeneratorCore(secret_keys)])
+        super().__init__(cores=[PrimeProbeGeneratorCore(victim_accesses, num_sets)])
 
     
 

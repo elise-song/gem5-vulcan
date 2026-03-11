@@ -64,6 +64,21 @@ class TaggedSetAssociative(TaggedIndexingPolicy):
     entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
 
 
+class Ceaser(TaggedIndexingPolicy):
+    type = "Ceaser"
+    cxx_class = "gem5::Ceaser"
+    cxx_header = "mem/cache/tags/ceaser.hh"
+
+    # Get the size from the parent (cache)
+    size = Param.MemorySize(Parent.size, "capacity in bytes")
+
+    # Get the entry size from the parent (tags)
+    entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
+
+    # Filepath that contains the s-box and p-box values for the Ceaser indexing policy
+    box_file = Param.String("", "Path to S-box/P-box file")
+    
+
 class BaseTags(ClockedObject):
     type = "BaseTags"
     abstract = True

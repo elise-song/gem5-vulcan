@@ -2,6 +2,9 @@ from m5.objects import (
     BadAddr,
     Cache,
     SystemXBar,
+    BaseSetAssoc,
+    Ceaser,
+    TaggedSetAssociative
 )
 from gem5.components.boards.abstract_board import AbstractBoard
 from gem5.components.cachehierarchies.abstract_cache_hierarchy import (
@@ -12,23 +15,31 @@ from gem5.components.cachehierarchies.classic.abstract_classic_cache_hierarchy i
 )
 from gem5.isas import ISA
 from gem5.utils.override import *
-
+import os
 
 class DCache(Cache):
     """Simple data cache with default values, direct mapped, no prefetcher"""
 
     # Set the default size
-    size = "16KiB"
     assoc = 1
     tag_latency = 2
     data_latency = 2
     response_latency = 2
     mshrs = 4
     tgts_per_mshr = 20
+    tags = BaseSetAssoc()
+    tags.indexing_policy = Ceaser()
 
-    def __init__(self):
+    def __init__(self, ceaser, size):
+        self.size = size
         super().__init__()
-        pass
+        if ceaser == "ceaser":
+            policy = Ceaser()
+            policy.box_file = os.getcwd() + "/configs/vulcan/box/" + size + ".txt"
+            self.tags.indexing_policy = policy
+        else: 
+            self.tags.indexing_policy = TaggedSetAssociative()
+
 
     def connectCPU(self, cpu):
         """Connect this cache's port to a CPU dcache port"""
@@ -42,11 +53,16 @@ class DCache(Cache):
 
 # from cachehierarchies/classic/private_l1_cache_hierarchy.py
 class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
-    def __init__(self):
+    def __init__(self, ceaser="", cache_size="16KiB"):
         super().__init__()
         self.membus = SystemXBar(width=64)
         self.membus.badaddr_responder = BadAddr()
         self.membus.default = self.membus.badaddr_responder.pio
+        self._ceaser = ceaser
+        self._cache_size = cache_size
+
+    def get_l1dcache_size(self):
+        return self.l1dcache.size 
 
     @overrides(AbstractClassicCacheHierarchy)
     def get_mem_side_port(self):
@@ -66,7 +82,7 @@ class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
 
         assert board.get_processor().get_num_cores() == 1
 
-        self.l1dcache = DCache()
+        self.l1dcache = DCache(self._ceaser, self._cache_size)
 
         if board.has_coherent_io():
             self._setup_io_cache(board)

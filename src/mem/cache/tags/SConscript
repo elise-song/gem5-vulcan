@@ -38,6 +38,7 @@ SimObject(
         "FALRU",
         "TaggedIndexingPolicy",
         "TaggedSetAssociative",
+        "Ceaser",
     ],
 )
 
@@ -49,5 +50,8 @@ Source("fa_lru.cc")
 Source("sector_blk.cc")
 Source("sector_tags.cc")
 Source("super_blk.cc")
+Source("ceaser.cc")
+
+DebugFlag("Ceaser")
 
 GTest("dueling.test", "dueling.test.cc", "dueling.cc")
