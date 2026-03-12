@@ -6,10 +6,10 @@ from gem5.utils.override import *
 from just_dcache_hierarchy import JustDCacheHierarchy
 from prime_probe_generator import PrimeProbeGenerator
 from check_mapping import CheckMapping
-
+import math
 
 cache_hierarchy = JustDCacheHierarchy()
-memory = SingleChannelDDR3_1600(size="2GiB")
+memory = SingleChannelDDR3_1600(size="4GiB") #32 bit address
 
 # https://www.gem5.org/assets/files/hpca2023-tutorial/gem5-tutorial-hpca-2023.pdf slide 51
 secret_keys = [0xcafe000, 0xcafe100, 0xcafe200, 0xcafe300, 0xcafe4e0]
@@ -28,8 +28,9 @@ board = TestBoard(
 # Setup the Simulator and run the simulation.
 print("cacheline size: " + str(board.get_cache_line_size()))
 print("memory size: " + str(memory.get_size()))
+print("addr width: " + str(math.log2(board.get_mem_ranges()[0].size())))
 
 simulator = Simulator(board=board)
 simulator.run()
 
-print("success rate ", CheckMapping("configs/vulcan/debug.txt"))
+print("success rate ", CheckMapping("configs/vulcan/debug1.txt"))
