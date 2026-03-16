@@ -9,10 +9,10 @@ from check_mapping import CheckMapping
 import math
 
 cache_hierarchy = JustDCacheHierarchy()
-memory = SingleChannelDDR3_1600(size="4GiB") #32 bit address
+memory = SingleChannelDDR3_1600(size="1GiB") #30 bit address
 
 # https://www.gem5.org/assets/files/hpca2023-tutorial/gem5-tutorial-hpca-2023.pdf slide 51
-secret_keys = [0xcafe000, 0xcafe100, 0xcafe200, 0xcafe300, 0xcafe4e0]
+secret_keys = [0xcafe000]
 for secret in secret_keys:
     print(hex((secret >> 6) & 0b11111111))
 generator = PrimeProbeGenerator(secret_keys)
@@ -33,4 +33,4 @@ print("addr width: " + str(math.log2(board.get_mem_ranges()[0].size())))
 simulator = Simulator(board=board)
 simulator.run()
 
-print("success rate ", CheckMapping("configs/vulcan/debug1.txt"))
+# print("success rate ", CheckMapping("configs/vulcan/debug1.txt"))

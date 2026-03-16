@@ -15,17 +15,14 @@ class Ceaser : public TaggedIndexingPolicy
     extractSet(const KeyType &key) const;
   
     private:
-      uint16_t ceaser_key[4] = {0xE, 0xEE, 0xEEE, 0xEEEE};
-       // s box
-      uint8_t sbox[16] = {
-        0x0, 0x1, 0x2, 0x3,   
-        0x4, 0x5, 0x6, 0x7,   
-        0x8, 0x9, 0xA, 0xB,   
-        0xC, 0xD, 0xE, 0xF    
-      };
 
-      Addr
-      encrypt(const Addr addr) const;
+      uint16_t ceaser_key[4] = {0xE, 0xEE, 0xeee, 0xaaa};
+
+      uint32_t 
+      encrypt(const uint32_t line_addr) const;
+      
+      uint32_t 
+      decrypt(const uint32_t line_addr) const;
 
       uint16_t
       round(const uint16_t input, const uint16_t key) const;

@@ -12,61 +12,66 @@ Ceaser::Ceaser(const Params &p)
 uint16_t 
 Ceaser::round(const uint16_t input, const uint16_t key) const
 {
-    // s box
-    uint16_t substituted = 0;
-    for (int i = 0; i < 4; i++) {
-        uint8_t quarter = (input >> (i * 4)) & 0xF;
-        substituted |= ((uint16_t)sbox[quarter]) << (i * 4);
-    }
-
-    // p box
-    uint16_t permuted = 0;
-    for (int i = 0; i < 16; i++) {
-        int src = (i * 4 + i / 4) % 16;
-        uint16_t bit = (substituted >> src) & 1;
-        permuted |= bit << i;
-    }
-
-    // xor with key
-    return permuted ^ key;
+    return input ^ key;
 }
 
-Addr 
-Ceaser::encrypt(const Addr addr) const
+uint32_t 
+Ceaser::encrypt(const uint32_t line_addr) const
 {
-    DPRINTF(Cache, "CEASER B4 ENCRYPT %llx\n", addr);
-    uint16_t left0 = bits<Addr>(addr, 15, 0);
-    uint16_t right0 = bits<Addr>(addr, 31, 16);
-    // first stage
-    uint16_t right1 = left0;
-    uint16_t left1 = round(left0, ceaser_key[0]) ^ right0;
-    // second stage
-    uint16_t right2 = left1;
-    uint16_t left2 = round(left1, ceaser_key[1]) ^ right1;
-    // third stage
-    uint16_t right3 = left2;
-    uint16_t left3 = round(left2, ceaser_key[2]) ^ right2;
-    // fourth stage
-    uint16_t right4 = left3;
-    uint16_t left4 = round(left3, ceaser_key[3]) ^ right3;
+    // line address is 30-6 = 24 bits
+    uint16_t left = bits<Addr>(line_addr, 23, 12);
+    uint16_t right = bits<Addr>(line_addr, 11, 0);
+    DPRINTF(Cache, "CEASER: left= %x right= %x\n",  left, right);
+    uint16_t temp;
+    for (int i = 0; i < 4; i++) {
+        temp = left;
+        left = round(left, ceaser_key[i]) ^ right;
+        right = temp;
+        DPRINTF(Cache, "CEASER round %d: left= %x right= %x\n", i, left, right);
+    }
     // concat left' and right'
-    Addr encrypted_addr = ((Addr)left4 << 16) | right4;
-    DPRINTF(Cache, "CEASER ENCRYPT %llx\n", encrypted_addr);
-    return addr;
+    Addr encrypted_addr = (left << 12) | right;
+    DPRINTF(Cache, "CEASER encrypt %llx\n", encrypted_addr);
+    return encrypted_addr;
 }
+
+uint32_t 
+Ceaser::decrypt(const uint32_t line_addr) const
+{
+    // line address is 30-6 = 24 bits
+    uint16_t left = bits<Addr>(line_addr, 23, 12);
+    uint16_t right = bits<Addr>(line_addr, 11, 0);
+    uint16_t temp;
+    DPRINTF(Cache, "CEASER : left= %x right= %x\n", left, right);
+
+    for (int i = 3; i >=0; i--) {
+        temp = right;
+        right = round(right, ceaser_key[i]) ^ left;
+        left = temp;
+        DPRINTF(Cache, "CEASER round %d: left= %x right= %x\n", i, left, right);
+
+    }
+    // concat left' and right'
+    Addr decrypted_addr = (left << 12) | right;
+    return decrypted_addr;
+}
+uint32_t previous_addr = 0;
 
 uint32_t
 Ceaser::extractSet(const KeyType &key) const
 {
-    return (encrypt(key.address) >> setShift) & setMask;
+    previous_addr = encrypt(key.address >> setShift);
+    uint32_t set = (encrypt(key.address >> setShift)) & setMask;
+    DPRINTF(Cache, "CEASER extractSet %d\n", set);
+    return set;
 }
 
 
 std::vector<ReplaceableEntry*>
 Ceaser::getPossibleEntries(const KeyType &key) const 
 {
-    DPRINTF(Cache, "CEASER getPossibleEntries %llx\n", key.address);
-    return sets[extractSet(key)];
+    std::vector<ReplaceableEntry*> entries = sets[extractSet(key)];
+    return entries;
 }
 
 Addr
@@ -74,8 +79,9 @@ Ceaser::regenerateAddr(const KeyType &key,
                    const ReplaceableEntry *entry) const 
 {
     DPRINTF(Cache, "CEASER regenerateAddr key.address %llx\n", key.address);
-    Addr regenerated =  (key.address << tagShift) | (entry->getSet() << setShift);
-    DPRINTF(Cache, "CEASER regenerateAddr regenerated%llx\n", regenerated);
+    Addr regenerated =  decrypt((key.address << tagShift) | (entry->getSet()) << setShift);
+    DPRINTF(Cache, "CEASER regenerateAddr regenerated %llx\n", regenerated);
+    return regenerated;
 
 }
 
