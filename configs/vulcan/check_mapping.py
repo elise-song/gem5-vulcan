@@ -4,7 +4,12 @@
 #split here: 0xcafe200 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x32bf secure: 0 valid: 1 | set: 
 #split here: 0x88 way: 0
 
-def CheckMapping(file):
+def CheckMapping(victim_accesses, file):
+    # for each addr in victim_accesses, 
+    #     calculate expected set index
+    #     in the debug output, check if there is a cache miss during the probe phase 
+    #     increment count if the cache miss's set matches the calculated set 
+    # return success rate = count / len(victim_accesses)
     total = 0
     count = 0
     with open(file, "r") as f:
