@@ -12,10 +12,10 @@ cache_hierarchy = JustDCacheHierarchy()
 memory = SingleChannelDDR3_1600(size="1GiB") #30 bit address
 
 # https://www.gem5.org/assets/files/hpca2023-tutorial/gem5-tutorial-hpca-2023.pdf slide 51
-secret_keys = [0xcafe000]
-for secret in secret_keys:
+victim_accesses = [0xcafecaf]
+for secret in victim_accesses:
     print(hex((secret >> 6) & 0b11111111))
-generator = PrimeProbeGenerator(secret_keys)
+generator = PrimeProbeGenerator(victim_accesses)
 
 board = TestBoard(
     clk_freq="3GHz",

@@ -62,6 +62,7 @@ struct ReplacementData {};
 class ReplaceableEntry
 {
   protected:
+    uint32_t _decrypt_set;
     /**
      * Set to which this entry belongs.
      */
@@ -94,6 +95,15 @@ class ReplaceableEntry
         _set = set;
         _way = way;
     }
+
+      virtual void
+    setDecryptSet(const uint32_t set)
+    {
+        _decrypt_set = set;
+    }
+
+    uint32_t getDecryptSet() const { return _decrypt_set; }
+
 
     /**
      * Get set number.

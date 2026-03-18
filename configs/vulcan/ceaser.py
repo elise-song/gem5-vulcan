@@ -3,6 +3,7 @@ def round_function (r,k):
   return r^ k # Simple XOR with the key
 def feistel_decrypt (plain_text, keys, rounds=4):
   L, R = plain_text >> 12, plain_text & 0xFFF
+  print(f"L={hex(L)}, R={hex(R)}")
   for i in reversed(range(rounds)):
     L, R = R, L ^ round_function(R, keys[i])
     print(f"Round {i}: L={hex(L)}, R={hex(R)}")
@@ -11,6 +12,7 @@ def feistel_decrypt (plain_text, keys, rounds=4):
 
 def feistel_encrypt(cipher_text, keys, rounds=4) :
   L, R = cipher_text >> 12, cipher_text & 0xFFF
+  print(f"L={hex(L)}, R={hex(R)}")
   for i in (range(rounds)):
       L, R = R ^ round_function(L, keys[i]), L
       print(f"Round {i}: L={hex(L)}, R={hex(R)}")
@@ -18,14 +20,16 @@ def feistel_encrypt(cipher_text, keys, rounds=4) :
 
 # Example usage
 keys = [0xE, 0xEE, 0xEEE, 0xaaa] # Example keys for 4 rounds
-for i in range(5):
-  plain_text = i*64 # Example 16-bit input
+victim_accesses = [0xcafecaf]
+for access in victim_accesses:
+  plain_text = access # Example 16-bit input
   cipher_text = feistel_encrypt(plain_text >> 6, keys)
   decrypted_text = feistel_decrypt(cipher_text, keys)
   print (f"Original: {hex(plain_text)}")
   print (f"Encrypted: {hex(cipher_text)}")
   print (f"Decrypted: {hex((decrypted_text << 6) | (plain_text & 0x3F))}")
 
+print(hex(feistel_decrypt(0x32bfb2, keys)))
 # Round 0: L=0xe, R=0x0
 # Round 1: L=0xe0, R=0xe
 # Round 2: L=0xe00, R=0xe0
