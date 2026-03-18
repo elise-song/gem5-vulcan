@@ -2,17 +2,67 @@
 #include "mem/cache/tags/tagged_entry.hh"
 #include "params/Ceaser.hh"
 #include "debug/Ceaser.hh"
+#include <random>
+#include <cmath>
 
 namespace gem5
 {
 Ceaser::Ceaser(const Params &p)
     : TaggedIndexingPolicy(p, p.size / p.entry_size, floorLog2(p.entry_size))
-{}
+{
+    // set random sbox and pbox
+    // std::random_device entropy_source;
+	// std::mt19937 generator(entropy_source()); 
+    // // generate 24 bit number 
+	// std::uniform_real_distribution<double> dist(0, std::pow(2, 24));
+    // for (int i = 0; i < 12; i++){
+    //     sbox[i] = uint32_t(dist(generator)) & 0xffffff;
+    // }
+    // std::shuffle(pbox.begin(), pbox.end(), generator);
+
+    // pbox = {9, 4, 11, 10, 6, 0, 1, 7, 3, 8, 5, 2};
+}
+
+uint16_t
+Ceaser::substitute(const uint32_t input) const
+{
+    uint16_t output = 0;
+    for (auto s : sbox){
+        uint8_t bit = 0;
+        for (int i = 0; i < 24; i++){
+            if ((s >> i) & 1){
+                bit = bit ^ ((input >> i) & 1);
+            }
+        }
+        output = (output << 1) | bit;
+    }
+    return output;
+}
+
+uint16_t
+Ceaser::permutate(const uint16_t input) const
+{
+    int i = 0;
+    uint16_t output = 0;
+    for (auto p : pbox) {
+        uint8_t bit = ((input >> i) & 1) << p;
+        output = output | bit;
+        i++;
+    }
+    return output;
+}
 
 uint16_t 
 Ceaser::round(const uint16_t input, const uint16_t key) const
 {
-    return input ^ key;
+    uint32_t concat = input << 12 | key;
+    DPRINTF(Ceaser, "round concat %llx\n", concat);
+    uint16_t sub = substitute(concat);
+    DPRINTF(Ceaser, "round sub %llx\n", sub);
+    uint16_t per = permutate(sub);
+    DPRINTF(Ceaser, "round per %llx\n", per);
+
+    return per;
 }
 
 uint32_t 
