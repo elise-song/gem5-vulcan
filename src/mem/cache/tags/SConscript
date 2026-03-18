@@ -52,4 +52,6 @@ Source("sector_tags.cc")
 Source("super_blk.cc")
 Source("ceaser.cc")
 
+DebugFlag("Ceaser")
+
 GTest("dueling.test", "dueling.test.cc", "dueling.cc")

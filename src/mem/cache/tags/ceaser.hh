@@ -16,7 +16,7 @@ class Ceaser : public TaggedIndexingPolicy
   
     private:
 
-      uint16_t ceaser_key[4] = {0xE, 0xEE, 0xeee, 0xaaa};
+      uint16_t ceaser_key[4] = {0x325, 0x7AB, 0xC1D, 0x9E2};
 
       uint32_t 
       encrypt(const uint32_t line_addr) const;
