@@ -45,7 +45,7 @@ Ceaser::permutate(const uint16_t input) const
     int i = 0;
     uint16_t output = 0;
     for (auto p : pbox) {
-        uint8_t bit = ((input >> i) & 1) << p;
+        uint16_t bit = ((input >> i) & 1) << p;
         output = output | bit;
         i++;
     }
