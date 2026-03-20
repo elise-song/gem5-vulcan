@@ -10,28 +10,45 @@ def CheckMapping(victim_accesses, file):
     #     in the debug output, check if there is a cache miss during the probe phase 
     #     increment count if the cache miss's set matches the calculated set 
     # return success rate = count / len(victim_accesses)
-    total = 0
     count = 0
+    accesses = 0
+    missed_addr = None
+
+    victim_sets = {(addr >> 6) & 0xff for addr in victim_accesses}
+
     with open(file, "r") as f:
         for line in f:
-            if "Block addr" in line and "set:" in line:
-                total += 1
-                addr_split = line.split("addr")[1]
-                addr_value = addr_split.split()[0]
-                addr = int(addr_value, 16)
-                set_index = (addr >> 6) & 0xff
-                print("actual set: ", set_index)
+            if "access for ReadReq" in line or "access for WriteReq" in line:
+                accesses += 1
+                if accesses > 513:
+                    accesses = 1
+                    
+                if "miss" in line:
+                    #example line: access for ReadReq [2c80:2c83] miss
+                    bracket_split = line.split("[")[1]
+                    addr_str = bracket_split.split(":")[0]
+                    missed_addr = int(addr_str, 16)
+                else:
+                    missed_addr = None
+            #check if miss in probe phase
+            if accesses > 257 and accesses <= 513 and missed_addr is not None:
+                if "Block addr" in line and "set:" in line:
+                    addr = missed_addr
+                    print("missed addr: ", hex(addr))
+                    set_index = (addr >> 6) & 0xff
+                    print("actual set: ", hex(set_index))
 
-                set_split = line.split("set:")[1]
-                set_value = set_split.split()[0]
-                remapped_set = int(set_value, 16)
-                print("remapped set ", remapped_set)
+                    set_split = line.split("set:")[1]
+                    set_value = set_split.split()[0]
+                    remapped_set = int(set_value, 16)
+                    print("remapped set ", hex(remapped_set))
 
-                if remapped_set == set_index:
-                    count += 1
+                    if remapped_set in victim_sets:
+                        count += 1
+                        print("success")
 
-    if total == 0:
+                    missed_addr = None
+
+    if len(victim_accesses) == 0:
         return 0
-
-    return count/total
-
+    return count/len(victim_accesses)
