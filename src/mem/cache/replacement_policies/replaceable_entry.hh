@@ -96,15 +96,6 @@ class ReplaceableEntry
         _way = way;
     }
 
-      virtual void
-    setDecryptSet(const uint32_t set)
-    {
-        _decrypt_set = set;
-    }
-
-    uint32_t getDecryptSet() const { return _decrypt_set; }
-
-
     /**
      * Get set number.
      *
