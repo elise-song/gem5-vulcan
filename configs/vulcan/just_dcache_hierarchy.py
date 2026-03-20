@@ -28,7 +28,7 @@ class DCache(Cache):
     mshrs = 4
     tgts_per_mshr = 20
     tags = BaseSetAssoc()
-    tags.indexing_policy = TaggedSetAssociative()
+    tags.indexing_policy = Ceaser()
 
     def __init__(self):
         super().__init__()
