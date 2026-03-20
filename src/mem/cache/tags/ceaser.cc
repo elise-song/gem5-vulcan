@@ -12,16 +12,19 @@ Ceaser::Ceaser(const Params &p)
     tagShift(floorLog2(p.entry_size))
 {
     // set random sbox and pbox
-    // std::random_device entropy_source;
-	// std::mt19937 generator(entropy_source()); 
-    // // generate 26 bit number 
-	// std::uniform_real_distribution<double> dist(0, std::pow(2, ceaser_size * 2));
-    // for (int i = 0; i < ceaser_size; i++){
-    //     sbox[i] = uint32_t(dist(generator)) & 0xffffff;
-    // }
-    // std::shuffle(pbox.begin(), pbox.end(), generator);
+    std::random_device entropy_source;
+	std::mt19937 generator(entropy_source()); 
+    // generate 24 bit number 
+	std::uniform_real_distribution<double> dist(0, std::pow(2, ceaser_size * 2));
+    
+    for (int i = 0; i < 4; i++){
+        ceaser_key[i] = uint16_t(dist(generator)) & 0xfff;
+    }
+    for (int i = 0; i < ceaser_size; i++){
+        sbox[i] = uint32_t(dist(generator));
+    }
+    std::shuffle(pbox.begin(), pbox.end(), generator);
 
-    // pbox = {9, 4, 11, 10, 6, 0, 1, 7, 3, 8, 5, 2};
 }
 
 uint16_t
@@ -69,7 +72,7 @@ Ceaser::round(const uint16_t input, const uint16_t key) const
 uint32_t 
 Ceaser::encrypt(const uint32_t line_addr) const
 {
-    // line address is 32-6 = 26 bits
+    // line address is 30-6 = 24 bits
     uint16_t left = bits<Addr>(line_addr, ceaser_size * 2 - 1, ceaser_size);
     uint16_t right = bits<Addr>(line_addr, ceaser_size - 1, 0);
     DPRINTF(Ceaser, "left= %x right= %x\n",  left, right);
@@ -89,7 +92,7 @@ Ceaser::encrypt(const uint32_t line_addr) const
 uint32_t 
 Ceaser::decrypt(const uint32_t line_addr) const
 {
-    // line address is 32-6 = 26 bits
+    // line address is 30-6 = 24 bits
     uint16_t left = bits<Addr>(line_addr, ceaser_size * 2 - 1, ceaser_size);
     uint16_t right = bits<Addr>(line_addr, ceaser_size - 1, 0);
     uint16_t temp;
