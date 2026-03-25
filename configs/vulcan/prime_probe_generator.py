@@ -70,6 +70,8 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     write,
                     dataLimit,
                 )
+            yield self.generator.createIdle(10*duration)
+
             # victim accesses secret data
             yield self.generator.createLinear(
                 duration, 
@@ -81,6 +83,7 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                 read,
                 dataLimit
             )
+            yield self.generator.createIdle(10*duration)
             # probe phase - read from each block to probe the cache
             for j in range(256):
                 startAddr = j * 64 # block size=64 bytes
@@ -95,7 +98,7 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     read,
                     dataLimit,
                 )
-            
+            yield self.generator.createIdle(10*duration)
         # end traffic 
         yield self.generator.createExit(0)
 

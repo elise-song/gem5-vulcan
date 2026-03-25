@@ -25,6 +25,7 @@ Ceaser::Ceaser(const Params &p)
     }
     std::shuffle(pbox.begin(), pbox.end(), generator);
 
+    DPRINTF(Ceaser, "constructor initialized keys %llx %llx %d\n", ceaser_key[0], sbox[0], pbox[0]);
 }
 
 uint16_t

@@ -62,7 +62,6 @@ struct ReplacementData {};
 class ReplaceableEntry
 {
   protected:
-    uint32_t _decrypt_set;
     /**
      * Set to which this entry belongs.
      */
