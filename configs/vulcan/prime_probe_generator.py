@@ -47,9 +47,9 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
 
         :rtype: Iterator[BaseTrafficGen]
         """
-        duration = 60000 #ticks
+        duration = 80000 #ticks
         accessSize = 4
-        period = 30000
+        period = 40000
         dataLimit = 0
         startAddr = 0
         read = 100
@@ -71,7 +71,6 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     dataLimit,
                 )
             yield self.generator.createIdle(10*duration)
-
             # victim accesses secret data
             yield self.generator.createLinear(
                 duration, 
@@ -84,6 +83,7 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                 dataLimit
             )
             yield self.generator.createIdle(10*duration)
+
             # probe phase - read from each block to probe the cache
             for j in range(256):
                 startAddr = j * 64 # block size=64 bytes
@@ -99,6 +99,7 @@ class PrimeProbeGeneratorCore(AbstractGeneratorCore):
                     dataLimit,
                 )
             yield self.generator.createIdle(10*duration)
+        # After all memory accesses, synchronize all accesses with this access
         # end traffic 
         yield self.generator.createExit(0)
 

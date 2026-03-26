@@ -18,7 +18,8 @@ num_accesses = int(sys.argv[1])
 # victim_accesses = [0xcafecaf]
 victim_accesses = [0] * num_accesses
 for i in range(num_accesses):
-    victim_accesses[i] = random.getrandbits(28) << 2
+    num = random.getrandbits(28) << 2
+    victim_accesses[i] = num + 256 if num < 256 else num
 
 print('[{}]\n'.format(', '.join(hex(x) for x in victim_accesses)))
 

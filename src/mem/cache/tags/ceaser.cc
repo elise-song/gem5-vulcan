@@ -2,6 +2,7 @@
 #include "mem/cache/tags/tagged_entry.hh"
 #include "params/Ceaser.hh"
 #include "debug/Ceaser.hh"
+#include "debug/Cache.hh"
 #include <random>
 #include <cmath>
 
@@ -15,29 +16,53 @@ Ceaser::Ceaser(const Params &p)
     std::random_device entropy_source;
 	std::mt19937 generator(entropy_source()); 
     // generate 24 bit number 
-	std::uniform_real_distribution<double> dist(0, std::pow(2, ceaser_size * 2));
-    
-    for (int i = 0; i < 4; i++){
-        ceaser_key[i] = uint16_t(dist(generator)) & 0xfff;
-    }
-    for (int i = 0; i < ceaser_size; i++){
-        sbox[i] = uint32_t(dist(generator));
-    }
-    std::shuffle(pbox.begin(), pbox.end(), generator);
+	std::uniform_int_distribution<uint32_t> dist32(0, 0xFFFFFF);  // 24-bit
+    std::uniform_int_distribution<uint16_t> dist16(0, 0xFFF);     // 12-bit
 
-    DPRINTF(Ceaser, "constructor initialized keys %llx %llx %d\n", ceaser_key[0], sbox[0], pbox[0]);
+    for (int i = 0; i < num_stages; i++){
+        ceaser_key[i] = dist16(generator);
+        // for (int j = 0; j < ceaser_size; j++){
+        //     sbox[i][j] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+        //     std::shuffle(sbox[i][j].begin(), sbox[i][j].end(), generator);
+        //     sbox[i][j].erase(sbox[i][j].begin() + ceaser_size, sbox[i][j].end());
+        // }
+        // pbox[i] = {0,1,2,3,4,5,6,7,8,9,10,11};
+        // std::shuffle(pbox[i].begin(), pbox[i].end(), generator);
+    }
+
+    // Build string for sbox and pbox
+    std::stringstream ss;
+    ss << "S-box:\n";
+    for (int i = 0; i < num_stages; i++) {
+        for (int j = 0; j < ceaser_size; j++) {
+            ss << "{";
+            for (auto val : sbox[i][j]) {
+                ss << val << ", ";
+            }
+            ss << "}, ";
+        }
+        ss << "\n";
+
+    }
+    
+    ss << "\nP-box: \n";
+    for (int i = 0; i < num_stages; i++) {
+        for (auto val : pbox[i]) {
+            ss << val << ", ";
+        }
+        ss << "\n";
+    }
+    DPRINTF(Cache, "%s", ss.str().c_str());
 }
 
 uint16_t
-Ceaser::substitute(const uint32_t input) const
+Ceaser::substitute(const uint32_t input, int stage) const
 {
     uint16_t output = 0;
-    for (auto s : sbox){
+    for (auto s : sbox[stage]){
         uint8_t bit = 0;
-        for (int i = 0; i < ceaser_size * 2; i++){
-            if ((s >> i) & 1){
-                bit = bit ^ ((input >> i) & 1);
-            }
+        for (auto pos : s){
+            bit = bit ^ ((input >> pos) & 1);
         }
         output = (output << 1) | bit;
     }
@@ -45,11 +70,11 @@ Ceaser::substitute(const uint32_t input) const
 }
 
 uint16_t
-Ceaser::permutate(const uint16_t input) const
+Ceaser::permutate(const uint16_t input, int stage) const
 {
     int i = 0;
     uint16_t output = 0;
-    for (auto p : pbox) {
+    for (auto p : pbox[stage]) {
         uint16_t bit = ((input >> i) & 1) << p;
         output = output | bit;
         i++;
@@ -58,13 +83,13 @@ Ceaser::permutate(const uint16_t input) const
 }
 
 uint16_t 
-Ceaser::round(const uint16_t input, const uint16_t key) const
+Ceaser::round(const uint16_t input, int stage) const
 {
-    uint32_t concat = input << ceaser_size | key;
+    uint32_t concat = (input << ceaser_size) | ceaser_key[stage];
     DPRINTF(Ceaser, "round concat %llx\n", concat);
-    uint16_t sub = substitute(concat);
+    uint16_t sub = substitute(concat, stage);
     DPRINTF(Ceaser, "round sub %llx\n", sub);
-    uint16_t per = permutate(sub);
+    uint16_t per = permutate(sub, stage);
     DPRINTF(Ceaser, "round per %llx\n", per);
 
     return per;
@@ -78,10 +103,10 @@ Ceaser::encrypt(const uint32_t line_addr) const
     uint16_t right = bits<Addr>(line_addr, ceaser_size - 1, 0);
     DPRINTF(Ceaser, "left= %x right= %x\n",  left, right);
     uint16_t temp;
-    for (int i = 0; i < 4; i++) {
-        temp = left;
-        left = round(left, ceaser_key[i]) ^ right;
-        right = temp;
+    for (int i = 0; i < num_stages; i++) {
+        temp = right;
+        right = round(left, i) ^ right;
+        left = temp;
         DPRINTF(Ceaser, "round %d: left= %x right= %x\n", i, left, right);
     }
     // concat left' and right'
@@ -89,28 +114,6 @@ Ceaser::encrypt(const uint32_t line_addr) const
     DPRINTF(Ceaser, "encrypt %llx\n", encrypted_addr);
     return encrypted_addr;
 }
-
-uint32_t 
-Ceaser::decrypt(const uint32_t line_addr) const
-{
-    // line address is 30-6 = 24 bits
-    uint16_t left = bits<Addr>(line_addr, ceaser_size * 2 - 1, ceaser_size);
-    uint16_t right = bits<Addr>(line_addr, ceaser_size - 1, 0);
-    uint16_t temp;
-    DPRINTF(Ceaser, "left= %x right= %x\n", left, right);
-
-    for (int i = 3; i >=0; i--) {
-        temp = right;
-        right = round(right, ceaser_key[i]) ^ left;
-        left = temp;
-        DPRINTF(Ceaser, "round %d: left= %x right= %x\n", i, left, right);
-
-    }
-    // concat left' and right'
-    Addr decrypted_addr = (left << ceaser_size) | right;
-    return decrypted_addr;
-}
-uint32_t previous_addr = 0;
 
 uint32_t
 Ceaser::extractSet(const KeyType &key) const
