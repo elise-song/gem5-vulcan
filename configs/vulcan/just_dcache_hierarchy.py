@@ -20,7 +20,6 @@ class DCache(Cache):
     """Simple data cache with default values, direct mapped, no prefetcher"""
 
     # Set the default size
-    size = "16KiB"
     assoc = 1
     tag_latency = 2
     data_latency = 2
@@ -30,7 +29,8 @@ class DCache(Cache):
     tags = BaseSetAssoc()
     tags.indexing_policy = Ceaser()
 
-    def __init__(self, ceaser):
+    def __init__(self, ceaser, size):
+        self.size = size
         super().__init__()
         if ceaser == "ceaser":
             self.tags.indexing_policy = Ceaser()
@@ -50,12 +50,16 @@ class DCache(Cache):
 
 # from cachehierarchies/classic/private_l1_cache_hierarchy.py
 class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
-    def __init__(self, ceaser=""):
+    def __init__(self, ceaser="", cache_size="16KiB"):
         super().__init__()
         self.membus = SystemXBar(width=64)
         self.membus.badaddr_responder = BadAddr()
         self.membus.default = self.membus.badaddr_responder.pio
         self._ceaser = ceaser
+        self._cache_size = cache_size
+
+    def get_l1dcache_size(self):
+        return self.l1dcache.size 
 
     @overrides(AbstractClassicCacheHierarchy)
     def get_mem_side_port(self):
@@ -75,7 +79,7 @@ class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
 
         assert board.get_processor().get_num_cores() == 1
 
-        self.l1dcache = DCache(self._ceaser)
+        self.l1dcache = DCache(self._ceaser, self._cache_size)
 
         if board.has_coherent_io():
             self._setup_io_cache(board)
