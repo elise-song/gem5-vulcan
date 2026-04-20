@@ -114,8 +114,18 @@ class TaggedEntry : public ReplaceableEntry
     using IndexingPolicy = TaggedIndexingPolicy;
     using TagExtractor = std::function<Addr(Addr)>;
 
+    //EID for ceaser
+    void 
+    setEID(uint8_t epoch) { 
+        EID = epoch; 
+    }
+    uint8_t 
+    getEID() const {
+        return EID; 
+    }
+
     TaggedEntry()
-      : _valid(false), _secure(false), _tag(MaxAddr)
+      : _valid(false), _secure(false), _tag(MaxAddr), EID(0)
     {}
     ~TaggedEntry() = default;
 
@@ -145,6 +155,8 @@ class TaggedEntry : public ReplaceableEntry
      * @return The tag value.
      */
     virtual Addr getTag() const { return _tag; }
+
+    void updateTag(Addr tag) { setTag(tag); }
 
     /**
      * Checks if the given tag information corresponds to this entry's.
@@ -184,6 +196,7 @@ class TaggedEntry : public ReplaceableEntry
         _valid = false;
         setTag(MaxAddr);
         clearSecure();
+        EID = 0;
     }
 
     std::string
@@ -234,6 +247,7 @@ class TaggedEntry : public ReplaceableEntry
 
     /** The entry's tag. */
     Addr _tag;
+    uint8_t EID; 
 };
 
 /**

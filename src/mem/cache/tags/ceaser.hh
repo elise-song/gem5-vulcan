@@ -20,7 +20,11 @@ class Ceaser : public TaggedIndexingPolicy
 
       int num_stages = 4;
 
-      uint16_t ceaser_key[4];
+      mutable uint16_t ceaser_key[4] = {0x325, 0x7AB, 0xC1D, 0x9E2};
+      mutable uint16_t nextKey[4] = {0xB45, 0x49B, 0x081, 0x12D};
+      mutable uint32_t SPtr = 0;
+      mutable uint64_t ACtr = 0;
+      uint32_t APLR = 100;
 
       std::vector<int> sbox[4][ceaser_size] = {
         {{21, 20, 1, 12, 9, 10, 11, 8, 5, 15, 3, 18, }, {13, 4, 15, 14, 12, 7, 2, 16, 11, 5, 6, 17, }, {8, 14, 3, 6, 4, 17, 11, 19, 2, 23, 10, 12, }, {12, 7, 0, 15, 14, 22, 13, 1, 8, 19, 3, 23, }, {15, 5, 11, 1, 17, 14, 20, 13, 23, 9, 19, 2, }, {22, 17, 23, 15, 16, 19, 12, 10, 7, 13, 4, 3, }, {7, 14, 3, 4, 22, 15, 11, 16, 20, 10, 9, 23, }, {2, 0, 20, 14, 8, 9, 23, 11, 3, 10, 13, 17, }, {9, 11, 4, 19, 6, 13, 1, 2, 23, 7, 12, 22, }, {5, 8, 4, 7, 3, 12, 0, 2, 1, 17, 19, 23, }, {18, 17, 16, 4, 21, 0, 6, 19, 7, 11, 20, 2, }, {15, 16, 21, 13, 1, 14, 11, 12, 3, 2, 19, 18, }, },
@@ -37,16 +41,25 @@ class Ceaser : public TaggedIndexingPolicy
       };
      
       uint32_t 
-      encrypt(const uint32_t line_addr) const;
+      encrypt(const uint32_t line_addr, const uint16_t key[4]) const;
+      
+      uint32_t 
+      decrypt(const uint32_t line_addr, const uint16_t key[4]) const;
 
       uint16_t
-      round(const uint16_t input, int stage) const;
+      round(const uint16_t input, int stage, const uint16_t key[4]) const;
 
       uint16_t
       substitute(const uint32_t input, int stage) const;
 
       uint16_t
       permutate(const uint16_t input, int stage) const;
+
+      void
+      access() const;
+
+      void 
+      remap(uint32_t set) const;
 
   public:
     const int tagShift;
