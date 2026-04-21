@@ -13,7 +13,7 @@ Ceaser::Ceaser(const Params &p)
   : TaggedIndexingPolicy(p, p.size / p.entry_size, floorLog2(p.entry_size)),
     tagShift(floorLog2(p.entry_size))
 {
-    set random sbox and pbox
+    //set random sbox and pbox
     std::random_device entropy_source;
 	std::mt19937 generator(entropy_source()); 
     // generate 24 bit number 
@@ -231,13 +231,14 @@ Ceaser::remap(uint32_t set) const
         if (!tagged) {
             panic("bad\n");
         }
-        if (!tagged->isValid())
+        if (!tagged->isValid()){
+            DPRINTF(Cache, "reached invalid tagged\n");
             continue;
-
+        }
         //skip lines that are already remapped
         if (tagged->getEID() == 1)
             continue;
-
+        DPRINTF(Cache, "EID is not 1 yay\n");
         auto block = dynamic_cast<CacheBlk*>(entry);
         if (!block)
             panic("bad\n");
@@ -247,23 +248,30 @@ Ceaser::remap(uint32_t set) const
         uint32_t numSetBits = floorLog2(numSets);  
         Addr enc_line_addr = (tag << numSetBits) | set;  
         Addr original_line_addr = decrypt(enc_line_addr, ceaser_key);
+        KeyType key = {original_line_addr << setShift, false}; 
+        Addr regenerated = regenerateAddr(key, entry);
+        printf("remap set=%d regenerated=0x%lx key.address=0x%lx match=%d\n",
+            set, regenerated, key.address, regenerated == key.address);
+
         uint32_t updated = encrypt(original_line_addr, nextKey);
         uint32_t new_set = updated & setMask;
         Addr new_tag = updated >> numSetBits; 
-        KeyType verifyKey = {original_line_addr << setShift, false};
-        uint32_t extractedSet = extractSet(verifyKey);
-        printf("remap set=%d old_tag=%lx new_tag=%lx new_set=%d extractSet=%d match=%d\n", 
-            set, tag, new_tag, new_set, extractedSet, extractedSet == new_set);
+       
+        uint32_t extractedSet = extractSet(key);
+        printf("remap set=%d old_tag=%lx WATCH_BYTE_ADDR=0x%lx\n",
+        set, tag, tag << tagShift);
         fflush(stdout);
+        auto blk = dynamic_cast<CacheBlk*>(entry);
 
-        if (block->isSet(CacheBlk::DirtyBit)){
-            printf("dirty\n");
-            tagged->setEID(1);
+        if (!blk)
+            panic("bad\n");
+        
+        DPRINTF(Cache, "reached after invalidated tag\n");
+        if (blk->isSet(CacheBlk::DirtyBit)) {
             continue;
-            printf("remap: invalidating set=%d tag=%lx\n", set, tagged->getTag());
-
-        block->invalidate();
-        }    
+        }
+        tagged->invalidate();
+        tagged->setEID(1);
     }        
 }
 }
