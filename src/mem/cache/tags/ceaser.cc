@@ -291,8 +291,7 @@ Ceaser::remap(uint32_t set) const
         tagged->setEID(1);
     }        
 }
-}
-// namespace gem5
+
 
 
 // Return the index just past the closing '}' that matches the '{' at `start`.
@@ -426,4 +425,5 @@ Ceaser::parseBoxFile(const std::string &path)
     DPRINTF(Cache, "Ceaser: loaded S-box/P-box from '%s'\n", path.c_str());
 }
  
+}
  // namespace gem5
