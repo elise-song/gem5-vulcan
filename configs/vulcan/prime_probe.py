@@ -24,7 +24,7 @@ num_probes = cache_size
 
 cache_hierarchy = JustDCacheHierarchy("ceaser", cache_size) # "ceaser" for encrypted indexing
                                                 # "" for default indexing policy
-memory = SingleChannelDDR3_1600(size="1GiB") #30 bit address
+memory = SingleChannelDDR3_1600(size="4GiB") #32 bit address
 
 # https://www.gem5.org/assets/files/hpca2023-tutorial/gem5-tutorial-hpca-2023.pdf slide 51
 num_accesses = int(sys.argv[1])

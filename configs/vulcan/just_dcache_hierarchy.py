@@ -15,6 +15,7 @@ from gem5.components.cachehierarchies.classic.abstract_classic_cache_hierarchy i
 )
 from gem5.isas import ISA
 from gem5.utils.override import *
+import os
 
 class DCache(Cache):
     """Simple data cache with default values, direct mapped, no prefetcher"""
@@ -33,7 +34,9 @@ class DCache(Cache):
         self.size = size
         super().__init__()
         if ceaser == "ceaser":
-            self.tags.indexing_policy = Ceaser()
+            policy = Ceaser()
+            policy.box_file = os.getcwd() + "/configs/vulcan/box/" + size + ".txt"
+            self.tags.indexing_policy = policy
         else: 
             self.tags.indexing_policy = TaggedSetAssociative()
 
