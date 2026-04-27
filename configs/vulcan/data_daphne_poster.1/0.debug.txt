@@ -1,0 +1,1597 @@
+Global frequency set at 1000000000000 ticks per second
+      0: board.cache_hierarchy.l1dcache.tags.indexing_policy: Ceaser: loaded S-box/P-box from '/home/elise/Desktop/gem5-vulcan/configs/vulcan/box/16KiB.txt'
+      0: board.cache_hierarchy.l1dcache.tags.indexing_policy: 
+S-box:
+{{{21, 20, 1, 12, 9, 10, 11, 8, 5, 15, 3, 18, }, {13, 4, 15, 14, 12, 7, 2, 16, 11, 5, 6, 17, }, {8, 14, 3, 6, 4, 17, 11, 19, 2, 23, 10, 12, }, {12, 7, 0, 15, 14, 22, 13, 1, 8, 19, 3, 23, }, {15, 5, 11, 1, 17, 14, 20, 13, 23, 9, 19, 2, }, {22, 17, 23, 15, 16, 19, 12, 10, 7, 13, 4, 3, }, {7, 14, 3, 4, 22, 15, 11, 16, 20, 10, 9, 23, }, {2, 0, 20, 14, 8, 9, 23, 11, 3, 10, 13, 17, }, {9, 11, 4, 19, 6, 13, 1, 2, 23, 7, 12, 22, }, {5, 8, 4, 7, 3, 12, 0, 2, 1, 17, 19, 23, }, {18, 17, 16, 4, 21, 0, 6, 19, 7, 11, 20, 2, }, {15, 16, 21, 13, 1, 14, 11, 12, 3, 2, 19, 18, }, }, 
+{{3, 22, 18, 10, 7, 9, 4, 12, 1, 21, 5, 8, }, {16, 14, 21, 20, 8, 3, 10, 0, 23, 13, 4, 15, }, {7, 22, 21, 5, 12, 9, 13, 20, 17, 19, 3, 10, }, {7, 15, 16, 18, 21, 13, 10, 8, 23, 5, 22, 1, }, {13, 20, 14, 11, 7, 2, 5, 16, 1, 17, 19, 12, }, {22, 5, 19, 12, 14, 1, 3, 17, 4, 0, 23, 20, }, {10, 14, 22, 13, 21, 0, 1, 11, 7, 15, 8, 18, }, {22, 14, 20, 5, 2, 6, 15, 17, 8, 0, 4, 18, }, {12, 2, 1, 23, 3, 9, 13, 10, 5, 7, 21, 18, }, {6, 4, 13, 22, 8, 20, 14, 15, 17, 12, 1, 10, }, {6, 11, 13, 8, 21, 14, 17, 15, 12, 2, 1, 9, }, {22, 16, 15, 5, 9, 6, 17, 7, 3, 18, 2, 11, }, }, 
+{{3, 6, 2, 12, 18, 11, 14, 8, 13, 23, 20, 10, }, {22, 2, 5, 0, 13, 14, 9, 8, 15, 17, 1, 12, }, {9, 12, 20, 6, 11, 21, 3, 4, 7, 10, 14, 22, }, {17, 1, 15, 16, 20, 18, 14, 7, 13, 8, 23, 21, }, {12, 5, 1, 2, 19, 22, 7, 20, 17, 4, 3, 23, }, {22, 8, 16, 7, 14, 15, 9, 10, 12, 11, 20, 13, }, {19, 16, 22, 14, 23, 21, 4, 7, 10, 1, 11, 9, }, {4, 22, 18, 9, 7, 14, 5, 3, 12, 13, 15, 2, }, {20, 17, 14, 1, 4, 9, 5, 11, 12, 13, 23, 15, }, {12, 1, 14, 16, 17, 4, 21, 15, 3, 6, 20, 7, }, {0, 8, 12, 22, 17, 20, 4, 3, 2, 9, 10, 16, }, {22, 16, 13, 17, 2, 19, 1, 11, 10, 7, 6, 21, }, }, 
+{{0, 6, 10, 19, 23, 21, 22, 8, 13, 12, 17, 16, }, {0, 18, 21, 12, 1, 3, 15, 2, 10, 7, 5, 19, }, {1, 0, 6, 20, 5, 4, 12, 22, 23, 17, 21, 9, }, {10, 5, 13, 20, 9, 2, 8, 11, 3, 21, 12, 14, }, {6, 3, 18, 23, 17, 15, 11, 4, 16, 8, 14, 0, }, {12, 2, 20, 22, 6, 5, 17, 14, 10, 23, 3, 1, }, {1, 10, 21, 3, 12, 15, 18, 16, 22, 5, 20, 17, }, {4, 13, 1, 15, 10, 19, 20, 8, 5, 12, 23, 14, }, {18, 19, 20, 15, 7, 17, 22, 4, 2, 0, 13, 11, }, {8, 4, 15, 18, 7, 19, 17, 11, 2, 16, 13, 22, }, {17, 12, 18, 13, 9, 14, 4, 16, 20, 10, 7, 3, }, {5, 17, 0, 12, 22, 21, 20, 9, 15, 4, 18, 6, }, }, 
+}
+
+P-box: 
+{{7, 8, 5, 1, 3, 2, 6, 9, 4, 11, 0, 10, }, 
+{4, 0, 7, 10, 11, 5, 8, 1, 2, 3, 9, 6, }, 
+{1, 8, 7, 9, 5, 10, 2, 4, 3, 0, 11, 6, }, 
+{0, 1, 11, 8, 9, 2, 7, 6, 4, 3, 10, 5, }, 
+}
+gem5 Simulator System.  https://www.gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 25.1.0.0
+gem5 compiled Apr  7 2026 22:07:17
+gem5 started Apr 13 2026 11:35:31
+gem5 executing on elise-OptiPlex-7000, pid 838500
+command line: build/ALL/gem5.opt --debug-flags=Cache configs/vulcan/prime_probe.py 1 16KiB
+
+[0x2f3b9194]
+
+num sets: 256
+cacheline size: 64
+memory size: 1073741824
+addr width: 30.0
+  40000: board.cache_hierarchy.l1dcache: access for WriteReq [0:3] miss
+  40959: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [0:3]
+  40959: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [0:3f] from WriteReq [0:3]
+  94572: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [0:3f]
+  94572: board.cache_hierarchy.l1dcache: Block for addr 0 being updated in Cache
+  94572: board.cache_hierarchy.l1dcache: Block addr 0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0 secure: 0 valid: 1 | set: 0xe4 way: 0
+ 120000: board.cache_hierarchy.l1dcache: access for WriteReq [40:43] miss
+ 120879: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [40:43]
+ 120879: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [40:7f] from WriteReq [40:43]
+ 160839: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [40:7f]
+ 160839: board.cache_hierarchy.l1dcache: Block for addr 0x40 being updated in Cache
+ 160839: board.cache_hierarchy.l1dcache: Block addr 0x40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1 secure: 0 valid: 1 | set: 0xf9 way: 0
+ 200000: board.cache_hierarchy.l1dcache: access for WriteReq [80:83] miss
+ 200799: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [80:83]
+ 200799: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [80:bf] from WriteReq [80:83]
+ 240759: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [80:bf]
+ 240759: board.cache_hierarchy.l1dcache: Block for addr 0x80 being updated in Cache
+ 240759: board.cache_hierarchy.l1dcache: Block addr 0x80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2 secure: 0 valid: 1 | set: 0x50 way: 0
+ 280000: board.cache_hierarchy.l1dcache: access for WriteReq [c0:c3] miss
+ 280719: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [c0:c3]
+ 280719: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [c0:ff] from WriteReq [c0:c3]
+ 320679: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [c0:ff]
+ 320679: board.cache_hierarchy.l1dcache: Block for addr 0xc0 being updated in Cache
+ 320679: board.cache_hierarchy.l1dcache: Block addr 0xc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3 secure: 0 valid: 1 | set: 0x4d way: 0
+ 360000: board.cache_hierarchy.l1dcache: access for WriteReq [100:103] miss
+ 360972: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [100:103]
+ 360972: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [100:13f] from WriteReq [100:103]
+ 400932: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [100:13f]
+ 400932: board.cache_hierarchy.l1dcache: Block for addr 0x100 being updated in Cache
+ 400932: board.cache_hierarchy.l1dcache: Block addr 0x100 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4 secure: 0 valid: 1 | set: 0x74 way: 0
+ 440000: board.cache_hierarchy.l1dcache: access for WriteReq [140:143] miss
+ 440892: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [140:143]
+ 440892: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [140:17f] from WriteReq [140:143]
+ 480852: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [140:17f]
+ 480852: board.cache_hierarchy.l1dcache: Block for addr 0x140 being updated in Cache
+ 480852: board.cache_hierarchy.l1dcache: Block addr 0x140 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5 secure: 0 valid: 1 | set: 0x69 way: 0
+ 520000: board.cache_hierarchy.l1dcache: access for WriteReq [180:183] miss
+ 520812: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [180:183]
+ 520812: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [180:1bf] from WriteReq [180:183]
+ 560772: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [180:1bf]
+ 560772: board.cache_hierarchy.l1dcache: Block for addr 0x180 being updated in Cache
+ 560772: board.cache_hierarchy.l1dcache: Block addr 0x180 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6 secure: 0 valid: 1 | set: 0xc0 way: 0
+ 600000: board.cache_hierarchy.l1dcache: access for WriteReq [1c0:1c3] miss
+ 600732: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1c0:1c3]
+ 600732: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1c0:1ff] from WriteReq [1c0:1c3]
+ 640692: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1c0:1ff]
+ 640692: board.cache_hierarchy.l1dcache: Block for addr 0x1c0 being updated in Cache
+ 640692: board.cache_hierarchy.l1dcache: Block addr 0x1c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7 secure: 0 valid: 1 | set: 0xdd way: 0
+ 680000: board.cache_hierarchy.l1dcache: access for WriteReq [200:203] miss
+ 680985: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [200:203]
+ 680985: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [200:23f] from WriteReq [200:203]
+ 720945: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [200:23f]
+ 720945: board.cache_hierarchy.l1dcache: Block for addr 0x200 being updated in Cache
+ 720945: board.cache_hierarchy.l1dcache: Block addr 0x200 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8 secure: 0 valid: 1 | set: 0xa1 way: 0
+ 760000: board.cache_hierarchy.l1dcache: access for WriteReq [240:243] miss
+ 760905: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [240:243]
+ 760905: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [240:27f] from WriteReq [240:243]
+ 800865: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [240:27f]
+ 800865: board.cache_hierarchy.l1dcache: Block for addr 0x240 being updated in Cache
+ 800865: board.cache_hierarchy.l1dcache: Block addr 0x240 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9 secure: 0 valid: 1 | set: 0xbc way: 0
+ 840000: board.cache_hierarchy.l1dcache: access for WriteReq [280:283] miss
+ 840825: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [280:283]
+ 840825: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [280:2bf] from WriteReq [280:283]
+ 880785: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [280:2bf]
+ 880785: board.cache_hierarchy.l1dcache: Block for addr 0x280 being updated in Cache
+ 880785: board.cache_hierarchy.l1dcache: Block addr 0x280 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa secure: 0 valid: 1 | set: 0x15 way: 0
+ 920000: board.cache_hierarchy.l1dcache: access for WriteReq [2c0:2c3] miss
+ 920745: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2c0:2c3]
+ 920745: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2c0:2ff] from WriteReq [2c0:2c3]
+ 960705: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2c0:2ff]
+ 960705: board.cache_hierarchy.l1dcache: Block for addr 0x2c0 being updated in Cache
+ 960705: board.cache_hierarchy.l1dcache: Block addr 0x2c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb secure: 0 valid: 1 | set: 0x8 way: 0
+1000000: board.cache_hierarchy.l1dcache: access for WriteReq [300:303] miss
+1000998: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [300:303]
+1000998: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [300:33f] from WriteReq [300:303]
+1040958: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [300:33f]
+1040958: board.cache_hierarchy.l1dcache: Block for addr 0x300 being updated in Cache
+1040958: board.cache_hierarchy.l1dcache: Block addr 0x300 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc secure: 0 valid: 1 | set: 0x31 way: 0
+1080000: board.cache_hierarchy.l1dcache: access for WriteReq [340:343] miss
+1080918: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [340:343]
+1080918: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [340:37f] from WriteReq [340:343]
+1120878: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [340:37f]
+1120878: board.cache_hierarchy.l1dcache: Block for addr 0x340 being updated in Cache
+1120878: board.cache_hierarchy.l1dcache: Block addr 0x340 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd secure: 0 valid: 1 | set: 0x2c way: 0
+1160000: board.cache_hierarchy.l1dcache: access for WriteReq [380:383] miss
+1160838: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [380:383]
+1160838: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [380:3bf] from WriteReq [380:383]
+1200798: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [380:3bf]
+1200798: board.cache_hierarchy.l1dcache: Block for addr 0x380 being updated in Cache
+1200798: board.cache_hierarchy.l1dcache: Block addr 0x380 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe secure: 0 valid: 1 | set: 0x85 way: 0
+1240000: board.cache_hierarchy.l1dcache: access for WriteReq [3c0:3c3] miss
+1240758: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3c0:3c3]
+1240758: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3c0:3ff] from WriteReq [3c0:3c3]
+1280718: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3c0:3ff]
+1280718: board.cache_hierarchy.l1dcache: Block for addr 0x3c0 being updated in Cache
+1280718: board.cache_hierarchy.l1dcache: Block addr 0x3c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf secure: 0 valid: 1 | set: 0x98 way: 0
+1320000: board.cache_hierarchy.l1dcache: access for WriteReq [400:403] miss
+1320678: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [400:403]
+1320678: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [400:43f] from WriteReq [400:403]
+1374291: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [400:43f]
+1374291: board.cache_hierarchy.l1dcache: Block for addr 0x400 being updated in Cache
+1374291: board.cache_hierarchy.l1dcache: Block addr 0x400 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x10 secure: 0 valid: 1 | set: 0xb1 way: 0
+1400000: board.cache_hierarchy.l1dcache: access for WriteReq [440:443] miss
+1400931: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [440:443]
+1400931: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [440:47f] from WriteReq [440:443]
+1440891: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [440:47f]
+1440891: board.cache_hierarchy.l1dcache: Block for addr 0x440 being updated in Cache
+1440891: board.cache_hierarchy.l1dcache: Block addr 0x440 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x11 secure: 0 valid: 1 | set: 0xac way: 0
+1480000: board.cache_hierarchy.l1dcache: access for WriteReq [480:483] miss
+1480851: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [480:483]
+1480851: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [480:4bf] from WriteReq [480:483]
+1520811: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [480:4bf]
+1520811: board.cache_hierarchy.l1dcache: Block for addr 0x480 being updated in Cache
+1520811: board.cache_hierarchy.l1dcache: Block addr 0x480 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x12 secure: 0 valid: 1 | set: 0x5 way: 0
+1560000: board.cache_hierarchy.l1dcache: access for WriteReq [4c0:4c3] miss
+1560771: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [4c0:4c3]
+1560771: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [4c0:4ff] from WriteReq [4c0:4c3]
+1600731: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [4c0:4ff]
+1600731: board.cache_hierarchy.l1dcache: Block for addr 0x4c0 being updated in Cache
+1600731: board.cache_hierarchy.l1dcache: Block addr 0x4c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x13 secure: 0 valid: 1 | set: 0x18 way: 0
+1640000: board.cache_hierarchy.l1dcache: access for WriteReq [500:503] miss
+1640691: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [500:503]
+1640691: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [500:53f] from WriteReq [500:503]
+1680651: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [500:53f]
+1680651: board.cache_hierarchy.l1dcache: Block for addr 0x500 being updated in Cache
+1680651: board.cache_hierarchy.l1dcache: Block addr 0x500 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x14 secure: 0 valid: 1 | set: 0x21 way: 0
+1720000: board.cache_hierarchy.l1dcache: access for WriteReq [540:543] miss
+1720944: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [540:543]
+1720944: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [540:57f] from WriteReq [540:543]
+1760904: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [540:57f]
+1760904: board.cache_hierarchy.l1dcache: Block for addr 0x540 being updated in Cache
+1760904: board.cache_hierarchy.l1dcache: Block addr 0x540 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x15 secure: 0 valid: 1 | set: 0x3c way: 0
+1800000: board.cache_hierarchy.l1dcache: access for WriteReq [580:583] miss
+1800864: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [580:583]
+1800864: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [580:5bf] from WriteReq [580:583]
+1840824: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [580:5bf]
+1840824: board.cache_hierarchy.l1dcache: Block for addr 0x580 being updated in Cache
+1840824: board.cache_hierarchy.l1dcache: Block addr 0x580 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x16 secure: 0 valid: 1 | set: 0x95 way: 0
+1880000: board.cache_hierarchy.l1dcache: access for WriteReq [5c0:5c3] miss
+1880784: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [5c0:5c3]
+1880784: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [5c0:5ff] from WriteReq [5c0:5c3]
+1920744: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [5c0:5ff]
+1920744: board.cache_hierarchy.l1dcache: Block for addr 0x5c0 being updated in Cache
+1920744: board.cache_hierarchy.l1dcache: Block addr 0x5c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x17 secure: 0 valid: 1 | set: 0x88 way: 0
+1960000: board.cache_hierarchy.l1dcache: access for WriteReq [600:603] miss
+1960704: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [600:603]
+1960704: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [600:63f] from WriteReq [600:603]
+2000664: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [600:63f]
+2000664: board.cache_hierarchy.l1dcache: Block for addr 0x600 being updated in Cache
+2000664: board.cache_hierarchy.l1dcache: Block addr 0x600 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x18 secure: 0 valid: 1 | set: 0xf4 way: 0
+2040000: board.cache_hierarchy.l1dcache: access for WriteReq [640:643] miss
+2040957: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [640:643]
+2040957: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [640:67f] from WriteReq [640:643]
+2080917: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [640:67f]
+2080917: board.cache_hierarchy.l1dcache: Block for addr 0x640 being updated in Cache
+2080917: board.cache_hierarchy.l1dcache: Block addr 0x640 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x19 secure: 0 valid: 1 | set: 0xe9 way: 0
+2120000: board.cache_hierarchy.l1dcache: access for WriteReq [680:683] miss
+2120877: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [680:683]
+2120877: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [680:6bf] from WriteReq [680:683]
+2160837: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [680:6bf]
+2160837: board.cache_hierarchy.l1dcache: Block for addr 0x680 being updated in Cache
+2160837: board.cache_hierarchy.l1dcache: Block addr 0x680 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1a secure: 0 valid: 1 | set: 0x40 way: 0
+2200000: board.cache_hierarchy.l1dcache: access for WriteReq [6c0:6c3] miss
+2200797: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [6c0:6c3]
+2200797: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [6c0:6ff] from WriteReq [6c0:6c3]
+2240757: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [6c0:6ff]
+2240757: board.cache_hierarchy.l1dcache: Block for addr 0x6c0 being updated in Cache
+2240757: board.cache_hierarchy.l1dcache: Block addr 0x6c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1b secure: 0 valid: 1 | set: 0x5d way: 0
+2280000: board.cache_hierarchy.l1dcache: access for WriteReq [700:703] miss
+2280717: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [700:703]
+2280717: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [700:73f] from WriteReq [700:703]
+2320677: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [700:73f]
+2320677: board.cache_hierarchy.l1dcache: Block for addr 0x700 being updated in Cache
+2320677: board.cache_hierarchy.l1dcache: Block addr 0x700 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1c secure: 0 valid: 1 | set: 0x64 way: 0
+2360000: board.cache_hierarchy.l1dcache: access for WriteReq [740:743] miss
+2360970: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [740:743]
+2360970: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [740:77f] from WriteReq [740:743]
+2400930: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [740:77f]
+2400930: board.cache_hierarchy.l1dcache: Block for addr 0x740 being updated in Cache
+2400930: board.cache_hierarchy.l1dcache: Block addr 0x740 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1d secure: 0 valid: 1 | set: 0x79 way: 0
+2440000: board.cache_hierarchy.l1dcache: access for WriteReq [780:783] miss
+2440890: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [780:783]
+2440890: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [780:7bf] from WriteReq [780:783]
+2480850: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [780:7bf]
+2480850: board.cache_hierarchy.l1dcache: Block for addr 0x780 being updated in Cache
+2480850: board.cache_hierarchy.l1dcache: Block addr 0x780 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1e secure: 0 valid: 1 | set: 0xd0 way: 0
+2520000: board.cache_hierarchy.l1dcache: access for WriteReq [7c0:7c3] miss
+2520810: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [7c0:7c3]
+2520810: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [7c0:7ff] from WriteReq [7c0:7c3]
+2560770: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [7c0:7ff]
+2560770: board.cache_hierarchy.l1dcache: Block for addr 0x7c0 being updated in Cache
+2560770: board.cache_hierarchy.l1dcache: Block addr 0x7c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x1f secure: 0 valid: 1 | set: 0xcd way: 0
+2600000: board.cache_hierarchy.l1dcache: access for WriteReq [800:803] miss
+2600730: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [800:803]
+2600730: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [800:83f] from WriteReq [800:803]
+2654343: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [800:83f]
+2654343: board.cache_hierarchy.l1dcache: Block for addr 0x800 being updated in Cache
+2654343: board.cache_hierarchy.l1dcache: Block addr 0x800 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x20 secure: 0 valid: 1 | set: 0xd3 way: 0
+2680000: board.cache_hierarchy.l1dcache: access for WriteReq [840:843] miss
+2680983: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [840:843]
+2680983: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [840:87f] from WriteReq [840:843]
+2720943: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [840:87f]
+2720943: board.cache_hierarchy.l1dcache: Block for addr 0x840 being updated in Cache
+2720943: board.cache_hierarchy.l1dcache: Block addr 0x840 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x21 secure: 0 valid: 1 | set: 0xce way: 0
+2760000: board.cache_hierarchy.l1dcache: access for WriteReq [880:883] miss
+2760903: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [880:883]
+2760903: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [880:8bf] from WriteReq [880:883]
+2800863: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [880:8bf]
+2800863: board.cache_hierarchy.l1dcache: Block for addr 0x880 being updated in Cache
+2800863: board.cache_hierarchy.l1dcache: Block addr 0x880 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x22 secure: 0 valid: 1 | set: 0x67 way: 0
+2840000: board.cache_hierarchy.l1dcache: access for WriteReq [8c0:8c3] miss
+2840823: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [8c0:8c3]
+2840823: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [8c0:8ff] from WriteReq [8c0:8c3]
+2880783: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [8c0:8ff]
+2880783: board.cache_hierarchy.l1dcache: Block for addr 0x8c0 being updated in Cache
+2880783: board.cache_hierarchy.l1dcache: Block addr 0x8c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x23 secure: 0 valid: 1 | set: 0x7a way: 0
+2920000: board.cache_hierarchy.l1dcache: access for WriteReq [900:903] miss
+2920743: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [900:903]
+2920743: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [900:93f] from WriteReq [900:903]
+2960703: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [900:93f]
+2960703: board.cache_hierarchy.l1dcache: Block for addr 0x900 being updated in Cache
+2960703: board.cache_hierarchy.l1dcache: Block addr 0x900 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x24 secure: 0 valid: 1 | set: 0x43 way: 0
+3000000: board.cache_hierarchy.l1dcache: access for WriteReq [940:943] miss
+3000996: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [940:943]
+3000996: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [940:97f] from WriteReq [940:943]
+3040956: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [940:97f]
+3040956: board.cache_hierarchy.l1dcache: Block for addr 0x940 being updated in Cache
+3040956: board.cache_hierarchy.l1dcache: Block addr 0x940 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x25 secure: 0 valid: 1 | set: 0x5e way: 0
+3080000: board.cache_hierarchy.l1dcache: access for WriteReq [980:983] miss
+3080916: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [980:983]
+3080916: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [980:9bf] from WriteReq [980:983]
+3120876: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [980:9bf]
+3120876: board.cache_hierarchy.l1dcache: Block for addr 0x980 being updated in Cache
+3120876: board.cache_hierarchy.l1dcache: Block addr 0x980 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x26 secure: 0 valid: 1 | set: 0xf7 way: 0
+3160000: board.cache_hierarchy.l1dcache: access for WriteReq [9c0:9c3] miss
+3160836: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [9c0:9c3]
+3160836: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [9c0:9ff] from WriteReq [9c0:9c3]
+3200796: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [9c0:9ff]
+3200796: board.cache_hierarchy.l1dcache: Block for addr 0x9c0 being updated in Cache
+3200796: board.cache_hierarchy.l1dcache: Block addr 0x9c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x27 secure: 0 valid: 1 | set: 0xea way: 0
+3240000: board.cache_hierarchy.l1dcache: access for WriteReq [a00:a03] miss
+3240756: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [a00:a03]
+3240756: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [a00:a3f] from WriteReq [a00:a03]
+3280716: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [a00:a3f]
+3280716: board.cache_hierarchy.l1dcache: Block for addr 0xa00 being updated in Cache
+3280716: board.cache_hierarchy.l1dcache: Block addr 0xa00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x28 secure: 0 valid: 1 | set: 0x96 way: 0
+3320000: board.cache_hierarchy.l1dcache: access for WriteReq [a40:a43] miss
+3320676: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [a40:a43]
+3320676: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [a40:a7f] from WriteReq [a40:a43]
+3360636: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [a40:a7f]
+3360636: board.cache_hierarchy.l1dcache: Block for addr 0xa40 being updated in Cache
+3360636: board.cache_hierarchy.l1dcache: Block addr 0xa40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x29 secure: 0 valid: 1 | set: 0x8b way: 0
+3400000: board.cache_hierarchy.l1dcache: access for WriteReq [a80:a83] miss
+3400929: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [a80:a83]
+3400929: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [a80:abf] from WriteReq [a80:a83]
+3440889: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [a80:abf]
+3440889: board.cache_hierarchy.l1dcache: Block for addr 0xa80 being updated in Cache
+3440889: board.cache_hierarchy.l1dcache: Block addr 0xa80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2a secure: 0 valid: 1 | set: 0x22 way: 0
+3480000: board.cache_hierarchy.l1dcache: access for WriteReq [ac0:ac3] miss
+3480849: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [ac0:ac3]
+3480849: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [ac0:aff] from WriteReq [ac0:ac3]
+3520809: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [ac0:aff]
+3520809: board.cache_hierarchy.l1dcache: Block for addr 0xac0 being updated in Cache
+3520809: board.cache_hierarchy.l1dcache: Block addr 0xac0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2b secure: 0 valid: 1 | set: 0x3f way: 0
+3560000: board.cache_hierarchy.l1dcache: access for WriteReq [b00:b03] miss
+3560769: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [b00:b03]
+3560769: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [b00:b3f] from WriteReq [b00:b03]
+3600729: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [b00:b3f]
+3600729: board.cache_hierarchy.l1dcache: Block for addr 0xb00 being updated in Cache
+3600729: board.cache_hierarchy.l1dcache: Block addr 0xb00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2c secure: 0 valid: 1 | set: 0x6 way: 0
+3640000: board.cache_hierarchy.l1dcache: access for WriteReq [b40:b43] miss
+3640689: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [b40:b43]
+3640689: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [b40:b7f] from WriteReq [b40:b43]
+3680649: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [b40:b7f]
+3680649: board.cache_hierarchy.l1dcache: Block for addr 0xb40 being updated in Cache
+3680649: board.cache_hierarchy.l1dcache: Block addr 0xb40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2d secure: 0 valid: 1 | set: 0x1b way: 0
+3720000: board.cache_hierarchy.l1dcache: access for WriteReq [b80:b83] miss
+3720942: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [b80:b83]
+3720942: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [b80:bbf] from WriteReq [b80:b83]
+3760902: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [b80:bbf]
+3760902: board.cache_hierarchy.l1dcache: Block for addr 0xb80 being updated in Cache
+3760902: board.cache_hierarchy.l1dcache: Block addr 0xb80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2e secure: 0 valid: 1 | set: 0xb2 way: 0
+3800000: board.cache_hierarchy.l1dcache: access for WriteReq [bc0:bc3] miss
+3800862: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [bc0:bc3]
+3800862: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [bc0:bff] from WriteReq [bc0:bc3]
+3840822: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [bc0:bff]
+3840822: board.cache_hierarchy.l1dcache: Block for addr 0xbc0 being updated in Cache
+3840822: board.cache_hierarchy.l1dcache: Block addr 0xbc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x2f secure: 0 valid: 1 | set: 0xaf way: 0
+3880000: board.cache_hierarchy.l1dcache: access for WriteReq [c00:c03] miss
+3880782: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [c00:c03]
+3880782: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [c00:c3f] from WriteReq [c00:c03]
+3934395: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [c00:c3f]
+3934395: board.cache_hierarchy.l1dcache: Block for addr 0xc00 being updated in Cache
+3934395: board.cache_hierarchy.l1dcache: Block addr 0xc00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x30 secure: 0 valid: 1 | set: 0x86 way: 0
+3960000: board.cache_hierarchy.l1dcache: access for WriteReq [c40:c43] miss
+3960702: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [c40:c43]
+3960702: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [c40:c7f] from WriteReq [c40:c43]
+4000662: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [c40:c7f]
+4000662: board.cache_hierarchy.l1dcache: Block for addr 0xc40 being updated in Cache
+4000662: board.cache_hierarchy.l1dcache: Block addr 0xc40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x31 secure: 0 valid: 1 | set: 0x9b way: 0
+4040000: board.cache_hierarchy.l1dcache: access for WriteReq [c80:c83] miss
+4040955: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [c80:c83]
+4040955: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [c80:cbf] from WriteReq [c80:c83]
+4080915: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [c80:cbf]
+4080915: board.cache_hierarchy.l1dcache: Block for addr 0xc80 being updated in Cache
+4080915: board.cache_hierarchy.l1dcache: Block addr 0xc80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x32 secure: 0 valid: 1 | set: 0x32 way: 0
+4120000: board.cache_hierarchy.l1dcache: access for WriteReq [cc0:cc3] miss
+4120875: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [cc0:cc3]
+4120875: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [cc0:cff] from WriteReq [cc0:cc3]
+4160835: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [cc0:cff]
+4160835: board.cache_hierarchy.l1dcache: Block for addr 0xcc0 being updated in Cache
+4160835: board.cache_hierarchy.l1dcache: Block addr 0xcc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x33 secure: 0 valid: 1 | set: 0x2f way: 0
+4200000: board.cache_hierarchy.l1dcache: access for WriteReq [d00:d03] miss
+4200795: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [d00:d03]
+4200795: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [d00:d3f] from WriteReq [d00:d03]
+4240755: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [d00:d3f]
+4240755: board.cache_hierarchy.l1dcache: Block for addr 0xd00 being updated in Cache
+4240755: board.cache_hierarchy.l1dcache: Block addr 0xd00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x34 secure: 0 valid: 1 | set: 0x16 way: 0
+4280000: board.cache_hierarchy.l1dcache: access for WriteReq [d40:d43] miss
+4280715: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [d40:d43]
+4280715: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [d40:d7f] from WriteReq [d40:d43]
+4320675: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [d40:d7f]
+4320675: board.cache_hierarchy.l1dcache: Block for addr 0xd40 being updated in Cache
+4320675: board.cache_hierarchy.l1dcache: Block addr 0xd40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x35 secure: 0 valid: 1 | set: 0xb way: 0
+4360000: board.cache_hierarchy.l1dcache: access for WriteReq [d80:d83] miss
+4360968: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [d80:d83]
+4360968: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [d80:dbf] from WriteReq [d80:d83]
+4400928: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [d80:dbf]
+4400928: board.cache_hierarchy.l1dcache: Block for addr 0xd80 being updated in Cache
+4400928: board.cache_hierarchy.l1dcache: Block addr 0xd80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x36 secure: 0 valid: 1 | set: 0xa2 way: 0
+4440000: board.cache_hierarchy.l1dcache: access for WriteReq [dc0:dc3] miss
+4440888: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [dc0:dc3]
+4440888: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [dc0:dff] from WriteReq [dc0:dc3]
+4480848: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [dc0:dff]
+4480848: board.cache_hierarchy.l1dcache: Block for addr 0xdc0 being updated in Cache
+4480848: board.cache_hierarchy.l1dcache: Block addr 0xdc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x37 secure: 0 valid: 1 | set: 0xbf way: 0
+4520000: board.cache_hierarchy.l1dcache: access for WriteReq [e00:e03] miss
+4520808: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [e00:e03]
+4520808: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [e00:e3f] from WriteReq [e00:e03]
+4560768: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [e00:e3f]
+4560768: board.cache_hierarchy.l1dcache: Block for addr 0xe00 being updated in Cache
+4560768: board.cache_hierarchy.l1dcache: Block addr 0xe00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x38 secure: 0 valid: 1 | set: 0xc3 way: 0
+4600000: board.cache_hierarchy.l1dcache: access for WriteReq [e40:e43] miss
+4600728: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [e40:e43]
+4600728: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [e40:e7f] from WriteReq [e40:e43]
+4640688: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [e40:e7f]
+4640688: board.cache_hierarchy.l1dcache: Block for addr 0xe40 being updated in Cache
+4640688: board.cache_hierarchy.l1dcache: Block addr 0xe40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x39 secure: 0 valid: 1 | set: 0xde way: 0
+4680000: board.cache_hierarchy.l1dcache: access for WriteReq [e80:e83] miss
+4680981: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [e80:e83]
+4680981: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [e80:ebf] from WriteReq [e80:e83]
+4720941: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [e80:ebf]
+4720941: board.cache_hierarchy.l1dcache: Block for addr 0xe80 being updated in Cache
+4720941: board.cache_hierarchy.l1dcache: Block addr 0xe80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3a secure: 0 valid: 1 | set: 0x77 way: 0
+4760000: board.cache_hierarchy.l1dcache: access for WriteReq [ec0:ec3] miss
+4760901: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [ec0:ec3]
+4760901: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [ec0:eff] from WriteReq [ec0:ec3]
+4800861: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [ec0:eff]
+4800861: board.cache_hierarchy.l1dcache: Block for addr 0xec0 being updated in Cache
+4800861: board.cache_hierarchy.l1dcache: Block addr 0xec0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3b secure: 0 valid: 1 | set: 0x6a way: 0
+4840000: board.cache_hierarchy.l1dcache: access for WriteReq [f00:f03] miss
+4840821: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [f00:f03]
+4840821: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [f00:f3f] from WriteReq [f00:f03]
+4880781: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [f00:f3f]
+4880781: board.cache_hierarchy.l1dcache: Block for addr 0xf00 being updated in Cache
+4880781: board.cache_hierarchy.l1dcache: Block addr 0xf00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3c secure: 0 valid: 1 | set: 0x53 way: 0
+4920000: board.cache_hierarchy.l1dcache: access for WriteReq [f40:f43] miss
+4920741: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [f40:f43]
+4920741: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [f40:f7f] from WriteReq [f40:f43]
+4960701: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [f40:f7f]
+4960701: board.cache_hierarchy.l1dcache: Block for addr 0xf40 being updated in Cache
+4960701: board.cache_hierarchy.l1dcache: Block addr 0xf40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3d secure: 0 valid: 1 | set: 0x4e way: 0
+5000000: board.cache_hierarchy.l1dcache: access for WriteReq [f80:f83] miss
+5000994: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [f80:f83]
+5000994: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [f80:fbf] from WriteReq [f80:f83]
+5040954: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [f80:fbf]
+5040954: board.cache_hierarchy.l1dcache: Block for addr 0xf80 being updated in Cache
+5040954: board.cache_hierarchy.l1dcache: Block addr 0xf80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3e secure: 0 valid: 1 | set: 0xe7 way: 0
+5080000: board.cache_hierarchy.l1dcache: access for WriteReq [fc0:fc3] miss
+5080914: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [fc0:fc3]
+5080914: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [fc0:fff] from WriteReq [fc0:fc3]
+5120874: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [fc0:fff]
+5120874: board.cache_hierarchy.l1dcache: Block for addr 0xfc0 being updated in Cache
+5120874: board.cache_hierarchy.l1dcache: Block addr 0xfc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x3f secure: 0 valid: 1 | set: 0xfa way: 0
+5160000: board.cache_hierarchy.l1dcache: access for WriteReq [1000:1003] miss
+5160834: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1000:1003]
+5160834: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1000:103f] from WriteReq [1000:1003]
+5214447: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1000:103f]
+5214447: board.cache_hierarchy.l1dcache: Block for addr 0x1000 being updated in Cache
+5214447: board.cache_hierarchy.l1dcache: Block addr 0x1000 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x40 secure: 0 valid: 1 | set: 0xa6 way: 0
+5240000: board.cache_hierarchy.l1dcache: access for WriteReq [1040:1043] miss
+5240754: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1040:1043]
+5240754: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1040:107f] from WriteReq [1040:1043]
+5280714: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1040:107f]
+5280714: board.cache_hierarchy.l1dcache: Block for addr 0x1040 being updated in Cache
+5280714: board.cache_hierarchy.l1dcache: Block addr 0x1040 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x41 secure: 0 valid: 1 | set: 0xbb way: 0
+5320000: board.cache_hierarchy.l1dcache: access for WriteReq [1080:1083] miss
+5320674: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1080:1083]
+5320674: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1080:10bf] from WriteReq [1080:1083]
+5360634: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1080:10bf]
+5360634: board.cache_hierarchy.l1dcache: Block for addr 0x1080 being updated in Cache
+5360634: board.cache_hierarchy.l1dcache: Block addr 0x1080 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x42 secure: 0 valid: 1 | set: 0x12 way: 0
+5400000: board.cache_hierarchy.l1dcache: access for WriteReq [10c0:10c3] miss
+5400927: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [10c0:10c3]
+5400927: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [10c0:10ff] from WriteReq [10c0:10c3]
+5440887: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [10c0:10ff]
+5440887: board.cache_hierarchy.l1dcache: Block for addr 0x10c0 being updated in Cache
+5440887: board.cache_hierarchy.l1dcache: Block addr 0x10c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x43 secure: 0 valid: 1 | set: 0xf way: 0
+5480000: board.cache_hierarchy.l1dcache: access for WriteReq [1100:1103] miss
+5480847: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1100:1103]
+5480847: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1100:113f] from WriteReq [1100:1103]
+5520807: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1100:113f]
+5520807: board.cache_hierarchy.l1dcache: Block for addr 0x1100 being updated in Cache
+5520807: board.cache_hierarchy.l1dcache: Block addr 0x1100 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x44 secure: 0 valid: 1 | set: 0x36 way: 0
+5560000: board.cache_hierarchy.l1dcache: access for WriteReq [1140:1143] miss
+5560767: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1140:1143]
+5560767: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1140:117f] from WriteReq [1140:1143]
+5600727: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1140:117f]
+5600727: board.cache_hierarchy.l1dcache: Block for addr 0x1140 being updated in Cache
+5600727: board.cache_hierarchy.l1dcache: Block addr 0x1140 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x45 secure: 0 valid: 1 | set: 0x2b way: 0
+5640000: board.cache_hierarchy.l1dcache: access for WriteReq [1180:1183] miss
+5640687: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1180:1183]
+5640687: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1180:11bf] from WriteReq [1180:1183]
+5680647: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1180:11bf]
+5680647: board.cache_hierarchy.l1dcache: Block for addr 0x1180 being updated in Cache
+5680647: board.cache_hierarchy.l1dcache: Block addr 0x1180 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x46 secure: 0 valid: 1 | set: 0x82 way: 0
+5720000: board.cache_hierarchy.l1dcache: access for WriteReq [11c0:11c3] miss
+5720940: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [11c0:11c3]
+5720940: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [11c0:11ff] from WriteReq [11c0:11c3]
+5760900: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [11c0:11ff]
+5760900: board.cache_hierarchy.l1dcache: Block for addr 0x11c0 being updated in Cache
+5760900: board.cache_hierarchy.l1dcache: Block addr 0x11c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x47 secure: 0 valid: 1 | set: 0x9f way: 0
+5800000: board.cache_hierarchy.l1dcache: access for WriteReq [1200:1203] miss
+5800860: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1200:1203]
+5800860: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1200:123f] from WriteReq [1200:1203]
+5840820: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1200:123f]
+5840820: board.cache_hierarchy.l1dcache: Block for addr 0x1200 being updated in Cache
+5840820: board.cache_hierarchy.l1dcache: Block addr 0x1200 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x48 secure: 0 valid: 1 | set: 0xe3 way: 0
+5880000: board.cache_hierarchy.l1dcache: access for WriteReq [1240:1243] miss
+5880780: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1240:1243]
+5880780: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1240:127f] from WriteReq [1240:1243]
+5920740: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1240:127f]
+5920740: board.cache_hierarchy.l1dcache: Block for addr 0x1240 being updated in Cache
+5920740: board.cache_hierarchy.l1dcache: Block addr 0x1240 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x49 secure: 0 valid: 1 | set: 0xfe way: 0
+5960000: board.cache_hierarchy.l1dcache: access for WriteReq [1280:1283] miss
+5960700: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1280:1283]
+5960700: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1280:12bf] from WriteReq [1280:1283]
+6000660: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1280:12bf]
+6000660: board.cache_hierarchy.l1dcache: Block for addr 0x1280 being updated in Cache
+6000660: board.cache_hierarchy.l1dcache: Block addr 0x1280 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4a secure: 0 valid: 1 | set: 0x57 way: 0
+6040000: board.cache_hierarchy.l1dcache: access for WriteReq [12c0:12c3] miss
+6040953: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [12c0:12c3]
+6040953: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [12c0:12ff] from WriteReq [12c0:12c3]
+6080913: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [12c0:12ff]
+6080913: board.cache_hierarchy.l1dcache: Block for addr 0x12c0 being updated in Cache
+6080913: board.cache_hierarchy.l1dcache: Block addr 0x12c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4b secure: 0 valid: 1 | set: 0x4a way: 0
+6120000: board.cache_hierarchy.l1dcache: access for WriteReq [1300:1303] miss
+6120873: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1300:1303]
+6120873: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1300:133f] from WriteReq [1300:1303]
+6160833: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1300:133f]
+6160833: board.cache_hierarchy.l1dcache: Block for addr 0x1300 being updated in Cache
+6160833: board.cache_hierarchy.l1dcache: Block addr 0x1300 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4c secure: 0 valid: 1 | set: 0x73 way: 0
+6200000: board.cache_hierarchy.l1dcache: access for WriteReq [1340:1343] miss
+6200793: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1340:1343]
+6200793: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1340:137f] from WriteReq [1340:1343]
+6240753: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1340:137f]
+6240753: board.cache_hierarchy.l1dcache: Block for addr 0x1340 being updated in Cache
+6240753: board.cache_hierarchy.l1dcache: Block addr 0x1340 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4d secure: 0 valid: 1 | set: 0x6e way: 0
+6280000: board.cache_hierarchy.l1dcache: access for WriteReq [1380:1383] miss
+6280713: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1380:1383]
+6280713: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1380:13bf] from WriteReq [1380:1383]
+6320673: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1380:13bf]
+6320673: board.cache_hierarchy.l1dcache: Block for addr 0x1380 being updated in Cache
+6320673: board.cache_hierarchy.l1dcache: Block addr 0x1380 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4e secure: 0 valid: 1 | set: 0xc7 way: 0
+6360000: board.cache_hierarchy.l1dcache: access for WriteReq [13c0:13c3] miss
+6360966: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [13c0:13c3]
+6360966: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [13c0:13ff] from WriteReq [13c0:13c3]
+6400926: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [13c0:13ff]
+6400926: board.cache_hierarchy.l1dcache: Block for addr 0x13c0 being updated in Cache
+6400926: board.cache_hierarchy.l1dcache: Block addr 0x13c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x4f secure: 0 valid: 1 | set: 0xda way: 0
+6440000: board.cache_hierarchy.l1dcache: access for WriteReq [1400:1403] miss
+6440886: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1400:1403]
+6440886: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1400:143f] from WriteReq [1400:1403]
+6494499: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1400:143f]
+6494499: board.cache_hierarchy.l1dcache: Block for addr 0x1400 being updated in Cache
+6494499: board.cache_hierarchy.l1dcache: Block addr 0x1400 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x50 secure: 0 valid: 1 | set: 0xf3 way: 0
+6520000: board.cache_hierarchy.l1dcache: access for WriteReq [1440:1443] miss
+6520806: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1440:1443]
+6520806: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1440:147f] from WriteReq [1440:1443]
+6560766: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1440:147f]
+6560766: board.cache_hierarchy.l1dcache: Block for addr 0x1440 being updated in Cache
+6560766: board.cache_hierarchy.l1dcache: Block addr 0x1440 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x51 secure: 0 valid: 1 | set: 0xee way: 0
+6600000: board.cache_hierarchy.l1dcache: access for WriteReq [1480:1483] miss
+6600726: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1480:1483]
+6600726: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1480:14bf] from WriteReq [1480:1483]
+6640686: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1480:14bf]
+6640686: board.cache_hierarchy.l1dcache: Block for addr 0x1480 being updated in Cache
+6640686: board.cache_hierarchy.l1dcache: Block addr 0x1480 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x52 secure: 0 valid: 1 | set: 0x47 way: 0
+6680000: board.cache_hierarchy.l1dcache: access for WriteReq [14c0:14c3] miss
+6680979: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [14c0:14c3]
+6680979: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [14c0:14ff] from WriteReq [14c0:14c3]
+6720939: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [14c0:14ff]
+6720939: board.cache_hierarchy.l1dcache: Block for addr 0x14c0 being updated in Cache
+6720939: board.cache_hierarchy.l1dcache: Block addr 0x14c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x53 secure: 0 valid: 1 | set: 0x5a way: 0
+6760000: board.cache_hierarchy.l1dcache: access for WriteReq [1500:1503] miss
+6760899: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1500:1503]
+6760899: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1500:153f] from WriteReq [1500:1503]
+6800859: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1500:153f]
+6800859: board.cache_hierarchy.l1dcache: Block for addr 0x1500 being updated in Cache
+6800859: board.cache_hierarchy.l1dcache: Block addr 0x1500 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x54 secure: 0 valid: 1 | set: 0x63 way: 0
+6840000: board.cache_hierarchy.l1dcache: access for WriteReq [1540:1543] miss
+6840819: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1540:1543]
+6840819: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1540:157f] from WriteReq [1540:1543]
+6880779: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1540:157f]
+6880779: board.cache_hierarchy.l1dcache: Block for addr 0x1540 being updated in Cache
+6880779: board.cache_hierarchy.l1dcache: Block addr 0x1540 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x55 secure: 0 valid: 1 | set: 0x7e way: 0
+6920000: board.cache_hierarchy.l1dcache: access for WriteReq [1580:1583] miss
+6920739: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1580:1583]
+6920739: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1580:15bf] from WriteReq [1580:1583]
+6960699: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1580:15bf]
+6960699: board.cache_hierarchy.l1dcache: Block for addr 0x1580 being updated in Cache
+6960699: board.cache_hierarchy.l1dcache: Block addr 0x1580 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x56 secure: 0 valid: 1 | set: 0xd7 way: 0
+7000000: board.cache_hierarchy.l1dcache: access for WriteReq [15c0:15c3] miss
+7000992: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [15c0:15c3]
+7000992: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [15c0:15ff] from WriteReq [15c0:15c3]
+7040952: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [15c0:15ff]
+7040952: board.cache_hierarchy.l1dcache: Block for addr 0x15c0 being updated in Cache
+7040952: board.cache_hierarchy.l1dcache: Block addr 0x15c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x57 secure: 0 valid: 1 | set: 0xca way: 0
+7080000: board.cache_hierarchy.l1dcache: access for WriteReq [1600:1603] miss
+7080912: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1600:1603]
+7080912: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1600:163f] from WriteReq [1600:1603]
+7120872: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1600:163f]
+7120872: board.cache_hierarchy.l1dcache: Block for addr 0x1600 being updated in Cache
+7120872: board.cache_hierarchy.l1dcache: Block addr 0x1600 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x58 secure: 0 valid: 1 | set: 0xb6 way: 0
+7160000: board.cache_hierarchy.l1dcache: access for WriteReq [1640:1643] miss
+7160832: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1640:1643]
+7160832: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1640:167f] from WriteReq [1640:1643]
+7200792: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1640:167f]
+7200792: board.cache_hierarchy.l1dcache: Block for addr 0x1640 being updated in Cache
+7200792: board.cache_hierarchy.l1dcache: Block addr 0x1640 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x59 secure: 0 valid: 1 | set: 0xab way: 0
+7240000: board.cache_hierarchy.l1dcache: access for WriteReq [1680:1683] miss
+7240752: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1680:1683]
+7240752: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1680:16bf] from WriteReq [1680:1683]
+7280712: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1680:16bf]
+7280712: board.cache_hierarchy.l1dcache: Block for addr 0x1680 being updated in Cache
+7280712: board.cache_hierarchy.l1dcache: Block addr 0x1680 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5a secure: 0 valid: 1 | set: 0x2 way: 0
+7320000: board.cache_hierarchy.l1dcache: access for WriteReq [16c0:16c3] miss
+7320672: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [16c0:16c3]
+7320672: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [16c0:16ff] from WriteReq [16c0:16c3]
+7360632: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [16c0:16ff]
+7360632: board.cache_hierarchy.l1dcache: Block for addr 0x16c0 being updated in Cache
+7360632: board.cache_hierarchy.l1dcache: Block addr 0x16c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5b secure: 0 valid: 1 | set: 0x1f way: 0
+7400000: board.cache_hierarchy.l1dcache: access for WriteReq [1700:1703] miss
+7400925: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1700:1703]
+7400925: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1700:173f] from WriteReq [1700:1703]
+7440885: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1700:173f]
+7440885: board.cache_hierarchy.l1dcache: Block for addr 0x1700 being updated in Cache
+7440885: board.cache_hierarchy.l1dcache: Block addr 0x1700 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5c secure: 0 valid: 1 | set: 0x26 way: 0
+7480000: board.cache_hierarchy.l1dcache: access for WriteReq [1740:1743] miss
+7480845: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1740:1743]
+7480845: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1740:177f] from WriteReq [1740:1743]
+7520805: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1740:177f]
+7520805: board.cache_hierarchy.l1dcache: Block for addr 0x1740 being updated in Cache
+7520805: board.cache_hierarchy.l1dcache: Block addr 0x1740 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5d secure: 0 valid: 1 | set: 0x3b way: 0
+7560000: board.cache_hierarchy.l1dcache: access for WriteReq [1780:1783] miss
+7560765: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1780:1783]
+7560765: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1780:17bf] from WriteReq [1780:1783]
+7600725: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1780:17bf]
+7600725: board.cache_hierarchy.l1dcache: Block for addr 0x1780 being updated in Cache
+7600725: board.cache_hierarchy.l1dcache: Block addr 0x1780 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5e secure: 0 valid: 1 | set: 0x92 way: 0
+7640000: board.cache_hierarchy.l1dcache: access for WriteReq [17c0:17c3] miss
+7640685: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [17c0:17c3]
+7640685: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [17c0:17ff] from WriteReq [17c0:17c3]
+7680645: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [17c0:17ff]
+7680645: board.cache_hierarchy.l1dcache: Block for addr 0x17c0 being updated in Cache
+7680645: board.cache_hierarchy.l1dcache: Block addr 0x17c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x5f secure: 0 valid: 1 | set: 0x8f way: 0
+7720000: board.cache_hierarchy.l1dcache: access for WriteReq [1800:1803] miss
+7720938: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1800:1803]
+7720938: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1800:183f] from WriteReq [1800:1803]
+7774551: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1800:183f]
+7774551: board.cache_hierarchy.l1dcache: Block for addr 0x1800 being updated in Cache
+7774551: board.cache_hierarchy.l1dcache: Block addr 0x1800 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x60 secure: 0 valid: 1 | set: 0x91 way: 0
+7800000: board.cache_hierarchy.l1dcache: access for WriteReq [1840:1843] miss
+7800858: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1840:1843]
+7800858: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1840:187f] from WriteReq [1840:1843]
+7880000: board.cache_hierarchy.l1dcache: access for WriteReq [1880:1883] miss
+7880778: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1880:1883]
+7880778: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1880:18bf] from WriteReq [1880:1883]
+7960000: board.cache_hierarchy.l1dcache: access for WriteReq [18c0:18c3] miss
+7960698: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [18c0:18c3]
+7960698: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [18c0:18ff] from WriteReq [18c0:18c3]
+8040000: board.cache_hierarchy.l1dcache: access for WriteReq [1900:1903] miss
+8040000: board.cache_hierarchy.l1dcache: Blocking for cause 0, mask=1
+8040951: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1900:1903]
+8040951: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1900:193f] from WriteReq [1900:1903]
+8113545: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1840:187f]
+8113545: board.cache_hierarchy.l1dcache: Block for addr 0x1840 being updated in Cache
+8113545: board.cache_hierarchy.l1dcache: Block addr 0x1840 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x61 secure: 0 valid: 1 | set: 0x8c way: 0
+8113545: board.cache_hierarchy.l1dcache: Unblocking for cause 0, mask=0
+8118540: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1880:18bf]
+8118540: board.cache_hierarchy.l1dcache: Block for addr 0x1880 being updated in Cache
+8118540: board.cache_hierarchy.l1dcache: Block addr 0x1880 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x62 secure: 0 valid: 1 | set: 0x25 way: 0
+8120000: board.cache_hierarchy.l1dcache: access for WriteReq [1940:1943] miss
+8120871: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1940:1943]
+8120871: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1940:197f] from WriteReq [1940:1943]
+8123535: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [18c0:18ff]
+8123535: board.cache_hierarchy.l1dcache: Block for addr 0x18c0 being updated in Cache
+8123535: board.cache_hierarchy.l1dcache: Block addr 0x18c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x63 secure: 0 valid: 1 | set: 0x38 way: 0
+8128530: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1900:193f]
+8128530: board.cache_hierarchy.l1dcache: Block for addr 0x1900 being updated in Cache
+8128530: board.cache_hierarchy.l1dcache: Block addr 0x1900 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x64 secure: 0 valid: 1 | set: 0x1 way: 0
+8160831: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1940:197f]
+8160831: board.cache_hierarchy.l1dcache: Block for addr 0x1940 being updated in Cache
+8160831: board.cache_hierarchy.l1dcache: Block addr 0x1940 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x65 secure: 0 valid: 1 | set: 0x1c way: 0
+8200000: board.cache_hierarchy.l1dcache: access for WriteReq [1980:1983] miss
+8200791: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1980:1983]
+8200791: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1980:19bf] from WriteReq [1980:1983]
+8240751: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1980:19bf]
+8240751: board.cache_hierarchy.l1dcache: Block for addr 0x1980 being updated in Cache
+8240751: board.cache_hierarchy.l1dcache: Block addr 0x1980 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x66 secure: 0 valid: 1 | set: 0xb5 way: 0
+8280000: board.cache_hierarchy.l1dcache: access for WriteReq [19c0:19c3] miss
+8280711: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [19c0:19c3]
+8280711: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [19c0:19ff] from WriteReq [19c0:19c3]
+8320671: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [19c0:19ff]
+8320671: board.cache_hierarchy.l1dcache: Block for addr 0x19c0 being updated in Cache
+8320671: board.cache_hierarchy.l1dcache: Block addr 0x19c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x67 secure: 0 valid: 1 | set: 0xa8 way: 0
+8360000: board.cache_hierarchy.l1dcache: access for WriteReq [1a00:1a03] miss
+8360964: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1a00:1a03]
+8360964: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1a00:1a3f] from WriteReq [1a00:1a03]
+8400924: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1a00:1a3f]
+8400924: board.cache_hierarchy.l1dcache: Block for addr 0x1a00 being updated in Cache
+8400924: board.cache_hierarchy.l1dcache: Block addr 0x1a00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x68 secure: 0 valid: 1 | set: 0xd4 way: 0
+8440000: board.cache_hierarchy.l1dcache: access for WriteReq [1a40:1a43] miss
+8440884: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1a40:1a43]
+8440884: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1a40:1a7f] from WriteReq [1a40:1a43]
+8480844: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1a40:1a7f]
+8480844: board.cache_hierarchy.l1dcache: Block for addr 0x1a40 being updated in Cache
+8480844: board.cache_hierarchy.l1dcache: Block addr 0x1a40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x69 secure: 0 valid: 1 | set: 0xc9 way: 0
+8520000: board.cache_hierarchy.l1dcache: access for WriteReq [1a80:1a83] miss
+8520804: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1a80:1a83]
+8520804: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1a80:1abf] from WriteReq [1a80:1a83]
+8560764: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1a80:1abf]
+8560764: board.cache_hierarchy.l1dcache: Block for addr 0x1a80 being updated in Cache
+8560764: board.cache_hierarchy.l1dcache: Block addr 0x1a80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6a secure: 0 valid: 1 | set: 0x60 way: 0
+8600000: board.cache_hierarchy.l1dcache: access for WriteReq [1ac0:1ac3] miss
+8600724: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1ac0:1ac3]
+8600724: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1ac0:1aff] from WriteReq [1ac0:1ac3]
+8640684: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1ac0:1aff]
+8640684: board.cache_hierarchy.l1dcache: Block for addr 0x1ac0 being updated in Cache
+8640684: board.cache_hierarchy.l1dcache: Block addr 0x1ac0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6b secure: 0 valid: 1 | set: 0x7d way: 0
+8680000: board.cache_hierarchy.l1dcache: access for WriteReq [1b00:1b03] miss
+8680977: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1b00:1b03]
+8680977: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1b00:1b3f] from WriteReq [1b00:1b03]
+8720937: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1b00:1b3f]
+8720937: board.cache_hierarchy.l1dcache: Block for addr 0x1b00 being updated in Cache
+8720937: board.cache_hierarchy.l1dcache: Block addr 0x1b00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6c secure: 0 valid: 1 | set: 0x44 way: 0
+8760000: board.cache_hierarchy.l1dcache: access for WriteReq [1b40:1b43] miss
+8760897: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1b40:1b43]
+8760897: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1b40:1b7f] from WriteReq [1b40:1b43]
+8800857: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1b40:1b7f]
+8800857: board.cache_hierarchy.l1dcache: Block for addr 0x1b40 being updated in Cache
+8800857: board.cache_hierarchy.l1dcache: Block addr 0x1b40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6d secure: 0 valid: 1 | set: 0x59 way: 0
+8840000: board.cache_hierarchy.l1dcache: access for WriteReq [1b80:1b83] miss
+8840817: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1b80:1b83]
+8840817: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1b80:1bbf] from WriteReq [1b80:1b83]
+8880777: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1b80:1bbf]
+8880777: board.cache_hierarchy.l1dcache: Block for addr 0x1b80 being updated in Cache
+8880777: board.cache_hierarchy.l1dcache: Block addr 0x1b80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6e secure: 0 valid: 1 | set: 0xf0 way: 0
+8920000: board.cache_hierarchy.l1dcache: access for WriteReq [1bc0:1bc3] miss
+8920737: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1bc0:1bc3]
+8920737: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1bc0:1bff] from WriteReq [1bc0:1bc3]
+8960697: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1bc0:1bff]
+8960697: board.cache_hierarchy.l1dcache: Block for addr 0x1bc0 being updated in Cache
+8960697: board.cache_hierarchy.l1dcache: Block addr 0x1bc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x6f secure: 0 valid: 1 | set: 0xed way: 0
+9000000: board.cache_hierarchy.l1dcache: access for WriteReq [1c00:1c03] miss
+9000990: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1c00:1c03]
+9000990: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1c00:1c3f] from WriteReq [1c00:1c03]
+9040950: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1c00:1c3f]
+9040950: board.cache_hierarchy.l1dcache: Block for addr 0x1c00 being updated in Cache
+9040950: board.cache_hierarchy.l1dcache: Block addr 0x1c00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x70 secure: 0 valid: 1 | set: 0xc4 way: 0
+9080000: board.cache_hierarchy.l1dcache: access for WriteReq [1c40:1c43] miss
+9080910: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1c40:1c43]
+9080910: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1c40:1c7f] from WriteReq [1c40:1c43]
+9134523: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1c40:1c7f]
+9134523: board.cache_hierarchy.l1dcache: Block for addr 0x1c40 being updated in Cache
+9134523: board.cache_hierarchy.l1dcache: Block addr 0x1c40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x71 secure: 0 valid: 1 | set: 0xd9 way: 0
+9160000: board.cache_hierarchy.l1dcache: access for WriteReq [1c80:1c83] miss
+9160830: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1c80:1c83]
+9160830: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1c80:1cbf] from WriteReq [1c80:1c83]
+9200790: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1c80:1cbf]
+9200790: board.cache_hierarchy.l1dcache: Block for addr 0x1c80 being updated in Cache
+9200790: board.cache_hierarchy.l1dcache: Block addr 0x1c80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x72 secure: 0 valid: 1 | set: 0x70 way: 0
+9240000: board.cache_hierarchy.l1dcache: access for WriteReq [1cc0:1cc3] miss
+9240750: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1cc0:1cc3]
+9240750: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1cc0:1cff] from WriteReq [1cc0:1cc3]
+9280710: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1cc0:1cff]
+9280710: board.cache_hierarchy.l1dcache: Block for addr 0x1cc0 being updated in Cache
+9280710: board.cache_hierarchy.l1dcache: Block addr 0x1cc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x73 secure: 0 valid: 1 | set: 0x6d way: 0
+9320000: board.cache_hierarchy.l1dcache: access for WriteReq [1d00:1d03] miss
+9320670: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1d00:1d03]
+9320670: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1d00:1d3f] from WriteReq [1d00:1d03]
+9360630: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1d00:1d3f]
+9360630: board.cache_hierarchy.l1dcache: Block for addr 0x1d00 being updated in Cache
+9360630: board.cache_hierarchy.l1dcache: Block addr 0x1d00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x74 secure: 0 valid: 1 | set: 0x54 way: 0
+9400000: board.cache_hierarchy.l1dcache: access for WriteReq [1d40:1d43] miss
+9400923: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1d40:1d43]
+9400923: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1d40:1d7f] from WriteReq [1d40:1d43]
+9440883: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1d40:1d7f]
+9440883: board.cache_hierarchy.l1dcache: Block for addr 0x1d40 being updated in Cache
+9440883: board.cache_hierarchy.l1dcache: Block addr 0x1d40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x75 secure: 0 valid: 1 | set: 0x49 way: 0
+9480000: board.cache_hierarchy.l1dcache: access for WriteReq [1d80:1d83] miss
+9480843: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1d80:1d83]
+9480843: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1d80:1dbf] from WriteReq [1d80:1d83]
+9520803: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1d80:1dbf]
+9520803: board.cache_hierarchy.l1dcache: Block for addr 0x1d80 being updated in Cache
+9520803: board.cache_hierarchy.l1dcache: Block addr 0x1d80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x76 secure: 0 valid: 1 | set: 0xe0 way: 0
+9560000: board.cache_hierarchy.l1dcache: access for WriteReq [1dc0:1dc3] miss
+9560763: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1dc0:1dc3]
+9560763: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1dc0:1dff] from WriteReq [1dc0:1dc3]
+9600723: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1dc0:1dff]
+9600723: board.cache_hierarchy.l1dcache: Block for addr 0x1dc0 being updated in Cache
+9600723: board.cache_hierarchy.l1dcache: Block addr 0x1dc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x77 secure: 0 valid: 1 | set: 0xfd way: 0
+9640000: board.cache_hierarchy.l1dcache: access for WriteReq [1e00:1e03] miss
+9640683: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1e00:1e03]
+9640683: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1e00:1e3f] from WriteReq [1e00:1e03]
+9680643: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1e00:1e3f]
+9680643: board.cache_hierarchy.l1dcache: Block for addr 0x1e00 being updated in Cache
+9680643: board.cache_hierarchy.l1dcache: Block addr 0x1e00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x78 secure: 0 valid: 1 | set: 0x81 way: 0
+9720000: board.cache_hierarchy.l1dcache: access for WriteReq [1e40:1e43] miss
+9720936: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1e40:1e43]
+9720936: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1e40:1e7f] from WriteReq [1e40:1e43]
+9760896: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1e40:1e7f]
+9760896: board.cache_hierarchy.l1dcache: Block for addr 0x1e40 being updated in Cache
+9760896: board.cache_hierarchy.l1dcache: Block addr 0x1e40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x79 secure: 0 valid: 1 | set: 0x9c way: 0
+9800000: board.cache_hierarchy.l1dcache: access for WriteReq [1e80:1e83] miss
+9800856: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1e80:1e83]
+9800856: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1e80:1ebf] from WriteReq [1e80:1e83]
+9840816: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1e80:1ebf]
+9840816: board.cache_hierarchy.l1dcache: Block for addr 0x1e80 being updated in Cache
+9840816: board.cache_hierarchy.l1dcache: Block addr 0x1e80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7a secure: 0 valid: 1 | set: 0x35 way: 0
+9880000: board.cache_hierarchy.l1dcache: access for WriteReq [1ec0:1ec3] miss
+9880776: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1ec0:1ec3]
+9880776: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1ec0:1eff] from WriteReq [1ec0:1ec3]
+9920736: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1ec0:1eff]
+9920736: board.cache_hierarchy.l1dcache: Block for addr 0x1ec0 being updated in Cache
+9920736: board.cache_hierarchy.l1dcache: Block addr 0x1ec0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7b secure: 0 valid: 1 | set: 0x28 way: 0
+9960000: board.cache_hierarchy.l1dcache: access for WriteReq [1f00:1f03] miss
+9960696: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1f00:1f03]
+9960696: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1f00:1f3f] from WriteReq [1f00:1f03]
+10000656: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1f00:1f3f]
+10000656: board.cache_hierarchy.l1dcache: Block for addr 0x1f00 being updated in Cache
+10000656: board.cache_hierarchy.l1dcache: Block addr 0x1f00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7c secure: 0 valid: 1 | set: 0x11 way: 0
+10040000: board.cache_hierarchy.l1dcache: access for WriteReq [1f40:1f43] miss
+10040949: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1f40:1f43]
+10040949: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1f40:1f7f] from WriteReq [1f40:1f43]
+10080909: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1f40:1f7f]
+10080909: board.cache_hierarchy.l1dcache: Block for addr 0x1f40 being updated in Cache
+10080909: board.cache_hierarchy.l1dcache: Block addr 0x1f40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7d secure: 0 valid: 1 | set: 0xc way: 0
+10120000: board.cache_hierarchy.l1dcache: access for WriteReq [1f80:1f83] miss
+10120869: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1f80:1f83]
+10120869: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1f80:1fbf] from WriteReq [1f80:1f83]
+10160829: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1f80:1fbf]
+10160829: board.cache_hierarchy.l1dcache: Block for addr 0x1f80 being updated in Cache
+10160829: board.cache_hierarchy.l1dcache: Block addr 0x1f80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7e secure: 0 valid: 1 | set: 0xa5 way: 0
+10200000: board.cache_hierarchy.l1dcache: access for WriteReq [1fc0:1fc3] miss
+10200789: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [1fc0:1fc3]
+10200789: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [1fc0:1fff] from WriteReq [1fc0:1fc3]
+10240749: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [1fc0:1fff]
+10240749: board.cache_hierarchy.l1dcache: Block for addr 0x1fc0 being updated in Cache
+10240749: board.cache_hierarchy.l1dcache: Block addr 0x1fc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x7f secure: 0 valid: 1 | set: 0xb8 way: 0
+10280000: board.cache_hierarchy.l1dcache: access for WriteReq [2000:2003] miss
+10280709: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2000:2003]
+10280709: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2000:203f] from WriteReq [2000:2003]
+10334322: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2000:203f]
+10334322: board.cache_hierarchy.l1dcache: Block for addr 0x2000 being updated in Cache
+10334322: board.cache_hierarchy.l1dcache: Block addr 0x2000 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x80 secure: 0 valid: 1 | set: 0xb4 way: 0
+10360000: board.cache_hierarchy.l1dcache: access for WriteReq [2040:2043] miss
+10360962: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2040:2043]
+10360962: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2040:207f] from WriteReq [2040:2043]
+10400922: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2040:207f]
+10400922: board.cache_hierarchy.l1dcache: Block for addr 0x2040 being updated in Cache
+10400922: board.cache_hierarchy.l1dcache: Block addr 0x2040 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x81 secure: 0 valid: 1 | set: 0xa9 way: 0
+10440000: board.cache_hierarchy.l1dcache: access for WriteReq [2080:2083] miss
+10440882: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2080:2083]
+10440882: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2080:20bf] from WriteReq [2080:2083]
+10480842: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2080:20bf]
+10480842: board.cache_hierarchy.l1dcache: Block for addr 0x2080 being updated in Cache
+10480842: board.cache_hierarchy.l1dcache: Block addr 0x2080 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x82 secure: 0 valid: 1 | set: 0 way: 0
+10520000: board.cache_hierarchy.l1dcache: access for WriteReq [20c0:20c3] miss
+10520802: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [20c0:20c3]
+10520802: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [20c0:20ff] from WriteReq [20c0:20c3]
+10560762: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [20c0:20ff]
+10560762: board.cache_hierarchy.l1dcache: Block for addr 0x20c0 being updated in Cache
+10560762: board.cache_hierarchy.l1dcache: Block addr 0x20c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x83 secure: 0 valid: 1 | set: 0x1d way: 0
+10600000: board.cache_hierarchy.l1dcache: access for WriteReq [2100:2103] miss
+10600722: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2100:2103]
+10600722: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2100:213f] from WriteReq [2100:2103]
+10640682: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2100:213f]
+10640682: board.cache_hierarchy.l1dcache: Block for addr 0x2100 being updated in Cache
+10640682: board.cache_hierarchy.l1dcache: Block addr 0x2100 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x84 secure: 0 valid: 1 | set: 0x24 way: 0
+10680000: board.cache_hierarchy.l1dcache: access for WriteReq [2140:2143] miss
+10680975: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2140:2143]
+10680975: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2140:217f] from WriteReq [2140:2143]
+10720935: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2140:217f]
+10720935: board.cache_hierarchy.l1dcache: Block for addr 0x2140 being updated in Cache
+10720935: board.cache_hierarchy.l1dcache: Block addr 0x2140 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x85 secure: 0 valid: 1 | set: 0x39 way: 0
+10760000: board.cache_hierarchy.l1dcache: access for WriteReq [2180:2183] miss
+10760895: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2180:2183]
+10760895: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2180:21bf] from WriteReq [2180:2183]
+10800855: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2180:21bf]
+10800855: board.cache_hierarchy.l1dcache: Block for addr 0x2180 being updated in Cache
+10800855: board.cache_hierarchy.l1dcache: Block addr 0x2180 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x86 secure: 0 valid: 1 | set: 0x90 way: 0
+10840000: board.cache_hierarchy.l1dcache: access for WriteReq [21c0:21c3] miss
+10840815: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [21c0:21c3]
+10840815: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [21c0:21ff] from WriteReq [21c0:21c3]
+10880775: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [21c0:21ff]
+10880775: board.cache_hierarchy.l1dcache: Block for addr 0x21c0 being updated in Cache
+10880775: board.cache_hierarchy.l1dcache: Block addr 0x21c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x87 secure: 0 valid: 1 | set: 0x8d way: 0
+10920000: board.cache_hierarchy.l1dcache: access for WriteReq [2200:2203] miss
+10920735: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2200:2203]
+10920735: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2200:223f] from WriteReq [2200:2203]
+10960695: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2200:223f]
+10960695: board.cache_hierarchy.l1dcache: Block for addr 0x2200 being updated in Cache
+10960695: board.cache_hierarchy.l1dcache: Block addr 0x2200 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x88 secure: 0 valid: 1 | set: 0xf1 way: 0
+11000000: board.cache_hierarchy.l1dcache: access for WriteReq [2240:2243] miss
+11000988: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2240:2243]
+11000988: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2240:227f] from WriteReq [2240:2243]
+11040948: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2240:227f]
+11040948: board.cache_hierarchy.l1dcache: Block for addr 0x2240 being updated in Cache
+11040948: board.cache_hierarchy.l1dcache: Block addr 0x2240 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x89 secure: 0 valid: 1 | set: 0xec way: 0
+11080000: board.cache_hierarchy.l1dcache: access for WriteReq [2280:2283] miss
+11080908: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2280:2283]
+11080908: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2280:22bf] from WriteReq [2280:2283]
+11120868: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2280:22bf]
+11120868: board.cache_hierarchy.l1dcache: Block for addr 0x2280 being updated in Cache
+11120868: board.cache_hierarchy.l1dcache: Block addr 0x2280 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8a secure: 0 valid: 1 | set: 0x45 way: 0
+11160000: board.cache_hierarchy.l1dcache: access for WriteReq [22c0:22c3] miss
+11160828: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [22c0:22c3]
+11160828: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [22c0:22ff] from WriteReq [22c0:22c3]
+11200788: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [22c0:22ff]
+11200788: board.cache_hierarchy.l1dcache: Block for addr 0x22c0 being updated in Cache
+11200788: board.cache_hierarchy.l1dcache: Block addr 0x22c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8b secure: 0 valid: 1 | set: 0x58 way: 0
+11240000: board.cache_hierarchy.l1dcache: access for WriteReq [2300:2303] miss
+11240748: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2300:2303]
+11240748: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2300:233f] from WriteReq [2300:2303]
+11280708: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2300:233f]
+11280708: board.cache_hierarchy.l1dcache: Block for addr 0x2300 being updated in Cache
+11280708: board.cache_hierarchy.l1dcache: Block addr 0x2300 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8c secure: 0 valid: 1 | set: 0x61 way: 0
+11320000: board.cache_hierarchy.l1dcache: access for WriteReq [2340:2343] miss
+11320668: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2340:2343]
+11320668: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2340:237f] from WriteReq [2340:2343]
+11360628: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2340:237f]
+11360628: board.cache_hierarchy.l1dcache: Block for addr 0x2340 being updated in Cache
+11360628: board.cache_hierarchy.l1dcache: Block addr 0x2340 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8d secure: 0 valid: 1 | set: 0x7c way: 0
+11400000: board.cache_hierarchy.l1dcache: access for WriteReq [2380:2383] miss
+11400921: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2380:2383]
+11400921: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2380:23bf] from WriteReq [2380:2383]
+11440881: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2380:23bf]
+11440881: board.cache_hierarchy.l1dcache: Block for addr 0x2380 being updated in Cache
+11440881: board.cache_hierarchy.l1dcache: Block addr 0x2380 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8e secure: 0 valid: 1 | set: 0xd5 way: 0
+11480000: board.cache_hierarchy.l1dcache: access for WriteReq [23c0:23c3] miss
+11480841: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [23c0:23c3]
+11480841: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [23c0:23ff] from WriteReq [23c0:23c3]
+11520801: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [23c0:23ff]
+11520801: board.cache_hierarchy.l1dcache: Block for addr 0x23c0 being updated in Cache
+11520801: board.cache_hierarchy.l1dcache: Block addr 0x23c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x8f secure: 0 valid: 1 | set: 0xc8 way: 0
+11560000: board.cache_hierarchy.l1dcache: access for WriteReq [2400:2403] miss
+11560761: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2400:2403]
+11560761: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2400:243f] from WriteReq [2400:2403]
+11614374: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2400:243f]
+11614374: board.cache_hierarchy.l1dcache: Block for addr 0x2400 being updated in Cache
+11614374: board.cache_hierarchy.l1dcache: Block addr 0x2400 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x90 secure: 0 valid: 1 | set: 0xe1 way: 0
+11640000: board.cache_hierarchy.l1dcache: access for WriteReq [2440:2443] miss
+11640681: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2440:2443]
+11640681: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2440:247f] from WriteReq [2440:2443]
+11680641: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2440:247f]
+11680641: board.cache_hierarchy.l1dcache: Block for addr 0x2440 being updated in Cache
+11680641: board.cache_hierarchy.l1dcache: Block addr 0x2440 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x91 secure: 0 valid: 1 | set: 0xfc way: 0
+11720000: board.cache_hierarchy.l1dcache: access for WriteReq [2480:2483] miss
+11720934: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2480:2483]
+11720934: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2480:24bf] from WriteReq [2480:2483]
+11760894: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2480:24bf]
+11760894: board.cache_hierarchy.l1dcache: Block for addr 0x2480 being updated in Cache
+11760894: board.cache_hierarchy.l1dcache: Block addr 0x2480 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x92 secure: 0 valid: 1 | set: 0x55 way: 0
+11800000: board.cache_hierarchy.l1dcache: access for WriteReq [24c0:24c3] miss
+11800854: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [24c0:24c3]
+11800854: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [24c0:24ff] from WriteReq [24c0:24c3]
+11840814: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [24c0:24ff]
+11840814: board.cache_hierarchy.l1dcache: Block for addr 0x24c0 being updated in Cache
+11840814: board.cache_hierarchy.l1dcache: Block addr 0x24c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x93 secure: 0 valid: 1 | set: 0x48 way: 0
+11880000: board.cache_hierarchy.l1dcache: access for WriteReq [2500:2503] miss
+11880774: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2500:2503]
+11880774: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2500:253f] from WriteReq [2500:2503]
+11920734: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2500:253f]
+11920734: board.cache_hierarchy.l1dcache: Block for addr 0x2500 being updated in Cache
+11920734: board.cache_hierarchy.l1dcache: Block addr 0x2500 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x94 secure: 0 valid: 1 | set: 0x71 way: 0
+11960000: board.cache_hierarchy.l1dcache: access for WriteReq [2540:2543] miss
+11960694: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2540:2543]
+11960694: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2540:257f] from WriteReq [2540:2543]
+12000654: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2540:257f]
+12000654: board.cache_hierarchy.l1dcache: Block for addr 0x2540 being updated in Cache
+12000654: board.cache_hierarchy.l1dcache: Block addr 0x2540 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x95 secure: 0 valid: 1 | set: 0x6c way: 0
+12040000: board.cache_hierarchy.l1dcache: access for WriteReq [2580:2583] miss
+12040947: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2580:2583]
+12040947: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2580:25bf] from WriteReq [2580:2583]
+12080907: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2580:25bf]
+12080907: board.cache_hierarchy.l1dcache: Block for addr 0x2580 being updated in Cache
+12080907: board.cache_hierarchy.l1dcache: Block addr 0x2580 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x96 secure: 0 valid: 1 | set: 0xc5 way: 0
+12120000: board.cache_hierarchy.l1dcache: access for WriteReq [25c0:25c3] miss
+12120867: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [25c0:25c3]
+12120867: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [25c0:25ff] from WriteReq [25c0:25c3]
+12160827: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [25c0:25ff]
+12160827: board.cache_hierarchy.l1dcache: Block for addr 0x25c0 being updated in Cache
+12160827: board.cache_hierarchy.l1dcache: Block addr 0x25c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x97 secure: 0 valid: 1 | set: 0xd8 way: 0
+12200000: board.cache_hierarchy.l1dcache: access for WriteReq [2600:2603] miss
+12200787: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2600:2603]
+12200787: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2600:263f] from WriteReq [2600:2603]
+12240747: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2600:263f]
+12240747: board.cache_hierarchy.l1dcache: Block for addr 0x2600 being updated in Cache
+12240747: board.cache_hierarchy.l1dcache: Block addr 0x2600 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x98 secure: 0 valid: 1 | set: 0xa4 way: 0
+12280000: board.cache_hierarchy.l1dcache: access for WriteReq [2640:2643] miss
+12280707: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2640:2643]
+12280707: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2640:267f] from WriteReq [2640:2643]
+12320667: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2640:267f]
+12320667: board.cache_hierarchy.l1dcache: Block for addr 0x2640 being updated in Cache
+12320667: board.cache_hierarchy.l1dcache: Block addr 0x2640 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x99 secure: 0 valid: 1 | set: 0xb9 way: 0
+12360000: board.cache_hierarchy.l1dcache: access for WriteReq [2680:2683] miss
+12360960: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2680:2683]
+12360960: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2680:26bf] from WriteReq [2680:2683]
+12400920: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2680:26bf]
+12400920: board.cache_hierarchy.l1dcache: Block for addr 0x2680 being updated in Cache
+12400920: board.cache_hierarchy.l1dcache: Block addr 0x2680 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9a secure: 0 valid: 1 | set: 0x10 way: 0
+12440000: board.cache_hierarchy.l1dcache: access for WriteReq [26c0:26c3] miss
+12440880: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [26c0:26c3]
+12440880: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [26c0:26ff] from WriteReq [26c0:26c3]
+12480840: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [26c0:26ff]
+12480840: board.cache_hierarchy.l1dcache: Block for addr 0x26c0 being updated in Cache
+12480840: board.cache_hierarchy.l1dcache: Block addr 0x26c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9b secure: 0 valid: 1 | set: 0xd way: 0
+12520000: board.cache_hierarchy.l1dcache: access for WriteReq [2700:2703] miss
+12520800: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2700:2703]
+12520800: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2700:273f] from WriteReq [2700:2703]
+12560760: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2700:273f]
+12560760: board.cache_hierarchy.l1dcache: Block for addr 0x2700 being updated in Cache
+12560760: board.cache_hierarchy.l1dcache: Block addr 0x2700 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9c secure: 0 valid: 1 | set: 0x34 way: 0
+12600000: board.cache_hierarchy.l1dcache: access for WriteReq [2740:2743] miss
+12600720: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2740:2743]
+12600720: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2740:277f] from WriteReq [2740:2743]
+12640680: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2740:277f]
+12640680: board.cache_hierarchy.l1dcache: Block for addr 0x2740 being updated in Cache
+12640680: board.cache_hierarchy.l1dcache: Block addr 0x2740 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9d secure: 0 valid: 1 | set: 0x29 way: 0
+12680000: board.cache_hierarchy.l1dcache: access for WriteReq [2780:2783] miss
+12680973: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2780:2783]
+12680973: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2780:27bf] from WriteReq [2780:2783]
+12720933: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2780:27bf]
+12720933: board.cache_hierarchy.l1dcache: Block for addr 0x2780 being updated in Cache
+12720933: board.cache_hierarchy.l1dcache: Block addr 0x2780 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9e secure: 0 valid: 1 | set: 0x80 way: 0
+12760000: board.cache_hierarchy.l1dcache: access for WriteReq [27c0:27c3] miss
+12760893: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [27c0:27c3]
+12760893: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [27c0:27ff] from WriteReq [27c0:27c3]
+12800853: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [27c0:27ff]
+12800853: board.cache_hierarchy.l1dcache: Block for addr 0x27c0 being updated in Cache
+12800853: board.cache_hierarchy.l1dcache: Block addr 0x27c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0x9f secure: 0 valid: 1 | set: 0x9d way: 0
+12840000: board.cache_hierarchy.l1dcache: access for WriteReq [2800:2803] miss
+12840813: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2800:2803]
+12840813: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2800:283f] from WriteReq [2800:2803]
+12894426: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2800:283f]
+12894426: board.cache_hierarchy.l1dcache: Block for addr 0x2800 being updated in Cache
+12894426: board.cache_hierarchy.l1dcache: Block addr 0x2800 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa0 secure: 0 valid: 1 | set: 0x83 way: 0
+12920000: board.cache_hierarchy.l1dcache: access for WriteReq [2840:2843] miss
+12920733: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2840:2843]
+12920733: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2840:287f] from WriteReq [2840:2843]
+12960693: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2840:287f]
+12960693: board.cache_hierarchy.l1dcache: Block for addr 0x2840 being updated in Cache
+12960693: board.cache_hierarchy.l1dcache: Block addr 0x2840 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa1 secure: 0 valid: 1 | set: 0x9e way: 0
+13000000: board.cache_hierarchy.l1dcache: access for WriteReq [2880:2883] miss
+13000986: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2880:2883]
+13000986: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2880:28bf] from WriteReq [2880:2883]
+13040946: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2880:28bf]
+13040946: board.cache_hierarchy.l1dcache: Block for addr 0x2880 being updated in Cache
+13040946: board.cache_hierarchy.l1dcache: Block addr 0x2880 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa2 secure: 0 valid: 1 | set: 0x37 way: 0
+13080000: board.cache_hierarchy.l1dcache: access for WriteReq [28c0:28c3] miss
+13080906: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [28c0:28c3]
+13080906: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [28c0:28ff] from WriteReq [28c0:28c3]
+13120866: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [28c0:28ff]
+13120866: board.cache_hierarchy.l1dcache: Block for addr 0x28c0 being updated in Cache
+13120866: board.cache_hierarchy.l1dcache: Block addr 0x28c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa3 secure: 0 valid: 1 | set: 0x2a way: 0
+13160000: board.cache_hierarchy.l1dcache: access for WriteReq [2900:2903] miss
+13160826: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2900:2903]
+13160826: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2900:293f] from WriteReq [2900:2903]
+13200786: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2900:293f]
+13200786: board.cache_hierarchy.l1dcache: Block for addr 0x2900 being updated in Cache
+13200786: board.cache_hierarchy.l1dcache: Block addr 0x2900 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa4 secure: 0 valid: 1 | set: 0x13 way: 0
+13240000: board.cache_hierarchy.l1dcache: access for WriteReq [2940:2943] miss
+13240746: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2940:2943]
+13240746: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2940:297f] from WriteReq [2940:2943]
+13280706: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2940:297f]
+13280706: board.cache_hierarchy.l1dcache: Block for addr 0x2940 being updated in Cache
+13280706: board.cache_hierarchy.l1dcache: Block addr 0x2940 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa5 secure: 0 valid: 1 | set: 0xe way: 0
+13320000: board.cache_hierarchy.l1dcache: access for WriteReq [2980:2983] miss
+13320666: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2980:2983]
+13320666: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2980:29bf] from WriteReq [2980:2983]
+13360626: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2980:29bf]
+13360626: board.cache_hierarchy.l1dcache: Block for addr 0x2980 being updated in Cache
+13360626: board.cache_hierarchy.l1dcache: Block addr 0x2980 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa6 secure: 0 valid: 1 | set: 0xa7 way: 0
+13400000: board.cache_hierarchy.l1dcache: access for WriteReq [29c0:29c3] miss
+13400919: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [29c0:29c3]
+13400919: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [29c0:29ff] from WriteReq [29c0:29c3]
+13440879: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [29c0:29ff]
+13440879: board.cache_hierarchy.l1dcache: Block for addr 0x29c0 being updated in Cache
+13440879: board.cache_hierarchy.l1dcache: Block addr 0x29c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa7 secure: 0 valid: 1 | set: 0xba way: 0
+13480000: board.cache_hierarchy.l1dcache: access for WriteReq [2a00:2a03] miss
+13480839: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2a00:2a03]
+13480839: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2a00:2a3f] from WriteReq [2a00:2a03]
+13520799: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2a00:2a3f]
+13520799: board.cache_hierarchy.l1dcache: Block for addr 0x2a00 being updated in Cache
+13520799: board.cache_hierarchy.l1dcache: Block addr 0x2a00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa8 secure: 0 valid: 1 | set: 0xc6 way: 0
+13560000: board.cache_hierarchy.l1dcache: access for WriteReq [2a40:2a43] miss
+13560759: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2a40:2a43]
+13560759: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2a40:2a7f] from WriteReq [2a40:2a43]
+13600719: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2a40:2a7f]
+13600719: board.cache_hierarchy.l1dcache: Block for addr 0x2a40 being updated in Cache
+13600719: board.cache_hierarchy.l1dcache: Block addr 0x2a40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa9 secure: 0 valid: 1 | set: 0xdb way: 0
+13640000: board.cache_hierarchy.l1dcache: access for WriteReq [2a80:2a83] miss
+13640679: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2a80:2a83]
+13640679: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2a80:2abf] from WriteReq [2a80:2a83]
+13680639: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2a80:2abf]
+13680639: board.cache_hierarchy.l1dcache: Block for addr 0x2a80 being updated in Cache
+13680639: board.cache_hierarchy.l1dcache: Block addr 0x2a80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xaa secure: 0 valid: 1 | set: 0x72 way: 0
+13720000: board.cache_hierarchy.l1dcache: access for WriteReq [2ac0:2ac3] miss
+13720932: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2ac0:2ac3]
+13720932: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2ac0:2aff] from WriteReq [2ac0:2ac3]
+13760892: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2ac0:2aff]
+13760892: board.cache_hierarchy.l1dcache: Block for addr 0x2ac0 being updated in Cache
+13760892: board.cache_hierarchy.l1dcache: Block addr 0x2ac0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xab secure: 0 valid: 1 | set: 0x6f way: 0
+13800000: board.cache_hierarchy.l1dcache: access for WriteReq [2b00:2b03] miss
+13800852: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2b00:2b03]
+13800852: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2b00:2b3f] from WriteReq [2b00:2b03]
+13840812: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2b00:2b3f]
+13840812: board.cache_hierarchy.l1dcache: Block for addr 0x2b00 being updated in Cache
+13840812: board.cache_hierarchy.l1dcache: Block addr 0x2b00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xac secure: 0 valid: 1 | set: 0x56 way: 0
+13880000: board.cache_hierarchy.l1dcache: access for WriteReq [2b40:2b43] miss
+13880772: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2b40:2b43]
+13880772: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2b40:2b7f] from WriteReq [2b40:2b43]
+13920732: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2b40:2b7f]
+13920732: board.cache_hierarchy.l1dcache: Block for addr 0x2b40 being updated in Cache
+13920732: board.cache_hierarchy.l1dcache: Block addr 0x2b40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xad secure: 0 valid: 1 | set: 0x4b way: 0
+13960000: board.cache_hierarchy.l1dcache: access for WriteReq [2b80:2b83] miss
+13960692: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2b80:2b83]
+13960692: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2b80:2bbf] from WriteReq [2b80:2b83]
+14000652: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2b80:2bbf]
+14000652: board.cache_hierarchy.l1dcache: Block for addr 0x2b80 being updated in Cache
+14000652: board.cache_hierarchy.l1dcache: Block addr 0x2b80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xae secure: 0 valid: 1 | set: 0xe2 way: 0
+14040000: board.cache_hierarchy.l1dcache: access for WriteReq [2bc0:2bc3] miss
+14040945: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2bc0:2bc3]
+14040945: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2bc0:2bff] from WriteReq [2bc0:2bc3]
+14080905: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2bc0:2bff]
+14080905: board.cache_hierarchy.l1dcache: Block for addr 0x2bc0 being updated in Cache
+14080905: board.cache_hierarchy.l1dcache: Block addr 0x2bc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xaf secure: 0 valid: 1 | set: 0xff way: 0
+14120000: board.cache_hierarchy.l1dcache: access for WriteReq [2c00:2c03] miss
+14120865: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2c00:2c03]
+14120865: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2c00:2c3f] from WriteReq [2c00:2c03]
+14174478: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2c00:2c3f]
+14174478: board.cache_hierarchy.l1dcache: Block for addr 0x2c00 being updated in Cache
+14174478: board.cache_hierarchy.l1dcache: Block addr 0x2c00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb0 secure: 0 valid: 1 | set: 0xd6 way: 0
+14200000: board.cache_hierarchy.l1dcache: access for WriteReq [2c40:2c43] miss
+14200785: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2c40:2c43]
+14200785: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2c40:2c7f] from WriteReq [2c40:2c43]
+14240745: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2c40:2c7f]
+14240745: board.cache_hierarchy.l1dcache: Block for addr 0x2c40 being updated in Cache
+14240745: board.cache_hierarchy.l1dcache: Block addr 0x2c40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb1 secure: 0 valid: 1 | set: 0xcb way: 0
+14280000: board.cache_hierarchy.l1dcache: access for WriteReq [2c80:2c83] miss
+14280705: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2c80:2c83]
+14280705: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2c80:2cbf] from WriteReq [2c80:2c83]
+14320665: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2c80:2cbf]
+14320665: board.cache_hierarchy.l1dcache: Block for addr 0x2c80 being updated in Cache
+14320665: board.cache_hierarchy.l1dcache: Block addr 0x2c80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb2 secure: 0 valid: 1 | set: 0x62 way: 0
+14360000: board.cache_hierarchy.l1dcache: access for WriteReq [2cc0:2cc3] miss
+14360958: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2cc0:2cc3]
+14360958: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2cc0:2cff] from WriteReq [2cc0:2cc3]
+14400918: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2cc0:2cff]
+14400918: board.cache_hierarchy.l1dcache: Block for addr 0x2cc0 being updated in Cache
+14400918: board.cache_hierarchy.l1dcache: Block addr 0x2cc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb3 secure: 0 valid: 1 | set: 0x7f way: 0
+14440000: board.cache_hierarchy.l1dcache: access for WriteReq [2d00:2d03] miss
+14440878: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2d00:2d03]
+14440878: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2d00:2d3f] from WriteReq [2d00:2d03]
+14480838: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2d00:2d3f]
+14480838: board.cache_hierarchy.l1dcache: Block for addr 0x2d00 being updated in Cache
+14480838: board.cache_hierarchy.l1dcache: Block addr 0x2d00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb4 secure: 0 valid: 1 | set: 0x46 way: 0
+14520000: board.cache_hierarchy.l1dcache: access for WriteReq [2d40:2d43] miss
+14520798: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2d40:2d43]
+14520798: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2d40:2d7f] from WriteReq [2d40:2d43]
+14560758: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2d40:2d7f]
+14560758: board.cache_hierarchy.l1dcache: Block for addr 0x2d40 being updated in Cache
+14560758: board.cache_hierarchy.l1dcache: Block addr 0x2d40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb5 secure: 0 valid: 1 | set: 0x5b way: 0
+14600000: board.cache_hierarchy.l1dcache: access for WriteReq [2d80:2d83] miss
+14600718: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2d80:2d83]
+14600718: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2d80:2dbf] from WriteReq [2d80:2d83]
+14640678: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2d80:2dbf]
+14640678: board.cache_hierarchy.l1dcache: Block for addr 0x2d80 being updated in Cache
+14640678: board.cache_hierarchy.l1dcache: Block addr 0x2d80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb6 secure: 0 valid: 1 | set: 0xf2 way: 0
+14680000: board.cache_hierarchy.l1dcache: access for WriteReq [2dc0:2dc3] miss
+14680971: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2dc0:2dc3]
+14680971: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2dc0:2dff] from WriteReq [2dc0:2dc3]
+14720931: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2dc0:2dff]
+14720931: board.cache_hierarchy.l1dcache: Block for addr 0x2dc0 being updated in Cache
+14720931: board.cache_hierarchy.l1dcache: Block addr 0x2dc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb7 secure: 0 valid: 1 | set: 0xef way: 0
+14760000: board.cache_hierarchy.l1dcache: access for WriteReq [2e00:2e03] miss
+14760891: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2e00:2e03]
+14760891: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2e00:2e3f] from WriteReq [2e00:2e03]
+14800851: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2e00:2e3f]
+14800851: board.cache_hierarchy.l1dcache: Block for addr 0x2e00 being updated in Cache
+14800851: board.cache_hierarchy.l1dcache: Block addr 0x2e00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb8 secure: 0 valid: 1 | set: 0x93 way: 0
+14840000: board.cache_hierarchy.l1dcache: access for WriteReq [2e40:2e43] miss
+14840811: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2e40:2e43]
+14840811: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2e40:2e7f] from WriteReq [2e40:2e43]
+14880771: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2e40:2e7f]
+14880771: board.cache_hierarchy.l1dcache: Block for addr 0x2e40 being updated in Cache
+14880771: board.cache_hierarchy.l1dcache: Block addr 0x2e40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xb9 secure: 0 valid: 1 | set: 0x8e way: 0
+14920000: board.cache_hierarchy.l1dcache: access for WriteReq [2e80:2e83] miss
+14920731: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2e80:2e83]
+14920731: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2e80:2ebf] from WriteReq [2e80:2e83]
+14960691: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2e80:2ebf]
+14960691: board.cache_hierarchy.l1dcache: Block for addr 0x2e80 being updated in Cache
+14960691: board.cache_hierarchy.l1dcache: Block addr 0x2e80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xba secure: 0 valid: 1 | set: 0x27 way: 0
+15000000: board.cache_hierarchy.l1dcache: access for WriteReq [2ec0:2ec3] miss
+15000984: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2ec0:2ec3]
+15000984: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2ec0:2eff] from WriteReq [2ec0:2ec3]
+15040944: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2ec0:2eff]
+15040944: board.cache_hierarchy.l1dcache: Block for addr 0x2ec0 being updated in Cache
+15040944: board.cache_hierarchy.l1dcache: Block addr 0x2ec0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbb secure: 0 valid: 1 | set: 0x3a way: 0
+15080000: board.cache_hierarchy.l1dcache: access for WriteReq [2f00:2f03] miss
+15080904: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2f00:2f03]
+15080904: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2f00:2f3f] from WriteReq [2f00:2f03]
+15120864: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2f00:2f3f]
+15120864: board.cache_hierarchy.l1dcache: Block for addr 0x2f00 being updated in Cache
+15120864: board.cache_hierarchy.l1dcache: Block addr 0x2f00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbc secure: 0 valid: 1 | set: 0x3 way: 0
+15160000: board.cache_hierarchy.l1dcache: access for WriteReq [2f40:2f43] miss
+15160824: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2f40:2f43]
+15160824: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2f40:2f7f] from WriteReq [2f40:2f43]
+15200784: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2f40:2f7f]
+15200784: board.cache_hierarchy.l1dcache: Block for addr 0x2f40 being updated in Cache
+15200784: board.cache_hierarchy.l1dcache: Block addr 0x2f40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbd secure: 0 valid: 1 | set: 0x1e way: 0
+15240000: board.cache_hierarchy.l1dcache: access for WriteReq [2f80:2f83] miss
+15240744: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2f80:2f83]
+15240744: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2f80:2fbf] from WriteReq [2f80:2f83]
+15280704: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2f80:2fbf]
+15280704: board.cache_hierarchy.l1dcache: Block for addr 0x2f80 being updated in Cache
+15280704: board.cache_hierarchy.l1dcache: Block addr 0x2f80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbe secure: 0 valid: 1 | set: 0xb7 way: 0
+15320000: board.cache_hierarchy.l1dcache: access for WriteReq [2fc0:2fc3] miss
+15320997: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [2fc0:2fc3]
+15320997: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [2fc0:2fff] from WriteReq [2fc0:2fc3]
+15360957: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [2fc0:2fff]
+15360957: board.cache_hierarchy.l1dcache: Block for addr 0x2fc0 being updated in Cache
+15360957: board.cache_hierarchy.l1dcache: Block addr 0x2fc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbf secure: 0 valid: 1 | set: 0xaa way: 0
+15400000: board.cache_hierarchy.l1dcache: access for WriteReq [3000:3003] miss
+15400917: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3000:3003]
+15400917: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3000:303f] from WriteReq [3000:3003]
+15454530: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3000:303f]
+15454530: board.cache_hierarchy.l1dcache: Block for addr 0x3000 being updated in Cache
+15454530: board.cache_hierarchy.l1dcache: Block addr 0x3000 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc0 secure: 0 valid: 1 | set: 0xf6 way: 0
+15480000: board.cache_hierarchy.l1dcache: access for WriteReq [3040:3043] miss
+15480837: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3040:3043]
+15480837: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3040:307f] from WriteReq [3040:3043]
+15520797: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3040:307f]
+15520797: board.cache_hierarchy.l1dcache: Block for addr 0x3040 being updated in Cache
+15520797: board.cache_hierarchy.l1dcache: Block addr 0x3040 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc1 secure: 0 valid: 1 | set: 0xeb way: 0
+15560000: board.cache_hierarchy.l1dcache: access for WriteReq [3080:3083] miss
+15560757: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3080:3083]
+15560757: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3080:30bf] from WriteReq [3080:3083]
+15600717: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3080:30bf]
+15600717: board.cache_hierarchy.l1dcache: Block for addr 0x3080 being updated in Cache
+15600717: board.cache_hierarchy.l1dcache: Block addr 0x3080 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc2 secure: 0 valid: 1 | set: 0x42 way: 0
+15640000: board.cache_hierarchy.l1dcache: access for WriteReq [30c0:30c3] miss
+15640677: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [30c0:30c3]
+15640677: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [30c0:30ff] from WriteReq [30c0:30c3]
+15720000: board.cache_hierarchy.l1dcache: access for WriteReq [3100:3103] miss
+15720930: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3100:3103]
+15720930: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3100:313f] from WriteReq [3100:3103]
+15800000: board.cache_hierarchy.l1dcache: access for WriteReq [3140:3143] miss
+15800850: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3140:3143]
+15800850: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3140:317f] from WriteReq [3140:3143]
+15880000: board.cache_hierarchy.l1dcache: access for WriteReq [3180:3183] miss
+15880000: board.cache_hierarchy.l1dcache: Blocking for cause 0, mask=1
+15880770: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3180:3183]
+15880770: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3180:31bf] from WriteReq [3180:3183]
+15899751: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [30c0:30ff]
+15899751: board.cache_hierarchy.l1dcache: Block for addr 0x30c0 being updated in Cache
+15899751: board.cache_hierarchy.l1dcache: Block addr 0x30c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc3 secure: 0 valid: 1 | set: 0x5f way: 0
+15899751: board.cache_hierarchy.l1dcache: Unblocking for cause 0, mask=0
+15905079: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3100:313f]
+15905079: board.cache_hierarchy.l1dcache: Block for addr 0x3100 being updated in Cache
+15905079: board.cache_hierarchy.l1dcache: Block addr 0x3100 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc4 secure: 0 valid: 1 | set: 0x66 way: 0
+15910074: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3140:317f]
+15910074: board.cache_hierarchy.l1dcache: Block for addr 0x3140 being updated in Cache
+15910074: board.cache_hierarchy.l1dcache: Block addr 0x3140 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc5 secure: 0 valid: 1 | set: 0x7b way: 0
+15920730: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3180:31bf]
+15920730: board.cache_hierarchy.l1dcache: Block for addr 0x3180 being updated in Cache
+15920730: board.cache_hierarchy.l1dcache: Block addr 0x3180 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc6 secure: 0 valid: 1 | set: 0xd2 way: 0
+15960000: board.cache_hierarchy.l1dcache: access for WriteReq [31c0:31c3] miss
+15960690: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [31c0:31c3]
+15960690: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [31c0:31ff] from WriteReq [31c0:31c3]
+16000650: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [31c0:31ff]
+16000650: board.cache_hierarchy.l1dcache: Block for addr 0x31c0 being updated in Cache
+16000650: board.cache_hierarchy.l1dcache: Block addr 0x31c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc7 secure: 0 valid: 1 | set: 0xcf way: 0
+16040000: board.cache_hierarchy.l1dcache: access for WriteReq [3200:3203] miss
+16040943: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3200:3203]
+16040943: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3200:323f] from WriteReq [3200:3203]
+16080903: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3200:323f]
+16080903: board.cache_hierarchy.l1dcache: Block for addr 0x3200 being updated in Cache
+16080903: board.cache_hierarchy.l1dcache: Block addr 0x3200 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc8 secure: 0 valid: 1 | set: 0xb3 way: 0
+16120000: board.cache_hierarchy.l1dcache: access for WriteReq [3240:3243] miss
+16120863: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3240:3243]
+16120863: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3240:327f] from WriteReq [3240:3243]
+16160823: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3240:327f]
+16160823: board.cache_hierarchy.l1dcache: Block for addr 0x3240 being updated in Cache
+16160823: board.cache_hierarchy.l1dcache: Block addr 0x3240 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xc9 secure: 0 valid: 1 | set: 0xae way: 0
+16200000: board.cache_hierarchy.l1dcache: access for WriteReq [3280:3283] miss
+16200783: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3280:3283]
+16200783: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3280:32bf] from WriteReq [3280:3283]
+16240743: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3280:32bf]
+16240743: board.cache_hierarchy.l1dcache: Block for addr 0x3280 being updated in Cache
+16240743: board.cache_hierarchy.l1dcache: Block addr 0x3280 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xca secure: 0 valid: 1 | set: 0x7 way: 0
+16280000: board.cache_hierarchy.l1dcache: access for WriteReq [32c0:32c3] miss
+16280703: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [32c0:32c3]
+16280703: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [32c0:32ff] from WriteReq [32c0:32c3]
+16320663: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [32c0:32ff]
+16320663: board.cache_hierarchy.l1dcache: Block for addr 0x32c0 being updated in Cache
+16320663: board.cache_hierarchy.l1dcache: Block addr 0x32c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xcb secure: 0 valid: 1 | set: 0x1a way: 0
+16360000: board.cache_hierarchy.l1dcache: access for WriteReq [3300:3303] miss
+16360956: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3300:3303]
+16360956: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3300:333f] from WriteReq [3300:3303]
+16400916: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3300:333f]
+16400916: board.cache_hierarchy.l1dcache: Block for addr 0x3300 being updated in Cache
+16400916: board.cache_hierarchy.l1dcache: Block addr 0x3300 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xcc secure: 0 valid: 1 | set: 0x23 way: 0
+16440000: board.cache_hierarchy.l1dcache: access for WriteReq [3340:3343] miss
+16440876: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3340:3343]
+16440876: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3340:337f] from WriteReq [3340:3343]
+16480836: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3340:337f]
+16480836: board.cache_hierarchy.l1dcache: Block for addr 0x3340 being updated in Cache
+16480836: board.cache_hierarchy.l1dcache: Block addr 0x3340 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xcd secure: 0 valid: 1 | set: 0x3e way: 0
+16520000: board.cache_hierarchy.l1dcache: access for WriteReq [3380:3383] miss
+16520796: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3380:3383]
+16520796: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3380:33bf] from WriteReq [3380:3383]
+16560756: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3380:33bf]
+16560756: board.cache_hierarchy.l1dcache: Block for addr 0x3380 being updated in Cache
+16560756: board.cache_hierarchy.l1dcache: Block addr 0x3380 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xce secure: 0 valid: 1 | set: 0x97 way: 0
+16600000: board.cache_hierarchy.l1dcache: access for WriteReq [33c0:33c3] miss
+16600716: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [33c0:33c3]
+16600716: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [33c0:33ff] from WriteReq [33c0:33c3]
+16640676: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [33c0:33ff]
+16640676: board.cache_hierarchy.l1dcache: Block for addr 0x33c0 being updated in Cache
+16640676: board.cache_hierarchy.l1dcache: Block addr 0x33c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xcf secure: 0 valid: 1 | set: 0x8a way: 0
+16680000: board.cache_hierarchy.l1dcache: access for WriteReq [3400:3403] miss
+16680969: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3400:3403]
+16680969: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3400:343f] from WriteReq [3400:3403]
+16720929: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3400:343f]
+16720929: board.cache_hierarchy.l1dcache: Block for addr 0x3400 being updated in Cache
+16720929: board.cache_hierarchy.l1dcache: Block addr 0x3400 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd0 secure: 0 valid: 1 | set: 0xa3 way: 0
+16760000: board.cache_hierarchy.l1dcache: access for WriteReq [3440:3443] miss
+16760889: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3440:3443]
+16760889: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3440:347f] from WriteReq [3440:3443]
+16800849: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3440:347f]
+16800849: board.cache_hierarchy.l1dcache: Block for addr 0x3440 being updated in Cache
+16800849: board.cache_hierarchy.l1dcache: Block addr 0x3440 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd1 secure: 0 valid: 1 | set: 0xbe way: 0
+16840000: board.cache_hierarchy.l1dcache: access for WriteReq [3480:3483] miss
+16840809: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3480:3483]
+16840809: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3480:34bf] from WriteReq [3480:3483]
+16880769: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3480:34bf]
+16880769: board.cache_hierarchy.l1dcache: Block for addr 0x3480 being updated in Cache
+16880769: board.cache_hierarchy.l1dcache: Block addr 0x3480 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd2 secure: 0 valid: 1 | set: 0x17 way: 0
+16920000: board.cache_hierarchy.l1dcache: access for WriteReq [34c0:34c3] miss
+16920729: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [34c0:34c3]
+16920729: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [34c0:34ff] from WriteReq [34c0:34c3]
+16974342: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [34c0:34ff]
+16974342: board.cache_hierarchy.l1dcache: Block for addr 0x34c0 being updated in Cache
+16974342: board.cache_hierarchy.l1dcache: Block addr 0x34c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd3 secure: 0 valid: 1 | set: 0xa way: 0
+17000000: board.cache_hierarchy.l1dcache: access for WriteReq [3500:3503] miss
+17000982: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3500:3503]
+17000982: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3500:353f] from WriteReq [3500:3503]
+17040942: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3500:353f]
+17040942: board.cache_hierarchy.l1dcache: Block for addr 0x3500 being updated in Cache
+17040942: board.cache_hierarchy.l1dcache: Block addr 0x3500 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd4 secure: 0 valid: 1 | set: 0x33 way: 0
+17080000: board.cache_hierarchy.l1dcache: access for WriteReq [3540:3543] miss
+17080902: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3540:3543]
+17080902: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3540:357f] from WriteReq [3540:3543]
+17120862: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3540:357f]
+17120862: board.cache_hierarchy.l1dcache: Block for addr 0x3540 being updated in Cache
+17120862: board.cache_hierarchy.l1dcache: Block addr 0x3540 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd5 secure: 0 valid: 1 | set: 0x2e way: 0
+17160000: board.cache_hierarchy.l1dcache: access for WriteReq [3580:3583] miss
+17160822: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3580:3583]
+17160822: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3580:35bf] from WriteReq [3580:3583]
+17200782: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3580:35bf]
+17200782: board.cache_hierarchy.l1dcache: Block for addr 0x3580 being updated in Cache
+17200782: board.cache_hierarchy.l1dcache: Block addr 0x3580 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd6 secure: 0 valid: 1 | set: 0x87 way: 0
+17240000: board.cache_hierarchy.l1dcache: access for WriteReq [35c0:35c3] miss
+17240742: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [35c0:35c3]
+17240742: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [35c0:35ff] from WriteReq [35c0:35c3]
+17280702: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [35c0:35ff]
+17280702: board.cache_hierarchy.l1dcache: Block for addr 0x35c0 being updated in Cache
+17280702: board.cache_hierarchy.l1dcache: Block addr 0x35c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd7 secure: 0 valid: 1 | set: 0x9a way: 0
+17320000: board.cache_hierarchy.l1dcache: access for WriteReq [3600:3603] miss
+17320995: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3600:3603]
+17320995: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3600:363f] from WriteReq [3600:3603]
+17360955: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3600:363f]
+17360955: board.cache_hierarchy.l1dcache: Block for addr 0x3600 being updated in Cache
+17360955: board.cache_hierarchy.l1dcache: Block addr 0x3600 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd8 secure: 0 valid: 1 | set: 0xe6 way: 0
+17400000: board.cache_hierarchy.l1dcache: access for WriteReq [3640:3643] miss
+17400915: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3640:3643]
+17400915: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3640:367f] from WriteReq [3640:3643]
+17440875: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3640:367f]
+17440875: board.cache_hierarchy.l1dcache: Block for addr 0x3640 being updated in Cache
+17440875: board.cache_hierarchy.l1dcache: Block addr 0x3640 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xd9 secure: 0 valid: 1 | set: 0xfb way: 0
+17480000: board.cache_hierarchy.l1dcache: access for WriteReq [3680:3683] miss
+17480835: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3680:3683]
+17480835: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3680:36bf] from WriteReq [3680:3683]
+17520795: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3680:36bf]
+17520795: board.cache_hierarchy.l1dcache: Block for addr 0x3680 being updated in Cache
+17520795: board.cache_hierarchy.l1dcache: Block addr 0x3680 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xda secure: 0 valid: 1 | set: 0x52 way: 0
+17560000: board.cache_hierarchy.l1dcache: access for WriteReq [36c0:36c3] miss
+17560755: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [36c0:36c3]
+17560755: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [36c0:36ff] from WriteReq [36c0:36c3]
+17600715: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [36c0:36ff]
+17600715: board.cache_hierarchy.l1dcache: Block for addr 0x36c0 being updated in Cache
+17600715: board.cache_hierarchy.l1dcache: Block addr 0x36c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xdb secure: 0 valid: 1 | set: 0x4f way: 0
+17640000: board.cache_hierarchy.l1dcache: access for WriteReq [3700:3703] miss
+17640675: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3700:3703]
+17640675: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3700:373f] from WriteReq [3700:3703]
+17680635: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3700:373f]
+17680635: board.cache_hierarchy.l1dcache: Block for addr 0x3700 being updated in Cache
+17680635: board.cache_hierarchy.l1dcache: Block addr 0x3700 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xdc secure: 0 valid: 1 | set: 0x76 way: 0
+17720000: board.cache_hierarchy.l1dcache: access for WriteReq [3740:3743] miss
+17720928: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3740:3743]
+17720928: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3740:377f] from WriteReq [3740:3743]
+17760888: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3740:377f]
+17760888: board.cache_hierarchy.l1dcache: Block for addr 0x3740 being updated in Cache
+17760888: board.cache_hierarchy.l1dcache: Block addr 0x3740 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xdd secure: 0 valid: 1 | set: 0x6b way: 0
+17800000: board.cache_hierarchy.l1dcache: access for WriteReq [3780:3783] miss
+17800848: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3780:3783]
+17800848: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3780:37bf] from WriteReq [3780:3783]
+17840808: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3780:37bf]
+17840808: board.cache_hierarchy.l1dcache: Block for addr 0x3780 being updated in Cache
+17840808: board.cache_hierarchy.l1dcache: Block addr 0x3780 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xde secure: 0 valid: 1 | set: 0xc2 way: 0
+17880000: board.cache_hierarchy.l1dcache: access for WriteReq [37c0:37c3] miss
+17880768: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [37c0:37c3]
+17880768: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [37c0:37ff] from WriteReq [37c0:37c3]
+17920728: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [37c0:37ff]
+17920728: board.cache_hierarchy.l1dcache: Block for addr 0x37c0 being updated in Cache
+17920728: board.cache_hierarchy.l1dcache: Block addr 0x37c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xdf secure: 0 valid: 1 | set: 0xdf way: 0
+17960000: board.cache_hierarchy.l1dcache: access for WriteReq [3800:3803] miss
+17960688: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3800:3803]
+17960688: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3800:383f] from WriteReq [3800:3803]
+18000648: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3800:383f]
+18000648: board.cache_hierarchy.l1dcache: Block for addr 0x3800 being updated in Cache
+18000648: board.cache_hierarchy.l1dcache: Block addr 0x3800 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe0 secure: 0 valid: 1 | set: 0xc1 way: 0
+18040000: board.cache_hierarchy.l1dcache: access for WriteReq [3840:3843] miss
+18040941: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3840:3843]
+18040941: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3840:387f] from WriteReq [3840:3843]
+18080901: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3840:387f]
+18080901: board.cache_hierarchy.l1dcache: Block for addr 0x3840 being updated in Cache
+18080901: board.cache_hierarchy.l1dcache: Block addr 0x3840 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe1 secure: 0 valid: 1 | set: 0xdc way: 0
+18120000: board.cache_hierarchy.l1dcache: access for WriteReq [3880:3883] miss
+18120861: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3880:3883]
+18120861: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3880:38bf] from WriteReq [3880:3883]
+18160821: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3880:38bf]
+18160821: board.cache_hierarchy.l1dcache: Block for addr 0x3880 being updated in Cache
+18160821: board.cache_hierarchy.l1dcache: Block addr 0x3880 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe2 secure: 0 valid: 1 | set: 0x75 way: 0
+18200000: board.cache_hierarchy.l1dcache: access for WriteReq [38c0:38c3] miss
+18200781: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [38c0:38c3]
+18200781: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [38c0:38ff] from WriteReq [38c0:38c3]
+18254394: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [38c0:38ff]
+18254394: board.cache_hierarchy.l1dcache: Block for addr 0x38c0 being updated in Cache
+18254394: board.cache_hierarchy.l1dcache: Block addr 0x38c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe3 secure: 0 valid: 1 | set: 0x68 way: 0
+18280000: board.cache_hierarchy.l1dcache: access for WriteReq [3900:3903] miss
+18280701: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3900:3903]
+18280701: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3900:393f] from WriteReq [3900:3903]
+18320661: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3900:393f]
+18320661: board.cache_hierarchy.l1dcache: Block for addr 0x3900 being updated in Cache
+18320661: board.cache_hierarchy.l1dcache: Block addr 0x3900 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe4 secure: 0 valid: 1 | set: 0x51 way: 0
+18360000: board.cache_hierarchy.l1dcache: access for WriteReq [3940:3943] miss
+18360954: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3940:3943]
+18360954: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3940:397f] from WriteReq [3940:3943]
+18400914: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3940:397f]
+18400914: board.cache_hierarchy.l1dcache: Block for addr 0x3940 being updated in Cache
+18400914: board.cache_hierarchy.l1dcache: Block addr 0x3940 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe5 secure: 0 valid: 1 | set: 0x4c way: 0
+18440000: board.cache_hierarchy.l1dcache: access for WriteReq [3980:3983] miss
+18440874: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3980:3983]
+18440874: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3980:39bf] from WriteReq [3980:3983]
+18480834: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3980:39bf]
+18480834: board.cache_hierarchy.l1dcache: Block for addr 0x3980 being updated in Cache
+18480834: board.cache_hierarchy.l1dcache: Block addr 0x3980 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe6 secure: 0 valid: 1 | set: 0xe5 way: 0
+18520000: board.cache_hierarchy.l1dcache: access for WriteReq [39c0:39c3] miss
+18520794: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [39c0:39c3]
+18520794: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [39c0:39ff] from WriteReq [39c0:39c3]
+18560754: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [39c0:39ff]
+18560754: board.cache_hierarchy.l1dcache: Block for addr 0x39c0 being updated in Cache
+18560754: board.cache_hierarchy.l1dcache: Block addr 0x39c0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe7 secure: 0 valid: 1 | set: 0xf8 way: 0
+18600000: board.cache_hierarchy.l1dcache: access for WriteReq [3a00:3a03] miss
+18600714: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3a00:3a03]
+18600714: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3a00:3a3f] from WriteReq [3a00:3a03]
+18640674: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3a00:3a3f]
+18640674: board.cache_hierarchy.l1dcache: Block for addr 0x3a00 being updated in Cache
+18640674: board.cache_hierarchy.l1dcache: Block addr 0x3a00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe8 secure: 0 valid: 1 | set: 0x84 way: 0
+18680000: board.cache_hierarchy.l1dcache: access for WriteReq [3a40:3a43] miss
+18680967: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3a40:3a43]
+18680967: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3a40:3a7f] from WriteReq [3a40:3a43]
+18720927: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3a40:3a7f]
+18720927: board.cache_hierarchy.l1dcache: Block for addr 0x3a40 being updated in Cache
+18720927: board.cache_hierarchy.l1dcache: Block addr 0x3a40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xe9 secure: 0 valid: 1 | set: 0x99 way: 0
+18760000: board.cache_hierarchy.l1dcache: access for WriteReq [3a80:3a83] miss
+18760887: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3a80:3a83]
+18760887: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3a80:3abf] from WriteReq [3a80:3a83]
+18800847: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3a80:3abf]
+18800847: board.cache_hierarchy.l1dcache: Block for addr 0x3a80 being updated in Cache
+18800847: board.cache_hierarchy.l1dcache: Block addr 0x3a80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xea secure: 0 valid: 1 | set: 0x30 way: 0
+18840000: board.cache_hierarchy.l1dcache: access for WriteReq [3ac0:3ac3] miss
+18840807: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3ac0:3ac3]
+18840807: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3ac0:3aff] from WriteReq [3ac0:3ac3]
+18880767: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3ac0:3aff]
+18880767: board.cache_hierarchy.l1dcache: Block for addr 0x3ac0 being updated in Cache
+18880767: board.cache_hierarchy.l1dcache: Block addr 0x3ac0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xeb secure: 0 valid: 1 | set: 0x2d way: 0
+18920000: board.cache_hierarchy.l1dcache: access for WriteReq [3b00:3b03] miss
+18920727: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3b00:3b03]
+18920727: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3b00:3b3f] from WriteReq [3b00:3b03]
+18960687: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3b00:3b3f]
+18960687: board.cache_hierarchy.l1dcache: Block for addr 0x3b00 being updated in Cache
+18960687: board.cache_hierarchy.l1dcache: Block addr 0x3b00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xec secure: 0 valid: 1 | set: 0x14 way: 0
+19000000: board.cache_hierarchy.l1dcache: access for WriteReq [3b40:3b43] miss
+19000980: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3b40:3b43]
+19000980: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3b40:3b7f] from WriteReq [3b40:3b43]
+19040940: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3b40:3b7f]
+19040940: board.cache_hierarchy.l1dcache: Block for addr 0x3b40 being updated in Cache
+19040940: board.cache_hierarchy.l1dcache: Block addr 0x3b40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xed secure: 0 valid: 1 | set: 0x9 way: 0
+19080000: board.cache_hierarchy.l1dcache: access for WriteReq [3b80:3b83] miss
+19080900: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3b80:3b83]
+19080900: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3b80:3bbf] from WriteReq [3b80:3b83]
+19120860: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3b80:3bbf]
+19120860: board.cache_hierarchy.l1dcache: Block for addr 0x3b80 being updated in Cache
+19120860: board.cache_hierarchy.l1dcache: Block addr 0x3b80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xee secure: 0 valid: 1 | set: 0xa0 way: 0
+19160000: board.cache_hierarchy.l1dcache: access for WriteReq [3bc0:3bc3] miss
+19160820: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3bc0:3bc3]
+19160820: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3bc0:3bff] from WriteReq [3bc0:3bc3]
+19200780: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3bc0:3bff]
+19200780: board.cache_hierarchy.l1dcache: Block for addr 0x3bc0 being updated in Cache
+19200780: board.cache_hierarchy.l1dcache: Block addr 0x3bc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xef secure: 0 valid: 1 | set: 0xbd way: 0
+19240000: board.cache_hierarchy.l1dcache: access for WriteReq [3c00:3c03] miss
+19240740: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3c00:3c03]
+19240740: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3c00:3c3f] from WriteReq [3c00:3c03]
+19280700: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3c00:3c3f]
+19280700: board.cache_hierarchy.l1dcache: Block for addr 0x3c00 being updated in Cache
+19280700: board.cache_hierarchy.l1dcache: Block addr 0x3c00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf0 secure: 0 valid: 1 | set: 0x94 way: 0
+19320000: board.cache_hierarchy.l1dcache: access for WriteReq [3c40:3c43] miss
+19320993: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3c40:3c43]
+19320993: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3c40:3c7f] from WriteReq [3c40:3c43]
+19360953: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3c40:3c7f]
+19360953: board.cache_hierarchy.l1dcache: Block for addr 0x3c40 being updated in Cache
+19360953: board.cache_hierarchy.l1dcache: Block addr 0x3c40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf1 secure: 0 valid: 1 | set: 0x89 way: 0
+19400000: board.cache_hierarchy.l1dcache: access for WriteReq [3c80:3c83] miss
+19400913: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3c80:3c83]
+19400913: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3c80:3cbf] from WriteReq [3c80:3c83]
+19440873: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3c80:3cbf]
+19440873: board.cache_hierarchy.l1dcache: Block for addr 0x3c80 being updated in Cache
+19440873: board.cache_hierarchy.l1dcache: Block addr 0x3c80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf2 secure: 0 valid: 1 | set: 0x20 way: 0
+19480000: board.cache_hierarchy.l1dcache: access for WriteReq [3cc0:3cc3] miss
+19480833: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3cc0:3cc3]
+19480833: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3cc0:3cff] from WriteReq [3cc0:3cc3]
+19534446: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3cc0:3cff]
+19534446: board.cache_hierarchy.l1dcache: Block for addr 0x3cc0 being updated in Cache
+19534446: board.cache_hierarchy.l1dcache: Block addr 0x3cc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf3 secure: 0 valid: 1 | set: 0x3d way: 0
+19560000: board.cache_hierarchy.l1dcache: access for WriteReq [3d00:3d03] miss
+19560753: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3d00:3d03]
+19560753: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3d00:3d3f] from WriteReq [3d00:3d03]
+19600713: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3d00:3d3f]
+19600713: board.cache_hierarchy.l1dcache: Block for addr 0x3d00 being updated in Cache
+19600713: board.cache_hierarchy.l1dcache: Block addr 0x3d00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf4 secure: 0 valid: 1 | set: 0x4 way: 0
+19640000: board.cache_hierarchy.l1dcache: access for WriteReq [3d40:3d43] miss
+19640673: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3d40:3d43]
+19640673: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3d40:3d7f] from WriteReq [3d40:3d43]
+19680633: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3d40:3d7f]
+19680633: board.cache_hierarchy.l1dcache: Block for addr 0x3d40 being updated in Cache
+19680633: board.cache_hierarchy.l1dcache: Block addr 0x3d40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf5 secure: 0 valid: 1 | set: 0x19 way: 0
+19720000: board.cache_hierarchy.l1dcache: access for WriteReq [3d80:3d83] miss
+19720926: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3d80:3d83]
+19720926: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3d80:3dbf] from WriteReq [3d80:3d83]
+19760886: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3d80:3dbf]
+19760886: board.cache_hierarchy.l1dcache: Block for addr 0x3d80 being updated in Cache
+19760886: board.cache_hierarchy.l1dcache: Block addr 0x3d80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf6 secure: 0 valid: 1 | set: 0xb0 way: 0
+19800000: board.cache_hierarchy.l1dcache: access for WriteReq [3dc0:3dc3] miss
+19800846: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3dc0:3dc3]
+19800846: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3dc0:3dff] from WriteReq [3dc0:3dc3]
+19840806: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3dc0:3dff]
+19840806: board.cache_hierarchy.l1dcache: Block for addr 0x3dc0 being updated in Cache
+19840806: board.cache_hierarchy.l1dcache: Block addr 0x3dc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf7 secure: 0 valid: 1 | set: 0xad way: 0
+19880000: board.cache_hierarchy.l1dcache: access for WriteReq [3e00:3e03] miss
+19880766: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3e00:3e03]
+19880766: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3e00:3e3f] from WriteReq [3e00:3e03]
+19920726: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3e00:3e3f]
+19920726: board.cache_hierarchy.l1dcache: Block for addr 0x3e00 being updated in Cache
+19920726: board.cache_hierarchy.l1dcache: Block addr 0x3e00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf8 secure: 0 valid: 1 | set: 0xd1 way: 0
+19960000: board.cache_hierarchy.l1dcache: access for WriteReq [3e40:3e43] miss
+19960686: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3e40:3e43]
+19960686: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3e40:3e7f] from WriteReq [3e40:3e43]
+20000646: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3e40:3e7f]
+20000646: board.cache_hierarchy.l1dcache: Block for addr 0x3e40 being updated in Cache
+20000646: board.cache_hierarchy.l1dcache: Block addr 0x3e40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xf9 secure: 0 valid: 1 | set: 0xcc way: 0
+20040000: board.cache_hierarchy.l1dcache: access for WriteReq [3e80:3e83] miss
+20040939: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3e80:3e83]
+20040939: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3e80:3ebf] from WriteReq [3e80:3e83]
+20080899: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3e80:3ebf]
+20080899: board.cache_hierarchy.l1dcache: Block for addr 0x3e80 being updated in Cache
+20080899: board.cache_hierarchy.l1dcache: Block addr 0x3e80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xfa secure: 0 valid: 1 | set: 0x65 way: 0
+20120000: board.cache_hierarchy.l1dcache: access for WriteReq [3ec0:3ec3] miss
+20120859: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3ec0:3ec3]
+20120859: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3ec0:3eff] from WriteReq [3ec0:3ec3]
+20160819: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3ec0:3eff]
+20160819: board.cache_hierarchy.l1dcache: Block for addr 0x3ec0 being updated in Cache
+20160819: board.cache_hierarchy.l1dcache: Block addr 0x3ec0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xfb secure: 0 valid: 1 | set: 0x78 way: 0
+20200000: board.cache_hierarchy.l1dcache: access for WriteReq [3f00:3f03] miss
+20200779: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3f00:3f03]
+20200779: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3f00:3f3f] from WriteReq [3f00:3f03]
+20240739: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3f00:3f3f]
+20240739: board.cache_hierarchy.l1dcache: Block for addr 0x3f00 being updated in Cache
+20240739: board.cache_hierarchy.l1dcache: Block addr 0x3f00 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xfc secure: 0 valid: 1 | set: 0x41 way: 0
+20280000: board.cache_hierarchy.l1dcache: access for WriteReq [3f40:3f43] miss
+20280699: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3f40:3f43]
+20280699: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3f40:3f7f] from WriteReq [3f40:3f43]
+20320659: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3f40:3f7f]
+20320659: board.cache_hierarchy.l1dcache: Block for addr 0x3f40 being updated in Cache
+20320659: board.cache_hierarchy.l1dcache: Block addr 0x3f40 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xfd secure: 0 valid: 1 | set: 0x5c way: 0
+20360000: board.cache_hierarchy.l1dcache: access for WriteReq [3f80:3f83] miss
+20360952: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3f80:3f83]
+20360952: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3f80:3fbf] from WriteReq [3f80:3f83]
+20400912: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3f80:3fbf]
+20400912: board.cache_hierarchy.l1dcache: Block for addr 0x3f80 being updated in Cache
+20400912: board.cache_hierarchy.l1dcache: Block addr 0x3f80 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xfe secure: 0 valid: 1 | set: 0xf5 way: 0
+20440000: board.cache_hierarchy.l1dcache: access for WriteReq [3fc0:3fc3] miss
+20440872: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR WriteReq [3fc0:3fc3]
+20440872: board.cache_hierarchy.l1dcache: createMissPacket: created ReadExReq [3fc0:3fff] from WriteReq [3fc0:3fc3]
+20480832: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadExResp [3fc0:3fff]
+20480832: board.cache_hierarchy.l1dcache: Block for addr 0x3fc0 being updated in Cache
+20480832: board.cache_hierarchy.l1dcache: Block addr 0x3fc0 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xff secure: 0 valid: 1 | set: 0xe8 way: 0
+21320000: board.cache_hierarchy.l1dcache: access for ReadReq [2f3b9194:2f3b9197] miss
+21320991: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR ReadReq [2f3b9194:2f3b9197]
+21320991: board.cache_hierarchy.l1dcache: createMissPacket: created ReadSharedReq [2f3b9180:2f3b91bf] from ReadReq [2f3b9194:2f3b9197]
+21374604: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadResp [2f3b9180:2f3b91bf]
+21374604: board.cache_hierarchy.l1dcache: Block for addr 0x2f3b9180 being updated in Cache
+21374604: board.cache_hierarchy.l1dcache: Create Writeback WritebackDirty [280:2bf] writable: 1, dirty: 1
+21374604: board.cache_hierarchy.l1dcache: Block addr 0x2f3b9180 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xbcee46 secure: 0 valid: 1 | set: 0x15 way: 0
+21375270: board.cache_hierarchy.l1dcache: sendWriteQueuePacket: write WritebackDirty [280:2bf]
+22200000: board.cache_hierarchy.l1dcache: access for ReadReq [0:3] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0 secure: 0 valid: 1 | set: 0xe4 way: 0
+22280000: board.cache_hierarchy.l1dcache: access for ReadReq [40:43] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x1 secure: 0 valid: 1 | set: 0xf9 way: 0
+22360000: board.cache_hierarchy.l1dcache: access for ReadReq [80:83] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x2 secure: 0 valid: 1 | set: 0x50 way: 0
+22440000: board.cache_hierarchy.l1dcache: access for ReadReq [c0:c3] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x3 secure: 0 valid: 1 | set: 0x4d way: 0
+22520000: board.cache_hierarchy.l1dcache: access for ReadReq [100:103] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x4 secure: 0 valid: 1 | set: 0x74 way: 0
+22600000: board.cache_hierarchy.l1dcache: access for ReadReq [140:143] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x5 secure: 0 valid: 1 | set: 0x69 way: 0
+22680000: board.cache_hierarchy.l1dcache: access for ReadReq [180:183] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x6 secure: 0 valid: 1 | set: 0xc0 way: 0
+22760000: board.cache_hierarchy.l1dcache: access for ReadReq [1c0:1c3] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x7 secure: 0 valid: 1 | set: 0xdd way: 0
+22840000: board.cache_hierarchy.l1dcache: access for ReadReq [200:203] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x8 secure: 0 valid: 1 | set: 0xa1 way: 0
+22920000: board.cache_hierarchy.l1dcache: access for ReadReq [240:243] hit state: e (M) writable: 1 readable: 1 dirty: 1 prefetched: 0 | tag: 0x9 secure: 0 valid: 1 | set: 0xbc way: 0
+23000000: board.cache_hierarchy.l1dcache: access for ReadReq [280:283] miss
+23000976: board.cache_hierarchy.l1dcache: sendMSHRQueuePacket: MSHR ReadReq [280:283]
+23000976: board.cache_hierarchy.l1dcache: createMissPacket: created ReadSharedReq [280:2bf] from ReadReq [280:283]
+23012298: board.cache_hierarchy.l1dcache: recvTimingResp: Handling response ReadResp [280:2bf]
+23012298: board.cache_hierarchy.l1dcache: Block for addr 0x280 being updated in Cache
+23012298: board.cache_hierarchy.l1dcache: Create CleanEvict CleanEvict [2f3b9180:2f3b91bf]
+23012298: board.cache_hierarchy.l1dcache: Block addr 0x280 (ns) moving from  to state: 6 (E) writable: 1 readable: 1 dirty: 0 prefetched: 0 | tag: 0xa secure: 0 valid: 1 | set: 0x15 way: 0
+23012964: board.cache_hierarchy.l1dcache: sendWriteQueuePacket: write CleanEvict [2f3b9180:2f3b91bf]
