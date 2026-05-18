@@ -43,50 +43,52 @@
 namespace gem5
 {
 
-std::vector<TaggedSetAssociative*> TaggedSetAssociative::allPolicies;
+std::vector<TaggedSetAssociative *> TaggedSetAssociative::liveInstances_;
 
 TaggedSetAssociative::TaggedSetAssociative(const Params &p)
     : TaggedIndexingPolicy(p, p.size / p.entry_size,
                            floorLog2(p.entry_size)),
       contextKeyed(p.context_keyed),
-      fixedKeys(p.context_keys.begin(), p.context_keys.end()),
-      rng(p.key_seed >= 0 ? Random::genRandom((uint32_t)p.key_seed)
+      keyTable_(kKeyTableSlots, 0),
+      fixedKeys_(p.context_keys.begin(), p.context_keys.end()),
+      rng_(p.key_seed >= 0 ? Random::genRandom((uint32_t)p.key_seed)
                           : Random::genRandom())
 {
     if (contextKeyed) {
-        allPolicies.push_back(this);
+        liveInstances_.push_back(this);
     }
 }
 
 TaggedSetAssociative::~TaggedSetAssociative()
 {
-    allPolicies.erase(
-        std::remove(allPolicies.begin(), allPolicies.end(), this),
-        allPolicies.end());
+    liveInstances_.erase(
+        std::remove(liveInstances_.begin(), liveInstances_.end(), this),
+        liveInstances_.end());
 }
 
 uint64_t
-TaggedSetAssociative::getContextKey(ContextID context) const
+TaggedSetAssociative::keyForContext(ContextID context) const
 {
-    auto it = contextKeys.find(context);
-    if (it != contextKeys.end()) {
-        return it->second;
+    const std::size_t slot = slotFor(context);
+    if (keyTable_[slot] != 0) {
+        // Already resident: reuse the key currently occupying this slot.
+        return keyTable_[slot];
     }
 
     uint64_t key;
-    if (context >= 0 && (std::size_t)context < fixedKeys.size() &&
-        fixedKeys[context] != 0) {
+    if (context >= 0 && (std::size_t)context < fixedKeys_.size() &&
+        fixedKeys_[context] != 0) {
         // Reproducible, experiment-supplied key for this context.
-        key = fixedKeys[context];
+        key = fixedKeys_[context];
     } else {
         // Fresh high-entropy key; never zero (a zero key would collapse the
         // keyed mapping into a plain, predictable one).
         do {
-            key = rng->random<uint64_t>();
+            key = rng_->random<uint64_t>();
         } while (key == 0);
     }
 
-    contextKeys[context] = key;
+    keyTable_[slot] = key;
     return key;
 }
 
@@ -111,7 +113,7 @@ TaggedSetAssociative::getPossibleEntries(const KeyType &key) const
 
     // One candidate per way, each at that way's keyed set index.
     for (uint32_t way = 0; way < assoc; ++way) {
-        entries.push_back(sets[extractSet(key, way)][way]);
+        entries.push_back(sets[computeWaySet(key, way)][way]);
     }
 
     return entries;
@@ -134,7 +136,7 @@ std::vector<uint32_t>
 TaggedSetAssociative::setIndexVector(Addr addr, ContextID context) const
 {
     const uint64_t line_addr = addr >> setShift;
-    const uint64_t ckey = getContextKey(context);
+    const uint64_t ckey = keyForContext(context);
 
     std::vector<uint32_t> indices;
     indices.reserve(assoc);
@@ -147,17 +149,17 @@ TaggedSetAssociative::setIndexVector(Addr addr, ContextID context) const
 void
 TaggedSetAssociative::setActiveContextAll(ContextID context)
 {
-    for (auto *policy : allPolicies) {
-        policy->activeContextSet = true;
-        policy->activeContext = context;
+    for (auto *policy : liveInstances_) {
+        policy->overrideActive_ = true;
+        policy->overrideContext_ = context;
     }
 }
 
 void
 TaggedSetAssociative::clearActiveContextAll()
 {
-    for (auto *policy : allPolicies) {
-        policy->activeContextSet = false;
+    for (auto *policy : liveInstances_) {
+        policy->overrideActive_ = false;
     }
 }
 
