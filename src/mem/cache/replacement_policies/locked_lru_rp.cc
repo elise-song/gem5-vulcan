@@ -121,7 +121,7 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
         warn("not enough unlocked ways did not lock");
         return;
     }
-    data->locked = true;
+    data->unlocked = false;
 }
 
 void
