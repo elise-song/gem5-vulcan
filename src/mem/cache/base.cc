@@ -53,6 +53,7 @@
 #include "debug/CacheRepl.hh" // replacement policy
 #include "debug/CacheVerbose.hh"
 #include "debug/HWPrefetch.hh"
+#include "debug/PseudoInst.hh"
 #include "mem/cache/compressors/base.hh"
 #include "mem/cache/mshr.hh"
 #include "mem/cache/mshr_queue.hh"
@@ -65,9 +66,63 @@
 #include "params/WriteAllocator.hh"
 #include "sim/cur_tick.hh"
 #include "mem/packet_access.hh"
+#include "mem/cache/replacement_policies/locked_lru_rp.hh"
 
 namespace gem5
 {
+
+std::vector<BaseCache *> BaseCache::cachelist;
+
+void
+BaseCache::lockCacheLine(Addr addr)
+{
+    Addr blk_addr = tags->blkAlign(addr);
+    DPRINTF(PseudoInst, "lockCacheLine: vaddr %#x aligned to %#x\n", 
+            addr, blk_addr);
+
+    // int target_set = (blk_addr >> 6) & 0xff;
+    // DPRINTF(PseudoInst, "  target set index: %d\n", target_set);
+
+    // tags->forEachBlk([this, target_set](CacheBlk &blk) {
+    //     if (blk.isValid()) {
+    //         Addr regen = tags->regenerateBlkAddr(&blk);
+    //         int blk_set = (regen >> 6) & 0xff;
+    //         DPRINTF(PseudoInst, "  valid block at paddr %#x (set %d)%s\n",
+    //                 regen, blk_set,
+    //                 (blk_set == target_set) ? "  <-- MATCHES TARGET SET" : "");
+    //     }
+    // });
+
+    CacheBlk *blk = tags->findBlock({blk_addr, false});
+    if (blk && blk->isValid()) {
+        ReplacementCandidates candidates;
+        int maxWays = tags->getWayAllocationMax();
+        for (int way = 0; way < maxWays; way++) {
+            ReplaceableEntry *entry = tags->findBlockBySetAndWay(blk->getSet(), way);
+            if (entry) {
+                candidates.push_back(entry);
+            }
+        }
+        replacement_policy::LockedLRU::lock(blk->replacementData, candidates);
+        DPRINTF(PseudoInst, "Locked cache line at addr %#x\n", blk_addr);
+    } else {
+        warn("lockCacheLine: addr %#x not found\n", blk_addr);
+    }
+}
+
+void
+BaseCache::unlockCacheLine(Addr addr)
+{
+    Addr blk_addr = tags->blkAlign(addr);
+    DPRINTF(PseudoInst, "lockCacheLine: addr %#x aligned to %#x\n", addr, blk_addr);
+    CacheBlk *blk = tags->findBlock({blk_addr, false});
+    if (blk && blk->isValid()) {
+        replacement_policy::LockedLRU::unlock(blk->replacementData);
+        DPRINTF(PseudoInst, "Unlocked cache line at addr %#x\n", blk_addr);
+    } else {
+        warn("unlockCacheLine: addr %#x not found\n", blk_addr);
+    }
+}
 
 BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
                                           BaseCache& _cache,
@@ -142,11 +197,15 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
         "Compressed cache %s does not have a compression algorithm", name());
     if (compressor)
         compressor->setCache(this);
+    cachelist.push_back(this);
 }
 
 BaseCache::~BaseCache()
 {
     delete tempBlock;
+    cachelist.erase(
+        std::remove(cachelist.begin(), cachelist.end(), this),
+        cachelist.end());
 }
 
 void

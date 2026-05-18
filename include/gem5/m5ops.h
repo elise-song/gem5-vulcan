@@ -67,6 +67,8 @@ void m5_panic(void);
 void m5_work_begin(uint64_t workid, uint64_t threadid);
 void m5_work_end(uint64_t workid, uint64_t threadid);
 void m5_hypercall(uint64_t hypercall_id);
+void m5_lock(uint64_t cache_line_addr);
+void m5_unlock(uint64_t cache_line_addr);
 /*
  * Send a very generic poke to the workload so it can do something. It's up to
  * the workload to know what information to look for to interpret an event,

@@ -114,6 +114,8 @@ void m5Syscall(ThreadContext *tc);
 void togglesync(ThreadContext *tc);
 void triggerWorkloadEvent(ThreadContext *tc);
 void m5Hypercall(ThreadContext *tc, uint64_t hypercall_id);
+void cacheLock(ThreadContext *tc, uint64_t cache_line_addr);
+void cacheUnlock(ThreadContext *tc, uint64_t cache_line_addr);
 
 /**
  * Execute a decoded M5 pseudo instruction
@@ -233,8 +235,14 @@ pseudoInstWork(ThreadContext *tc, uint8_t func, uint64_t &result)
         invokeSimcall<ABI>(tc, workend);
         return true;
 
-      case M5OP_RESERVED1:
-      case M5OP_RESERVED2:
+      case M5OP_LOCK:
+        invokeSimcall<ABI>(tc, cacheLock);
+        return true;
+
+      case M5OP_UNLOCK:
+        invokeSimcall<ABI>(tc, cacheUnlock);
+        return true;
+        
       case M5OP_RESERVED3:
       case M5OP_RESERVED4:
       case M5OP_RESERVED5:
