@@ -987,6 +987,8 @@ class BaseCache : public ClockedObject
     /** System we are currently operating in. */
     System *system;
 
+    static std::vector<BaseCache *> cachelist;
+
     struct CacheCmdStats : public statistics::Group
     {
         CacheCmdStats(BaseCache &c, const std::string &name);
@@ -1333,6 +1335,8 @@ class BaseCache : public ClockedObject
      */
     void serialize(CheckpointOut &cp) const override;
     void unserialize(CheckpointIn &cp) override;
+    void lockCacheLine(Addr addr);
+    void unlockCacheLine(Addr addr);
 };
 
 /**
