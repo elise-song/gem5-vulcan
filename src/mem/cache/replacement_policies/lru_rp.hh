@@ -55,11 +55,12 @@ class LRU : public Base
         Tick lastTouchTick;
         /** Non-zero while the entry is locked down (not a victim candidate). */
         int locked;
+        int unlocked;
 
         /**
          * Default constructor. Invalidate data.
          */
-        LRUReplData() : lastTouchTick(0), locked(0) {}
+        LRUReplData() : lastTouchTick(0), locked(0), unlocked(1) {}
     };
 
   public:
