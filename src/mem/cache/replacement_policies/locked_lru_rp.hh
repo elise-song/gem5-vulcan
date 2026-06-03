@@ -109,7 +109,7 @@ class LockedLRU : public Base
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
 
-    static void lock(const std::shared_ptr<ReplacementData>& replacement_data);
+    static void lock(const std::shared_ptr<ReplacementData>& replacement_data, const ReplacementCandidates& candidates);
     static void unlock(const std::shared_ptr<ReplacementData>& replacement_data);
 };
 

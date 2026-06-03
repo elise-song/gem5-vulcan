@@ -105,9 +105,23 @@ LockedLRU::instantiateEntry()
 }
 
 void
-LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data)
+LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
+                const ReplacementCandidates& candidates)
 {
-    std::static_pointer_cast<PartitionData>(replacement_data)->locked = true;
+    auto data = std::static_pointer_cast<PartitionData>(replacement_data);
+    if (data -> locked) 
+        return;
+    int count = 0;
+    for (const auto& candidate: candidates) {
+        auto candidateData = std::static_pointer_cast<PartitionData>(candidate->replacementData);
+        if(!candidateData ->locked)
+            count++;
+    }
+    if (count < 2){
+        warn("not enough unlocked ways did not lock");
+        return;
+    }
+    data->locked = true;
 }
 
 void

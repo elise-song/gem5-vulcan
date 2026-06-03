@@ -80,16 +80,24 @@ BaseCache::lockCacheLine(Addr addr)
     DPRINTF(PseudoInst, "lockCacheLine: vaddr %#x aligned to %#x\n", 
             addr, blk_addr);
 
-    tags->forEachBlk([this](CacheBlk &blk) {
-        if (blk.isValid()) {
-            DPRINTF(PseudoInst, "  valid block at paddr %#x\n",
-                    tags->regenerateBlkAddr(&blk));
-        }
-    });
+    // tags->forEachBlk([this](CacheBlk &blk) {
+    //     if (blk.isValid()) {
+    //         DPRINTF(PseudoInst, "  valid block at paddr %#x\n",
+    //                 tags->regenerateBlkAddr(&blk));
+    //     }
+    // });
 
     CacheBlk *blk = tags->findBlock({blk_addr, false});
     if (blk && blk->isValid()) {
-        replacement_policy::LockedLRU::lock(blk->replacementData);
+        ReplacementCandidates candidates;
+        int maxWays = tags->getWayAllocationMax();
+        for (int way = 0; way < maxWays; way++) {
+            ReplaceableEntry *entry = tags->findBlockBySetAndWay(blk->getSet(), way);
+            if (entry) {
+                candidates.push_back(entry);
+            }
+        }
+        replacement_policy::LockedLRU::lock(blk->replacementData, candidates);
         DPRINTF(PseudoInst, "Locked cache line at addr %#x\n", blk_addr);
     } else {
         warn("lockCacheLine: addr %#x not found\n", blk_addr);
