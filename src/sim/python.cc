@@ -28,12 +28,30 @@
 #include "pybind11/pybind11.h"
 #include "sim/init.hh"
 #include "sim/port.hh"
+#include "mem/cache/base.hh"
+#include "mem/cache/replacement_policies/locked_lru_rp.hh"
 
 namespace gem5
 {
 
 namespace
 {
+
+void
+cacheLockPython(uint64_t addr)
+{
+    for (auto *cache : BaseCache::cachelist) {
+        cache->lockCacheLine(addr);
+    }
+}
+
+void
+cacheUnlockPython(uint64_t addr)
+{
+    for (auto *cache : BaseCache::cachelist) {
+        cache->unlockCacheLine(addr);
+    }
+}
 
 void
 sim_pybind(pybind11::module_ &m_internal)
@@ -44,6 +62,8 @@ sim_pybind(pybind11::module_ &m_internal)
         .def("bind", &Port::bind)
         .def("name", &Port::name)
         ;
+    m.def("cacheLock", &cacheLockPython, "Lock a cache line by address");
+    m.def("cacheUnlock", &cacheUnlockPython, "Unlock a cache line by address");
 }
 EmbeddedPyBind embed_("sim", &sim_pybind);
 

@@ -80,10 +80,16 @@ BaseCache::lockCacheLine(Addr addr)
     DPRINTF(PseudoInst, "lockCacheLine: vaddr %#x aligned to %#x\n", 
             addr, blk_addr);
 
-    // tags->forEachBlk([this](CacheBlk &blk) {
+    // int target_set = (blk_addr >> 6) & 0xff;
+    // DPRINTF(PseudoInst, "  target set index: %d\n", target_set);
+
+    // tags->forEachBlk([this, target_set](CacheBlk &blk) {
     //     if (blk.isValid()) {
-    //         DPRINTF(PseudoInst, "  valid block at paddr %#x\n",
-    //                 tags->regenerateBlkAddr(&blk));
+    //         Addr regen = tags->regenerateBlkAddr(&blk);
+    //         int blk_set = (regen >> 6) & 0xff;
+    //         DPRINTF(PseudoInst, "  valid block at paddr %#x (set %d)%s\n",
+    //                 regen, blk_set,
+    //                 (blk_set == target_set) ? "  <-- MATCHES TARGET SET" : "");
     //     }
     // });
 
