@@ -987,7 +987,7 @@ Commit::commit()
             // store's own address untainting, not just the violator's.
             fromIEW->instCausingSquash[tid]->setMemOrderViolatingStore(
                 fromIEW->memOrderViolatingStore[tid]);
-            if (cpu->STT && cpu->impChannel &&
+            if (cpu->STT && cpu->impChannel && cpu->moreTransmitInsts == 0 &&
                 fromIEW->instCausingSquash[tid]
                     ->stillTaintedForPendingSquash()) {
                 DPRINTF(Commit,
@@ -1214,6 +1214,9 @@ Commit::commitInsts()
 
                 // Updates misc. registers.
                 head_inst->updateMiscRegs();
+                if (head_inst->numDestRegs(MiscRegClass)) {
+                    iewStage->wakeCommittedMiscRegDependents(head_inst);
+                }
 
                 // Check instruction execution if it successfully commits and
                 // is not carrying a fault.
