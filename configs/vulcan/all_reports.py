@@ -128,14 +128,14 @@ def main():
     for assoc in sorted(by_assoc.keys()):
         points = sorted(by_assoc[assoc], key=lambda p: p[0])
         xs = [p[0] for p in points]
-        ys = [p[2] for p in points]
+        ys = [1 - p[2] for p in points]  # defense success = 1 - attacker success
         labels = [p[1] for p in points]
         ax.plot(xs, ys, marker="o", label=f"assoc={assoc}")
 
     ax.set_xscale("log", base=2)
     ax.set_xlabel("Cache size (bytes)")
-    ax.set_ylabel("Average attacker-success rate\n(fraction of secrets visible during probe)")
-    ax.set_title("Prime+Probe visibility vs cache size and associativity\n(locked_lru, every secret locked)")
+    ax.set_ylabel("Defense success rate")
+    ax.set_title("Cache Line Locking Defense Effectiveness")
     ax.set_ylim(-0.05, 1.05)
     ax.legend(title="Associativity")
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
