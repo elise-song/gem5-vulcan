@@ -575,6 +575,26 @@ class CPU : public BaseCPU
     /** Available thread ids in the cpu*/
     std::vector<ThreadID> tids;
 
+    // [STT] derived from the threatModel param: whether any speculative
+    // protection is applied at all.
+    bool protectionEnabled;
+    // [STT] Futuristic == futuristic threat model (delay transmitters
+    // until all older instructions have completed); !isFuturistic ==
+    // Spectre threat model (delay transmitters until all older branches
+    // have resolved). Only meaningful when protectionEnabled.
+    bool isFuturistic;
+    // [STT] apply STT's taint-based delay of transmit instructions.
+    // Requires protectionEnabled.
+    bool STT;
+    // [STT] also delay transmitters that depend on an unresolved branch's
+    // condition (the implicit/control-flow channel). Requires STT.
+    bool impChannel;
+    // [STT] debug: print the ROB with taint info every cycle.
+    bool ifPrintROB;
+    // [STT] additionally treat variable-latency FU ops (div/sqrt/fp) as
+    // transmitters: 0 = off, 1 = int/fp div + sqrt, 2 = int div + all fp.
+    int moreTransmitInsts;
+
     /** CPU pushRequest function, forwards request to LSQ. */
     Fault
     pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,

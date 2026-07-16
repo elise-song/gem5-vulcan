@@ -216,6 +216,9 @@ system.cpu_clk_domain = SrcClockDomain(
 if args.elastic_trace_en:
     CpuConfig.config_etrace(CPUClass, system.cpu, args)
 
+# [STT] wire up the speculative-execution defense configuration
+CpuConfig.config_scheme(CPUClass, system.cpu, args)
+
 # All cpus belong to a common cpu_clk_domain, therefore running at a common
 # frequency.
 for cpu in system.cpu:

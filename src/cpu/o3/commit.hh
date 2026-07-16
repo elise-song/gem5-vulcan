@@ -246,6 +246,16 @@ class Commit
     /** Handles a squash from a squashAfter() request. */
     void squashFromSquashAfter(ThreadID tid);
 
+    /** [STT] Handles a squash signalled by IEW this cycle (fromIEW). */
+    void handleSquashSignalFromIEW(ThreadID tid);
+
+    /** [STT] Handles a squash on an instruction whose squash was
+     * previously deferred (hasPendingSquash) and has now become safe to
+     * act on, reconstructed from the ROB rather than from fromIEW (which
+     * no longer holds this information by the time it resolves). */
+    void handleSquashSignalFromROB(ThreadID tid,
+                                   const DynInstPtr &pendingMispInst);
+
     /**
      * Handle squashing from instruction with SquashAfter set.
      *

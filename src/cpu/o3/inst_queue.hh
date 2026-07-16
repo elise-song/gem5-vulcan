@@ -331,6 +331,11 @@ class InstructionQueue
     /** Wakes all dependents of a completed instruction. */
     int wakeDependents(const DynInstPtr &completed_inst);
 
+    /** [STT] Moves instructions on the taint-stall list that have become
+     * untainted (or squashed) back onto the ready lists. Only used when
+     * cpu->moreTransmitInsts is enabled. */
+    void wakeUntaintInsts();
+
     /** Adds a ready memory instruction to the ready list. */
     void addReadyMemInst(const DynInstPtr &ready_inst);
 
@@ -415,6 +420,10 @@ class InstructionQueue
 
     /** List of all the instructions in the IQ (some of which may be issued). */
     std::list<DynInstPtr> instList[MaxThreads];
+
+    /** [STT] instructions that are ready to issue except that they are
+     * tainted; used only when cpu->moreTransmitInsts is enabled. */
+    std::list<DynInstPtr> stalledTaintedInstList[MaxThreads];
 
     /** List of instructions that are ready to be executed. */
     std::list<DynInstPtr> instsToExecute;

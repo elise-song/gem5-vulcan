@@ -143,31 +143,52 @@ class DynInst : public ExecContext, public RefCounted
   protected:
     enum Status
     {
-        IqEntry,                 /// Instruction is in the IQ
-        RobEntry,                /// Instruction is in the ROB
-        LsqEntry,                /// Instruction is in the LSQ
-        Completed,               /// Instruction has completed
-        ResultReady,             /// Instruction has its result
-        CanIssue,                /// Instruction can issue and execute
-        Issued,                  /// Instruction has issued
-        Executed,                /// Instruction has executed
-        CanCommit,               /// Instruction can commit
-        AtCommit,                /// Instruction has reached commit
-        Committed,               /// Instruction has committed
-        Squashed,                /// Instruction is squashed
-        SquashedInIQ,            /// Instruction is squashed in the IQ
-        SquashedInLSQ,           /// Instruction is squashed in the LSQ
-        SquashedInROB,           /// Instruction is squashed in the ROB
-        PinnedRegsRenamed,       /// Pinned registers are renamed
-        PinnedRegsWritten,       /// Pinned registers are written back
-        PinnedRegsSquashDone,    /// Regs pinning status updated after squash
-        RecoverInst,             /// Is a recover instruction
-        BlockingInst,            /// Is a blocking instruction
-        ThreadsyncWait,          /// Is a thread synchronization instruction
-        SerializeBefore,         /// Needs to serialize on
-                                 /// instructions ahead of it
-        SerializeAfter,          /// Needs to serialize instructions behind it
-        SerializeHandled,        /// Serialization has been handled
+        IqEntry,              /// Instruction is in the IQ
+        RobEntry,             /// Instruction is in the ROB
+        LsqEntry,             /// Instruction is in the LSQ
+        Completed,            /// Instruction has completed
+        ResultReady,          /// Instruction has its result
+        CanIssue,             /// Instruction can issue and execute
+        Issued,               /// Instruction has issued
+        Executed,             /// Instruction has executed
+        CanCommit,            /// Instruction can commit
+        AtCommit,             /// Instruction has reached commit
+        Committed,            /// Instruction has committed
+        Squashed,             /// Instruction is squashed
+        SquashedInIQ,         /// Instruction is squashed in the IQ
+        SquashedInLSQ,        /// Instruction is squashed in the LSQ
+        SquashedInROB,        /// Instruction is squashed in the ROB
+        PinnedRegsRenamed,    /// Pinned registers are renamed
+        PinnedRegsWritten,    /// Pinned registers are written back
+        PinnedRegsSquashDone, /// Regs pinning status updated after squash
+        // [STT] whether all previous (in program order) instructions have
+        // completed / all previous branches have resolved. Used to decide
+        // whether this instruction is still squashable.
+        // Set (sticky, never cleared once true -- see
+        // DynInst::setPrevInstsCompleted()/setPrevBrsResolved()) by
+        // ROB::updateVisibleState() once every *older* instruction (for
+        // PrevInstsCompleted) or every older branch (for PrevBrsResolved)
+        // has resolved. Read back via isPrevInstsCompleted()/
+        // isPrevBrsResolved() to compute isUnsquashable() -- the
+        // Futuristic threat model uses the former, Spectre uses the
+        // latter (see ROB::updateVisibleState()).
+        PrevInstsCompleted,
+        PrevBrsResolved,
+        RecoverInst,      /// Is a recover instruction
+        BlockingInst,     /// Is a blocking instruction
+        ThreadsyncWait,   /// Is a thread synchronization instruction
+        SerializeBefore,  /// Needs to serialize on
+                          /// instructions ahead of it
+        SerializeAfter,   /// Needs to serialize instructions behind it
+        SerializeHandled, /// Serialization has been handled
+        // [STT] instruction is ready to issue (regsReady) but argsTainted
+        // Set when moreTransmitInsts is enabled and this instruction is a
+        // variable-latency FU op (div/sqrt/fp) that's otherwise ready to
+        // issue but is still tainted (see
+        // InstructionQueue::addIfReady()/wakeUntaintInsts()): it's parked
+        // on the IQ's taint-stall list instead of a ready list until it
+        // untaints.
+        InStallList,
         NumStatus
     };
 
@@ -187,8 +208,65 @@ class DynInst : public ExecContext, public RefCounted
         ReqMade,
         MemOpDone,
         HtmFromTransaction,
-        NoCapableFU,           /// Processor does not have capability to
-                               /// execute the instruction
+        NoCapableFU, /// Processor does not have capability to
+                     /// execute the instruction
+        // [STT] a tainted load's memory access is deferred until untainted
+        // Set every cycle by LSQUnit::updateVisibleState() for in-flight
+        // loads (true while the load must not be issued yet). Read by
+        // IEW::executeInsts(), which defers the load via the existing
+        // translation-delay retry queue instead of calling
+        // ldstQueue.executeLoad() while this is set.
+        FenceDelay,
+        // [STT] the following are STT flags
+        // IsUnsquashable: true once no older, unresolved instruction/
+        // branch can still squash this one away. Computed by
+        // ROB::updateVisibleState(); gates whether an access (load)
+        // instruction is treated as a root of taint in
+        // ROB::compute_taint().
+        IsUnsquashable,
+        // IsDestTainted: true if this instruction's destination/result is
+        // currently tainted -- either because it inherited taint from a
+        // tainted source (mirrors IsArgsTainted), or because it's a load
+        // that is still squashable and is therefore forced-tainted (see
+        // ROB::compute_taint()). This is what a *later* instruction reads,
+        // via its argProducer, to decide its own taint.
+        IsDestTainted,
+        // IsArgsTainted: true if any of this instruction's own source
+        // registers are tainted (explicit data-flow taint only -- see
+        // ROB::explicit_flow()). Also what LSQUnit::updateVisibleState()
+        // reads directly to set FenceDelay on a load, and what
+        // IEW::executeInsts() reads on a mispredicted branch to decide
+        // whether to defer its squash.
+        IsArgsTainted,
+        // IsAddrTainted: true if a load/store's *effective address*
+        // (as opposed to, for a store, the value being stored) is
+        // computed from tainted data. See ROB::address_flow(). Currently
+        // computed but not read outside compute_taint() in this port
+        // (available for stricter policies that want to gate purely on
+        // address taint rather than IsArgsTainted).
+        IsAddrTainted,
+        // HasExplicitFlow: true if this instruction reads a tainted
+        // source register through ordinary data-flow. See
+        // ROB::explicit_flow(); IsArgsTainted/IsDestTainted are both
+        // derived directly from this each cycle.
+        HasExplicitFlow,
+        // HasImplicitFlow: true if this instruction is control-dependent
+        // on an older branch whose own condition was tainted (only
+        // tracked when --implicit_channel is enabled). See
+        // ROB::implicit_flow().
+        HasImplicitFlow,
+        HasPendingSquash, // for branch/load, if a squash is postponed due
+                          // to the tainted dependent operands
+        // Set instead of signalling a squash immediately (in
+        // IEW::executeInsts() for a tainted branch mispredict, or in
+        // Commit::commit() for a tainted squash-causing instruction under
+        // --implicit_channel), because acting on the squash right away
+        // would itself leak the tainted condition. Cleared either when
+        // the deferred squash is finally acted on
+        // (Commit::handleSquashSignalFromROB()) or when this instruction
+        // gets squashed by something else first (ROB::doSquash()). Also
+        // gates DynInst::readyToCommit() -- an instruction can't commit
+        // while its own pending squash is still unresolved.
         MaxFlags
     };
 
@@ -237,6 +315,11 @@ class DynInst : public ExecContext, public RefCounted
 
     // Whether or not the source register is ready, one bit per register.
     uint8_t *_readySrcIdx;
+
+    // [STT] the producer instruction of each source register, if that
+    // producer is still in flight (nullptr otherwise). Indexed like
+    // _srcIdx. Maintained by the ROB as instructions enter/leave it.
+    std::vector<DynInstPtr> argProducers;
 
   public:
     size_t numSrcs() const { return _numSrcs; }
@@ -383,6 +466,181 @@ class DynInst : public ExecContext, public RefCounted
     bool notAnInst() const { return instFlags[NotAnInst]; }
     void setNotAnInst() { instFlags[NotAnInst] = true; }
 
+    // [STT] a tainted load's memory access must not be issued until
+    // untainted; see initiateAcc().
+    bool
+    fenceDelay() const
+    {
+        return instFlags[FenceDelay];
+    }
+    void
+    fenceDelay(bool f)
+    {
+        instFlags[FenceDelay] = f;
+    }
+
+    // [STT] STT flags accessors
+    bool
+    isUnsquashable() const
+    {
+        return instFlags[IsUnsquashable];
+    }
+    void
+    isUnsquashable(bool f)
+    {
+        instFlags[IsUnsquashable] = f;
+    }
+
+    bool
+    isDestTainted() const
+    {
+        return instFlags[IsDestTainted];
+    }
+    void
+    isDestTainted(bool f)
+    {
+        instFlags[IsDestTainted] = f;
+    }
+
+    bool
+    isArgsTainted() const
+    {
+        return instFlags[IsArgsTainted];
+    }
+    void
+    isArgsTainted(bool f)
+    {
+        instFlags[IsArgsTainted] = f;
+    }
+
+    bool
+    isAddrTainted() const
+    {
+        return instFlags[IsAddrTainted];
+    }
+    void
+    isAddrTainted(bool f)
+    {
+        instFlags[IsAddrTainted] = f;
+    }
+
+    bool
+    hasExplicitFlow() const
+    {
+        return instFlags[HasExplicitFlow];
+    }
+    void
+    hasExplicitFlow(bool f)
+    {
+        instFlags[HasExplicitFlow] = f;
+    }
+
+    bool
+    hasImplicitFlow() const
+    {
+        return instFlags[HasImplicitFlow];
+    }
+    void
+    hasImplicitFlow(bool f)
+    {
+        instFlags[HasImplicitFlow] = f;
+    }
+
+    bool
+    hasPendingSquash() const
+    {
+        return instFlags[HasPendingSquash];
+    }
+    void
+    hasPendingSquash(bool f)
+    {
+        instFlags[HasPendingSquash] = f;
+    }
+
+    void
+    setPrevInstsCompleted()
+    {
+        status.set(PrevInstsCompleted);
+    }
+    bool
+    isPrevInstsCompleted() const
+    {
+        return status[PrevInstsCompleted];
+    }
+
+    void
+    setPrevBrsResolved()
+    {
+        status.set(PrevBrsResolved);
+    }
+    bool
+    isPrevBrsResolved() const
+    {
+        return status[PrevBrsResolved];
+    }
+
+    void
+    addToStallList()
+    {
+        status.set(InStallList);
+    }
+    void
+    removeFromStallList()
+    {
+        status.reset(InStallList);
+    }
+    bool
+    isInStallList() const
+    {
+        return status[InStallList];
+    }
+
+    /** [STT] the producer of source register idx, or nullptr if that
+     * producer is no longer in flight. */
+    DynInstPtr
+    getArgProducer(int idx) const
+    {
+        return argProducers[idx];
+    }
+    void
+    clearArgProducer(int idx)
+    {
+        argProducers[idx] = DynInstPtr();
+    }
+    void
+    setArgProducer(int idx, const DynInstPtr &inst)
+    {
+        argProducers[idx] = inst;
+    }
+
+    // [STT] STT status: an access instruction is the root of taint (it may
+    // read a secret from memory); a transmit instruction is one whose
+    // resolution can leak tainted data through a microarchitectural
+    // covert channel and so must be delayed while tainted.
+    // In this port both boil down to "is a load": a load is the only
+    // instruction class that both (a) reads memory (so it's the taint
+    // *source*, used in ROB::compute_taint()) and (b) has a
+    // microarchitecturally-observable timing effect from its own address
+    // (cache fill/miss -- so it's also the taint *sink* that
+    // LSQUnit::updateVisibleState() delays via FenceDelay). They're kept
+    // as two separate named predicates because conceptually they answer
+    // different questions -- a future port that added other transmitter
+    // classes (see readyToIssue_UT()'s div/sqrt/fp path, or the paper's
+    // wider transmitter list) would only need to change isTransmit().
+    bool
+    isAccess() const
+    {
+        return staticInst->isLoad();
+    }
+    bool
+    isTransmit() const
+    {
+        return staticInst->isLoad();
+    }
+
+    /** [STT] readiness check used when cpu->moreTransmitInsts is enabled:
+     * also treats variable-latency FU ops (div/sqrt/fp) as transmitters. */
+    bool readyToIssue_UT() const;
 
     ////////////////////////////////////////////
     //
@@ -776,7 +1034,30 @@ class DynInst : public ExecContext, public RefCounted
     void clearCanCommit() { status.reset(CanCommit); }
 
     /** Returns whether or not this instruction is ready to commit. */
-    bool readyToCommit() const { return status[CanCommit]; }
+    // [STT] a branch/load with a pending squash (its own mispredict/
+    // violation was deferred while it was tainted) can't commit until
+    // that pending squash is resolved.
+    bool
+    readyToCommit() const
+    {
+        // Base condition, unchanged from upstream: the pipeline has
+        // marked this instruction committable (setCanCommit()).
+        return status[CanCommit] &&
+               // Plus the STT gate: if this instruction still has a
+               // pending squash on itself (a tainted mispredict/violation
+               // that was deferred instead of acted on immediately -- see
+               // IEW::executeInsts() and Commit::commit()), it must NOT be
+               // allowed to commit yet, because committing it would mean
+               // the pipeline treated it as "definitely correct" while its
+               // own fate is still undetermined. The only exception is if
+               // it has since been squashed by something else
+               // (status[Squashed]) -- in that case ROB::doSquash() has
+               // already cleared HasPendingSquash, but even if this races,
+               // a squashed instruction is draining out of the pipeline
+               // rather than truly committing, so it's fine to let it
+               // proceed.
+               (!instFlags[HasPendingSquash] || status[Squashed]);
+    }
 
     void setAtCommit() { status.set(AtCommit); }
 

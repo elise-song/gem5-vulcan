@@ -306,13 +306,40 @@ BAC::checkAndUpdateBPUSignals(ThreadID tid)
         if (fromCommit->commitInfo[tid].mispredictInst &&
             fromCommit->commitInfo[tid].mispredictInst->isControl()) {
 
-            bpu->squash(fromCommit->commitInfo[tid].doneSeqNum,
-                        *fromCommit->commitInfo[tid].pc,
-                        fromCommit->commitInfo[tid].branchTaken, tid, true);
+            // [STT] Sec 6.4.1 (prediction-based implicit channel): don't
+            // let a still-tainted mispredicted branch train the BPU with
+            // its resolution -- defer that training call until the
+            // branch's own args are untainted. Commit's own pending-squash
+            // logic should already guarantee mispredictInst is untainted
+            // by the time its squash reaches here (it only forwards a
+            // squash once the causing instruction has cleared), so this
+            // is expected to be a no-op in practice; it exists for
+            // structural parity with the reference STT implementation's
+            // fetch-level DelayedSquashReqList, in case that upstream
+            // invariant is ever weakened.
+            if (cpu->STT && cpu->impChannel &&
+                fromCommit->commitInfo[tid].mispredictInst->isArgsTainted()) {
+                BpuSquashReq req;
+                req.mispredictInst =
+                    fromCommit->commitInfo[tid].mispredictInst;
+                req.doneSeqNum = fromCommit->commitInfo[tid].doneSeqNum;
+                set(req.pc, fromCommit->commitInfo[tid].pc);
+                req.branchTaken = fromCommit->commitInfo[tid].branchTaken;
+                pendingBpuSquash[tid].push_back(std::move(req));
+            } else {
+                bpu->squash(fromCommit->commitInfo[tid].doneSeqNum,
+                            *fromCommit->commitInfo[tid].pc,
+                            fromCommit->commitInfo[tid].branchTaken, tid,
+                            true);
+                retirePendingBpuSquash(tid,
+                                       fromCommit->commitInfo[tid].doneSeqNum);
+            }
             stats.branchMisspredict++;
             stats.squashBranchCommit++;
         } else {
             bpu->squash(fromCommit->commitInfo[tid].doneSeqNum, tid);
+            retirePendingBpuSquash(tid,
+                                   fromCommit->commitInfo[tid].doneSeqNum);
             if (fromCommit->commitInfo[tid].mispredictInst) {
                 DPRINTF(BAC,
                         "[tid:%i] Squashing due to mispredict of "
@@ -332,6 +359,12 @@ BAC::checkAndUpdateBPUSignals(ThreadID tid)
         // Update the branch predictor if it wasn't a squashed instruction
         // that was broadcasted.
         bpu->update(fromCommit->commitInfo[tid].doneSeqNum, tid);
+        retirePendingBpuSquash(tid, fromCommit->commitInfo[tid].doneSeqNum);
+    } else {
+        // [STT] No squash/update signal from commit this cycle -- see if
+        // any deferred, tainted branch-misprediction squash has become
+        // untainted in the meantime.
+        applyResolvedBpuSquash(tid);
     }
 
     // Check squash signals from decode.
@@ -369,6 +402,45 @@ BAC::checkAndUpdateBPUSignals(ThreadID tid)
         return true;
     }
     return false;
+}
+
+void
+BAC::retirePendingBpuSquash(ThreadID tid, InstSeqNum doneSeqNum)
+{
+    auto &pending = pendingBpuSquash[tid];
+    auto it = pending.begin();
+    while (it != pending.end()) {
+        if (it->mispredictInst->isSquashed() || it->doneSeqNum >= doneSeqNum) {
+            it = pending.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+void
+BAC::applyResolvedBpuSquash(ThreadID tid)
+{
+    auto &pending = pendingBpuSquash[tid];
+    auto it = pending.begin();
+    while (it != pending.end()) {
+        if (it->mispredictInst->isSquashed()) {
+            it = pending.erase(it);
+            continue;
+        }
+        if (!it->mispredictInst->isArgsTainted()) {
+            DPRINTF(BAC,
+                    "[tid:%i] Deferred BPU squash for [sn:%llu] is now "
+                    "untainted; training predictor.\n",
+                    tid, it->doneSeqNum);
+            bpu->squash(it->doneSeqNum, *it->pc, it->branchTaken, tid, true);
+            InstSeqNum resolvedSeqNum = it->doneSeqNum;
+            pending.erase(it);
+            retirePendingBpuSquash(tid, resolvedSeqNum);
+            return;
+        }
+        ++it;
+    }
 }
 
 bool

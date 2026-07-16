@@ -92,6 +92,11 @@ struct IEWStruct
 
     DynInstPtr insts[MaxWidth];
     DynInstPtr mispredictInst[MaxThreads];
+    // [STT] the instruction that caused this squash: same as
+    // mispredictInst for a branch mispredict, or the memory-order
+    // violator for a load-ordering violation (where mispredictInst is
+    // null). Used to check taint before acting on the squash.
+    DynInstPtr instCausingSquash[MaxThreads];
     Addr mispredPC[MaxThreads];
     InstSeqNum squashedSeqNum[MaxThreads];
     std::unique_ptr<PCStateBase> pc[MaxThreads];

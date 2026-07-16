@@ -70,6 +70,11 @@ DynInst::DynInst(const Arrays &arrays, const StaticInstPtr &static_inst,
     instFlags[Predicate] = true;
     instFlags[MemAccPredicate] = true;
 
+    // [STT] Allocate one producer slot per source register, all initially
+    // null (no in-flight producer known yet -- ROB::insertInst() fills
+    // these in once the instruction is actually placed in the ROB).
+    argProducers.assign(_numSrcs, DynInstPtr());
+
 #ifndef NDEBUG
     ++cpu->instcount;
 
@@ -318,6 +323,49 @@ DynInst::markSrcRegReady(RegIndex src_idx)
     markSrcRegReady();
 }
 
+// [STT] readiness check used when cpu->moreTransmitInsts is enabled: also
+// treats variable-latency FU ops (div/sqrt/fp) as transmitters, since their
+// completion timing can leak a tainted operand.
+// "_UT" = untainted-gated readyToIssue(): same base check as the ordinary
+// readyToIssue() (are register sources ready?), but additionally holds
+// back certain op classes while they're tainted, because their *execution
+// latency itself* (not their register result) is what would leak a secret
+// -- e.g. an integer divide takes measurably longer than usual for some
+// operand values, so its completion time can act as a covert channel just
+// like a cache-timing load can. Only called when cpu->STT &&
+// cpu->moreTransmitInsts (see InstructionQueue::addIfReady()), so
+// moreTransmitInsts is always 1 or 2 here (never the default 0/"off").
+bool
+DynInst::readyToIssue_UT() const
+{
+    // Start from the normal issue-readiness check (register operands
+    // available).
+    bool ret = status[CanIssue];
+    if (cpu->moreTransmitInsts == 1) {
+        // Mode 1: only the classic variable-latency ops -- integer/float
+        // divide and float sqrt -- are treated as extra transmitters.
+        if (opClass() == IntDivOp || opClass() == FloatDivOp ||
+            opClass() == FloatSqrtOp) {
+            // If tainted, force not-ready regardless of operand
+            // availability -- this is what causes addIfReady() to park it
+            // on the taint-stall list instead of the ready list.
+            ret = ret && !instFlags[IsArgsTainted];
+        }
+    } else if (cpu->moreTransmitInsts == 2) {
+        // Mode 2: broader -- integer divide plus *every* floating-point
+        // op (isFloating()), since FP execution latency can vary with
+        // operand value in more subtle ways than just div/sqrt.
+        if (opClass() == IntDivOp || isFloating()) {
+            ret = ret && !instFlags[IsArgsTainted];
+        }
+    } else {
+        // moreTransmitInsts is validated to be 0/1/2 in CPU::CPU(), and
+        // this function is only called when it's 1 or 2 -- reaching here
+        // means that invariant broke.
+        panic("Unknown moreTransmitInsts mode %d", cpu->moreTransmitInsts);
+    }
+    return ret;
+}
 
 void
 DynInst::setSquashed()

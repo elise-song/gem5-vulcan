@@ -278,6 +278,11 @@ class IEW
      */
     void writebackInsts();
 
+    /** [STT] moves instructions in the taint-stall list that have become
+     * untainted back onto the instruction queue's ready lists. Only used
+     * when cpu->moreTransmitInsts is enabled. */
+    void wakeUntaintInsts();
+
     /** Checks if any of the stall conditions are currently true. */
     bool checkStall(ThreadID tid);
 

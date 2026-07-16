@@ -213,6 +213,18 @@ class BAC
     /** Check the backward signals that update the BPU. */
     bool checkAndUpdateBPUSignals(ThreadID tid);
 
+    /** [STT] Sec 6.4.1: retire (drop) any deferred, tainted-branch BPU
+     * squash requests that have been superseded by a newer squash up to
+     * doneSeqNum, or whose instruction was itself squashed. */
+    void retirePendingBpuSquash(ThreadID tid, InstSeqNum doneSeqNum);
+
+    /** [STT] Sec 6.4.1: if a deferred, tainted-branch BPU squash request
+     * has become untainted, apply it (train the predictor) now. Called
+     * once per cycle when there is no new squash/update signal from
+     * commit, mirroring the reference STT implementation's fetch-level
+     * DelayedSquashReqList. */
+    void applyResolvedBpuSquash(ThreadID tid);
+
   private:
     /* ----------------------------------------------------------------
      * Decoupled Frontend Functionality
@@ -359,6 +371,23 @@ class BAC
 
     /** The decoupled PC which runs ahead of fetch */
     std::unique_ptr<PCStateBase> bacPC[MaxThreads];
+
+    /** [STT] Sec 6.4.1 (prediction-based implicit channel): a BPU-training
+     * squash() call that has been deferred because the mispredicting
+     * branch was still tainted when its squash signal arrived from
+     * commit. Applied once the branch becomes untainted (see
+     * applyResolvedBpuSquash()), so the predictor is never trained on a
+     * still-speculative (tainted) resolution. */
+    struct BpuSquashReq
+    {
+        DynInstPtr mispredictInst;
+        InstSeqNum doneSeqNum = 0;
+        std::unique_ptr<PCStateBase> pc;
+        bool branchTaken = false;
+    };
+
+    /** Per-thread queue of deferred BPU squash requests. */
+    std::list<BpuSquashReq> pendingBpuSquash[MaxThreads];
 
     /** Variable that tracks if BAC has written to the time buffer this
      * cycle. Used to tell CPU if there is activity this cycle.

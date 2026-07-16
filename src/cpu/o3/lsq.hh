@@ -883,6 +883,10 @@ class LSQ
      */
     void checkStaleTranslations();
 
+    /** [STT] Updates fenceDelay for every in-flight load, across all
+     * threads. Called once per cycle from IEW. */
+    void updateVisibleState();
+
     /**
      * Retry the previous send that failed.
      */

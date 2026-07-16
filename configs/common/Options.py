@@ -265,6 +265,48 @@ def addCommonOptions(parser, default_isa: Optional[ISA] = None):
         choices=ObjectList.cpu_list.get_names(),
         help="type of cpu to run with",
     )
+    # [STT] speculative-execution defense configuration
+    parser.add_argument(
+        "--threat_model",
+        default=None,
+        choices=["UnsafeBaseline", "Spectre", "Futuristic"],
+        help="Speculative-execution threat model to defend against "
+        "(required for DerivO3CPU)",
+    )
+    parser.add_argument(
+        "--needsTSO",
+        default=None,
+        type=int,
+        help="Use Total Store Ordering (1) or Relaxed Consistency (0) "
+        "(required for DerivO3CPU)",
+    )
+    parser.add_argument(
+        "--STT",
+        default=None,
+        type=int,
+        help="Apply the STT protection mechanism (0/1). If disabled, all "
+        "speculative transmitters are blocked instead.",
+    )
+    parser.add_argument(
+        "--implicit_channel",
+        default=None,
+        type=int,
+        help="Additionally protect the implicit/branch-prediction channel "
+        "(0/1). Requires --STT 1.",
+    )
+    parser.add_argument(
+        "--moreTransmitInsts",
+        default=0,
+        type=int,
+        help="Also treat variable-latency FU ops as transmitters: "
+        "0=off, 1=int/fp div+sqrt, 2=int div+all fp",
+    )
+    parser.add_argument(
+        "--ifPrintROB",
+        default=False,
+        action="store_true",
+        help="Print the ROB with taint info every cycle (debug)",
+    )
     parser.add_argument(
         "--list-bp-types",
         action=ListBp,
