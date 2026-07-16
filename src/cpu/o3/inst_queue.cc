@@ -1251,7 +1251,13 @@ InstructionQueue::getDeferredMemInstToExecute()
 {
     for (ListIt it = deferredMemInsts.begin(); it != deferredMemInsts.end();
          ++it) {
-        if ((*it)->translationCompleted() || (*it)->isSquashed()) {
+        // [STT] a load deferred by fenceDelay never started translation
+        // (it was deferred before initiateAcc() was even attempted);
+        // retry it once it's no longer fenceDelay-blocked. Loads deferred
+        // by an in-flight hw page walk are handled by the existing
+        // translationCompleted() check below.
+        if ((*it)->translationCompleted() || (*it)->isSquashed() ||
+            (!(*it)->translationStarted() && !(*it)->fenceDelay())) {
             DynInstPtr mem_inst = std::move(*it);
             deferredMemInsts.erase(it);
             return mem_inst;
@@ -1535,10 +1541,14 @@ InstructionQueue::addToProducers(const DynInstPtr &new_inst)
 void
 InstructionQueue::addIfReady(const DynInstPtr &inst)
 {
-    // If the instruction now has all of its source registers
-    // available, then add it to the list of ready instructions.
-    if (inst->readyToIssue()) {
+    // [STT] when moreTransmitInsts is enabled, variable-latency FU ops
+    // (div/sqrt/fp) are additionally treated as transmitters: a tainted
+    // one that's otherwise ready is parked on the taint-stall list
+    // instead of the ready list, until wakeUntaintInsts() releases it.
+    bool ready = (cpu->STT && cpu->moreTransmitInsts) ? inst->readyToIssue_UT()
+                                                      : inst->readyToIssue();
 
+    if (ready) {
         //Add the instruction to the proper ready list.
         if (inst->isMemRef()) {
 
@@ -1569,6 +1579,37 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
                    (*readyIt[op_class]).oldestInst) {
             listOrder.erase(readyIt[op_class]);
             addToOrderList(op_class);
+        }
+    } else if (cpu->STT && cpu->moreTransmitInsts && inst->readyToIssue()) {
+        // [STT] ready but tainted: park it until it untaints.
+        assert(inst->isArgsTainted());
+        if (!inst->isInStallList()) {
+            inst->addToStallList();
+            stalledTaintedInstList[inst->threadNumber].push_back(inst);
+        }
+    }
+}
+
+// [STT]
+void
+InstructionQueue::wakeUntaintInsts()
+{
+    assert(cpu->STT && cpu->moreTransmitInsts);
+
+    for (ThreadID tid = 0; tid < numThreads; tid++) {
+        for (auto it = stalledTaintedInstList[tid].begin();
+             it != stalledTaintedInstList[tid].end();) {
+            DynInstPtr inst = *it;
+            if (inst->isSquashed()) {
+                inst->removeFromStallList();
+                it = stalledTaintedInstList[tid].erase(it);
+            } else if (inst->readyToIssue_UT()) {
+                inst->removeFromStallList();
+                addIfReady(inst);
+                it = stalledTaintedInstList[tid].erase(it);
+            } else {
+                ++it;
+            }
         }
     }
 }

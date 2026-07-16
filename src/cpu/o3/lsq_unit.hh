@@ -334,6 +334,13 @@ class LSQUnit
     void startStaleTranslationFlush();
     bool checkStaleTranslations() const;
 
+    /** [STT] Updates fenceDelay for every in-flight load: under STT, a
+     * load's memory access is deferred while its address/args are
+     * tainted; without STT (but under a protecting threat model), every
+     * speculative load is deferred until unsquashable. Called once per
+     * cycle from IEW. */
+    void updateVisibleState();
+
     /** Returns if either the LQ or SQ is full. */
     bool isFull() { return lqFull() || sqFull(); }
 

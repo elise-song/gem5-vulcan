@@ -551,6 +551,9 @@ def run(options, root, testsys, cpu_class):
         if options.elastic_trace_en:
             CpuConfig.config_etrace(cpu_class, switch_cpus, options)
 
+        # [STT] wire up the speculative-execution defense configuration
+        CpuConfig.config_scheme(cpu_class, switch_cpus, options)
+
         testsys.switch_cpus = switch_cpus
         switch_cpu_list = [(testsys.cpu[i], switch_cpus[i]) for i in range(np)]
 

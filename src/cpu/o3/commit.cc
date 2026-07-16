@@ -596,6 +596,132 @@ Commit::squashAfter(ThreadID tid, const DynInstPtr &head_inst)
     squashAfterInst[tid] = head_inst;
 }
 
+// [STT]
+void
+Commit::handleSquashSignalFromIEW(ThreadID tid)
+{
+    if (fromIEW->mispredictInst[tid]) {
+        DPRINTF(Commit,
+                "[tid:%i] Squashing due to branch mispred PC:%#x [sn:%llu]\n",
+                tid, fromIEW->mispredictInst[tid]->pcState().instAddr(),
+                fromIEW->squashedSeqNum[tid]);
+    } else {
+        DPRINTF(Commit,
+                "[tid:%i] Squashing due to order violation [sn:%llu]\n", tid,
+                fromIEW->squashedSeqNum[tid]);
+    }
+
+    DPRINTF(Commit, "[tid:%i] Redirecting to PC %#x\n", tid,
+            *fromIEW->pc[tid]);
+
+    commitStatus[tid] = ROBSquashing;
+
+    // If we want to include the squashing instruction in the squash,
+    // then use one older sequence number.
+    InstSeqNum squashed_inst = fromIEW->squashedSeqNum[tid];
+
+    if (fromIEW->includeSquashInst[tid]) {
+        squashed_inst--;
+    }
+
+    // All younger instructions will be squashed. Set the sequence
+    // number as the youngest instruction in the ROB.
+    youngestSeqNum[tid] = squashed_inst;
+
+    rob->squash(squashed_inst, tid);
+    changedROBNumEntries[tid] = true;
+
+    toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
+
+    toIEW->commitInfo[tid].squash = true;
+
+    // Send back the rob squashing signal so other stages know that
+    // the ROB is in the process of squashing.
+    toIEW->commitInfo[tid].robSquashing = true;
+
+    toIEW->commitInfo[tid].mispredictInst = fromIEW->mispredictInst[tid];
+    toIEW->commitInfo[tid].branchTaken = fromIEW->branchTaken[tid];
+    toIEW->commitInfo[tid].squashInst = rob->findInst(tid, squashed_inst);
+    if (toIEW->commitInfo[tid].mispredictInst) {
+        if (toIEW->commitInfo[tid].mispredictInst->isUncondCtrl()) {
+            toIEW->commitInfo[tid].branchTaken = true;
+        }
+        ++stats.branchMispredicts;
+    }
+
+    set(toIEW->commitInfo[tid].pc, fromIEW->pc[tid]);
+}
+
+// [STT]
+void
+Commit::handleSquashSignalFromROB(ThreadID tid,
+                                  const DynInstPtr &pendingMispInst)
+{
+    assert(cpu->STT);
+
+    DPRINTF(Commit,
+            "[tid:%i] [STT] A pending squash [sn:%llu] PC %s can "
+            "be resolved now\n",
+            tid, pendingMispInst->seqNum, pendingMispInst->pcState());
+
+    std::unique_ptr<PCStateBase> nextPC(pendingMispInst->pcState().clone());
+
+    if (pendingMispInst->isControl()) {
+        DPRINTF(Commit,
+                "[tid:%i] [STT] Squashing due to branch mispred PC:%#x "
+                "[sn:%llu]\n",
+                tid, pendingMispInst->pcState().instAddr(),
+                pendingMispInst->seqNum);
+        pendingMispInst->staticInst->advancePC(*nextPC);
+    } else if (pendingMispInst->isLoad()) {
+        DPRINTF(Commit,
+                "[tid:%i] [STT] Squashing due to order violation [sn:%llu]\n",
+                tid, pendingMispInst->seqNum);
+    } else {
+        panic("Pending squash on non-control, non-load inst [sn:%llu]",
+              pendingMispInst->seqNum);
+    }
+
+    DPRINTF(Commit, "[tid:%i] [STT] Redirecting to PC %#x\n", tid,
+            nextPC->instAddr());
+
+    commitStatus[tid] = ROBSquashing;
+
+    InstSeqNum squashed_inst = pendingMispInst->seqNum;
+
+    if (pendingMispInst->isLoad()) {
+        squashed_inst--;
+    }
+
+    youngestSeqNum[tid] = squashed_inst;
+
+    rob->squash(squashed_inst, tid);
+    changedROBNumEntries[tid] = true;
+
+    toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
+    toIEW->commitInfo[tid].squash = true;
+    toIEW->commitInfo[tid].robSquashing = true;
+
+    if (pendingMispInst->isControl()) {
+        toIEW->commitInfo[tid].mispredictInst = pendingMispInst;
+        toIEW->commitInfo[tid].branchTaken =
+            pendingMispInst->pcState().branching();
+    } else {
+        toIEW->commitInfo[tid].mispredictInst = NULL;
+    }
+
+    toIEW->commitInfo[tid].squashInst = rob->findInst(tid, squashed_inst);
+
+    if (toIEW->commitInfo[tid].mispredictInst) {
+        if (toIEW->commitInfo[tid].mispredictInst->isUncondCtrl()) {
+            toIEW->commitInfo[tid].branchTaken = true;
+        }
+        ++stats.branchMispredicts;
+    }
+
+    set(toIEW->commitInfo[tid].pc, *nextPC);
+}
+
 void
 Commit::tick()
 {
@@ -787,61 +913,33 @@ Commit::commit()
             commitStatus[tid] != TrapPending &&
             fromIEW->squashedSeqNum[tid] <= youngestSeqNum[tid]) {
 
-            if (fromIEW->mispredictInst[tid]) {
+            // [STT] Under the implicit-channel protection, a squash
+            // caused by a still-tainted instruction (a load-order
+            // violation, or a branch mispredict that reached this point
+            // still tainted) is itself an observable signal, so defer it
+            // until the instruction untaints instead of acting on it now.
+            if (cpu->STT && cpu->impChannel &&
+                fromIEW->instCausingSquash[tid]->isArgsTainted()) {
                 DPRINTF(Commit,
-                    "[tid:%i] Squashing due to branch mispred "
-                    "PC:%#x [sn:%llu]\n",
-                    tid,
-                    fromIEW->mispredictInst[tid]->pcState().instAddr(),
-                    fromIEW->squashedSeqNum[tid]);
+                        "[tid:%i] [STT] squash-causing inst "
+                        "[sn:%llu] PC %s is tainted, marking pending.\n",
+                        tid, fromIEW->instCausingSquash[tid]->seqNum,
+                        fromIEW->instCausingSquash[tid]->pcState());
+                fromIEW->instCausingSquash[tid]->hasPendingSquash(true);
             } else {
-                DPRINTF(Commit,
-                    "[tid:%i] Squashing due to order violation [sn:%llu]\n",
-                    tid, fromIEW->squashedSeqNum[tid]);
+                handleSquashSignalFromIEW(tid);
             }
-
-            DPRINTF(Commit, "[tid:%i] Redirecting to PC %#x\n",
-                    tid, *fromIEW->pc[tid]);
-
-            commitStatus[tid] = ROBSquashing;
-
-            // If we want to include the squashing instruction in the squash,
-            // then use one older sequence number.
-            InstSeqNum squashed_inst = fromIEW->squashedSeqNum[tid];
-
-            if (fromIEW->includeSquashInst[tid]) {
-                squashed_inst--;
+        } else if (cpu->STT) {
+            // [STT] No incoming squash this cycle: check whether a
+            // previously-deferred pending squash has now untainted.
+            DynInstPtr resolvedPendingSquashInst =
+                rob->getResolvedPendingSquashInst(tid);
+            if (resolvedPendingSquashInst &&
+                commitStatus[tid] != TrapPending &&
+                resolvedPendingSquashInst->seqNum <= youngestSeqNum[tid]) {
+                resolvedPendingSquashInst->hasPendingSquash(false);
+                handleSquashSignalFromROB(tid, resolvedPendingSquashInst);
             }
-
-            // All younger instructions will be squashed. Set the sequence
-            // number as the youngest instruction in the ROB.
-            youngestSeqNum[tid] = squashed_inst;
-
-            rob->squash(squashed_inst, tid);
-            changedROBNumEntries[tid] = true;
-
-            toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
-
-            toIEW->commitInfo[tid].squash = true;
-
-            // Send back the rob squashing signal so other stages know that
-            // the ROB is in the process of squashing.
-            toIEW->commitInfo[tid].robSquashing = true;
-
-            toIEW->commitInfo[tid].mispredictInst =
-                fromIEW->mispredictInst[tid];
-            toIEW->commitInfo[tid].branchTaken =
-                fromIEW->branchTaken[tid];
-            toIEW->commitInfo[tid].squashInst =
-                                    rob->findInst(tid, squashed_inst);
-            if (toIEW->commitInfo[tid].mispredictInst) {
-                if (toIEW->commitInfo[tid].mispredictInst->isUncondCtrl()) {
-                     toIEW->commitInfo[tid].branchTaken = true;
-                }
-                ++stats.branchMispredicts;
-            }
-
-            set(toIEW->commitInfo[tid].pc, fromIEW->pc[tid]);
         }
 
         if (commitStatus[tid] == ROBSquashing) {
@@ -1341,6 +1439,14 @@ Commit::markCompletedInsts()
             // Mark the instruction as ready to commit.
             fromIEW->insts[inst_num]->setCanCommit();
         }
+    }
+
+    // [STT] update isPrevInstsCompleted/isPrevBrsResolved (-> isUnsquashable)
+    rob->updateVisibleState();
+
+    // [STT] (re)compute taint for every in-flight instruction
+    if (cpu->STT) {
+        rob->compute_taint();
     }
 }
 

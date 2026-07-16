@@ -207,6 +207,15 @@ class BaseO3CPU(BaseCPU):
     )
     needsTSO = Param.Bool(False, "Enable TSO Memory model")
 
+    # [STT] STT configurations
+    threatModel = Param.String(
+        "UnsafeBaseline", "The threat model specified for simulation"
+    )
+    STT = Param.Bool(False, "Apply STT protection mechanism")
+    implicitChannel = Param.Bool(False, "If handling implicit channel")
+    ifPrintROB = Param.Bool(False, "If print all ROBs with taint info")
+    moreTransmitInsts = Param.Int(0, "More transmit instruction types")
+
     recvRespThrottling = Param.Bool(
         False, "Enable load receive response throttling in the LSQ"
     )

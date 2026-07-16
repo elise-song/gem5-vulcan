@@ -212,6 +212,23 @@ class ROB
     /** Updates the tail instruction with the new youngest instruction. */
     void updateTail();
 
+    /** [STT] Updates isPrevInstsCompleted/isPrevBrsResolved for every
+     * in-flight instruction (in program order), from which isUnsquashable
+     * is derived. Called once per cycle from Commit::markCompletedInsts().
+     */
+    void updateVisibleState();
+
+    /** [STT] (Re)computes taint (hasExplicitFlow/hasImplicitFlow/
+     * isAddrTainted/isArgsTainted/isDestTainted) for every in-flight
+     * instruction, in program order. Called once per cycle when cpu->STT.
+     */
+    void compute_taint();
+
+    /** [STT] Returns the oldest instruction in tid's ROB that has a
+     * pending squash (an earlier mispredict/violation was deferred while
+     * tainted) whose taint has now cleared, or nullptr if none. */
+    DynInstPtr getResolvedPendingSquashInst(ThreadID tid);
+
     /** Reads the PC of the oldest head instruction. */
 //    uint64_t readHeadPC();
 
@@ -269,6 +286,11 @@ class ROB
   private:
     /** Reset the ROB state */
     void resetState();
+
+    /** [STT] helpers for compute_taint(); called in program order. */
+    void explicit_flow(ThreadID tid, InstIt instIt);
+    void address_flow(ThreadID tid, InstIt instIt);
+    void implicit_flow(ThreadID tid, InstIt instIt);
 
     /** Pointer to the CPU. */
     CPU *cpu;

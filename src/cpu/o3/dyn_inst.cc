@@ -70,6 +70,9 @@ DynInst::DynInst(const Arrays &arrays, const StaticInstPtr &static_inst,
     instFlags[Predicate] = true;
     instFlags[MemAccPredicate] = true;
 
+    // [STT]
+    argProducers.assign(_numSrcs, DynInstPtr());
+
 #ifndef NDEBUG
     ++cpu->instcount;
 
@@ -318,6 +321,27 @@ DynInst::markSrcRegReady(RegIndex src_idx)
     markSrcRegReady();
 }
 
+// [STT] readiness check used when cpu->moreTransmitInsts is enabled: also
+// treats variable-latency FU ops (div/sqrt/fp) as transmitters, since their
+// completion timing can leak a tainted operand.
+bool
+DynInst::readyToIssue_UT() const
+{
+    bool ret = status[CanIssue];
+    if (cpu->moreTransmitInsts == 1) {
+        if (opClass() == IntDivOp || opClass() == FloatDivOp ||
+            opClass() == FloatSqrtOp) {
+            ret = ret && !instFlags[IsArgsTainted];
+        }
+    } else if (cpu->moreTransmitInsts == 2) {
+        if (opClass() == IntDivOp || isFloating()) {
+            ret = ret && !instFlags[IsArgsTainted];
+        }
+    } else {
+        panic("Unknown moreTransmitInsts mode %d", cpu->moreTransmitInsts);
+    }
+    return ret;
+}
 
 void
 DynInst::setSquashed()

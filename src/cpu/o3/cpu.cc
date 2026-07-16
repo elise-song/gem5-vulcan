@@ -320,6 +320,42 @@ CPU::CPU(const BaseO3CPUParams &params)
         fatal("O3CPU %s has no interrupt controller.\n"
               "Ensure createInterruptController() is called.\n", name());
     }
+
+    // [STT] additional configuration
+    const std::string &threatModel = params.threatModel;
+    if (threatModel == "UnsafeBaseline") {
+        protectionEnabled = false;
+        isFuturistic = false; // not relevant in unsafe mode
+    } else if (threatModel == "Futuristic") {
+        // delay transmitters until all older instructions have completed
+        protectionEnabled = true;
+        isFuturistic = true;
+    } else if (threatModel == "Spectre") {
+        // delay transmitters until all older branches have resolved
+        protectionEnabled = true;
+        isFuturistic = false;
+    } else {
+        fatal("Unsupported threat model: %s\n", threatModel);
+    }
+
+    STT = params.STT;
+    impChannel = params.implicitChannel;
+    ifPrintROB = params.ifPrintROB;
+    moreTransmitInsts = params.moreTransmitInsts;
+
+    inform("STT config: threatModel=%s STT=%d implicitChannel=%d "
+           "moreTransmitInsts=%d\n",
+           threatModel, STT, impChannel, moreTransmitInsts);
+
+    if (STT) {
+        fatal_if(!protectionEnabled,
+                 "--STT requires a protectionEnabled threat model");
+    }
+    if (impChannel) {
+        fatal_if(!STT, "--implicit_channel requires --STT");
+    }
+    fatal_if(moreTransmitInsts < 0 || moreTransmitInsts > 2,
+             "moreTransmitInsts must be 0, 1, or 2");
 }
 
 void

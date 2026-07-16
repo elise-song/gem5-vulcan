@@ -202,6 +202,21 @@ ROB::insertInst(const DynInstPtr &inst)
 
     ThreadID tid = inst->threadNumber;
 
+    // [STT] link inst's argProducers to whichever in-flight instructions
+    // (still in the ROB) most recently produced each of its source regs.
+    for (auto &prevInst : instList[tid]) {
+        for (int i = 0; i < inst->numSrcRegs(); i++) {
+            if (inst->renamedSrcIdx(i)->is(InvalidRegClass)) {
+                continue;
+            }
+            for (int j = 0; j < prevInst->numDestRegs(); j++) {
+                if (inst->renamedSrcIdx(i) == prevInst->renamedDestIdx(j)) {
+                    inst->setArgProducer(i, prevInst);
+                }
+            }
+        }
+    }
+
     instList[tid].push_back(inst);
 
     //Set Up head iterator if this is the 1st instruction in the ROB
@@ -250,6 +265,18 @@ ROB::retireHead(ThreadID tid)
 
     head_inst->clearInROB();
     head_inst->setCommitted();
+
+    // [STT] clear any argProducer links pointing at the retiring inst
+    for (auto &nextInst : instList[tid]) {
+        for (int i = 0; i < nextInst->numSrcRegs(); i++) {
+            if (nextInst->getArgProducer(i) == head_inst) {
+                nextInst->clearArgProducer(i);
+            }
+        }
+    }
+    for (int i = 0; i < head_inst->numSrcRegs(); i++) {
+        head_inst->clearArgProducer(i);
+    }
 
     //Update "Global" Head of ROB
     updateHead();
@@ -341,6 +368,9 @@ ROB::doSquash(ThreadID tid)
         // Mark the instruction as squashed, and ready to commit so that
         // it can drain out of the pipeline.
         (*squashIt[tid])->setSquashed();
+
+        // [STT] the squash itself resolves any pending squash on this inst
+        (*squashIt[tid])->hasPendingSquash(false);
 
         (*squashIt[tid])->setCanCommit();
 
@@ -449,6 +479,171 @@ ROB::updateTail()
     }
 }
 
+// [STT]
+void
+ROB::updateVisibleState()
+{
+    for (ThreadID tid : *activeThreads) {
+        if (instList[tid].empty()) {
+            continue;
+        }
+
+        bool prevInstsComplete = true;
+        bool prevBrsResolved = true;
+
+        for (auto instIt = instList[tid].begin();
+             instIt != instList[tid].end(); ++instIt) {
+            DynInstPtr inst = *instIt;
+
+            if (!prevInstsComplete && !prevBrsResolved) {
+                break;
+            }
+
+            if (prevInstsComplete) {
+                inst->setPrevInstsCompleted();
+            }
+            if (prevBrsResolved) {
+                inst->setPrevBrsResolved();
+            }
+
+            // Update prev control insts state
+            if (inst->isControl()) {
+                if (!inst->readyToCommit() || inst->getFault() != NoFault ||
+                    inst->isSquashed()) {
+                    prevBrsResolved = false;
+                }
+            }
+
+            // Update prev insts state. Some instructions directly set
+            // prevInstsComplete = false when entering the ROB.
+            if (inst->isNonSpeculative() || inst->isStoreConditional() ||
+                inst->isFullMemBarrier() || inst->isReadBarrier() ||
+                inst->isWriteBarrier() ||
+                (inst->isLoad() && inst->strictlyOrdered())) {
+                prevInstsComplete = false;
+            }
+            if (!inst->readyToCommit() || inst->getFault() != NoFault ||
+                inst->isSquashed()) {
+                prevInstsComplete = false;
+            }
+
+            // [STT] an instruction is unsquashable once it can no longer be
+            // squashed by an older, not-yet-resolved instruction/branch.
+            if (cpu->protectionEnabled) {
+                if ((cpu->isFuturistic && inst->isPrevInstsCompleted()) ||
+                    (!cpu->isFuturistic && inst->isPrevBrsResolved())) {
+                    inst->isUnsquashable(true);
+                } else {
+                    inst->isUnsquashable(false);
+                }
+            } else {
+                // UnsafeBaseline: everything is immediately unsquashable
+                inst->isUnsquashable(true);
+            }
+        }
+    }
+}
+
+// [STT]
+void
+ROB::explicit_flow(ThreadID tid, InstIt instIt)
+{
+    DynInstPtr inst = *instIt;
+    for (int i = 0; i < inst->numSrcRegs(); i++) {
+        DynInstPtr argProducer = inst->getArgProducer(i);
+        if (argProducer && argProducer->isDestTainted() &&
+            !argProducer->isCommitted()) {
+            inst->hasExplicitFlow(true);
+            return;
+        }
+    }
+    inst->hasExplicitFlow(false);
+}
+
+// [STT]
+void
+ROB::address_flow(ThreadID tid, InstIt instIt)
+{
+    DynInstPtr inst = *instIt;
+    if (!inst->isMemRef()) {
+        inst->isAddrTainted(false);
+        return;
+    }
+
+    // For a store, index 0 is the value to be stored; the remaining
+    // sources feed the effective address. For a load, all sources feed
+    // the effective address.
+    int startIdx = inst->isStore() ? 1 : 0;
+    for (int i = startIdx; i < inst->numSrcRegs(); i++) {
+        DynInstPtr argProducer = inst->getArgProducer(i);
+        if (argProducer && argProducer->isDestTainted() &&
+            !argProducer->isCommitted()) {
+            inst->isAddrTainted(true);
+            return;
+        }
+    }
+    inst->isAddrTainted(false);
+}
+
+// [STT]
+void
+ROB::implicit_flow(ThreadID tid, InstIt instIt)
+{
+    DynInstPtr inst = *instIt;
+    if (cpu->impChannel) {
+        for (auto prevInstIt = instList[tid].begin(); prevInstIt != instIt;
+             ++prevInstIt) {
+            DynInstPtr prevInst = *prevInstIt;
+            if (prevInst->isControl() && prevInst->hasExplicitFlow()) {
+                inst->hasImplicitFlow(true);
+                return;
+            }
+        }
+    }
+    inst->hasImplicitFlow(false);
+}
+
+// [STT]
+void
+ROB::compute_taint()
+{
+    assert(cpu->STT);
+
+    for (ThreadID tid : *activeThreads) {
+        if (instList[tid].empty()) {
+            continue;
+        }
+
+        for (auto instIt = instList[tid].begin();
+             instIt != instList[tid].end(); ++instIt) {
+            explicit_flow(tid, instIt);
+            implicit_flow(tid, instIt);
+            address_flow(tid, instIt);
+
+            DynInstPtr inst = *instIt;
+            inst->isArgsTainted(inst->hasExplicitFlow());
+            inst->isDestTainted(inst->isArgsTainted());
+            // an access instruction (e.g. a load) is itself the root of
+            // taint once it's no longer squashable
+            if (inst->isAccess() && !inst->isUnsquashable()) {
+                inst->isDestTainted(true);
+            }
+        }
+    }
+}
+
+// [STT]
+DynInstPtr
+ROB::getResolvedPendingSquashInst(ThreadID tid)
+{
+    for (auto &inst : instList[tid]) {
+        if (inst->hasPendingSquash() && !inst->isArgsTainted() &&
+            !inst->isSquashed()) {
+            return inst;
+        }
+    }
+    return nullptr;
+}
 
 void
 ROB::squash(InstSeqNum squash_num, ThreadID tid)

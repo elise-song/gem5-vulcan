@@ -75,3 +75,43 @@ def config_etrace(cpu_cls, cpu_list, options):
             " type or inherited from DerivO3CPU.",
             cpu_cls,
         )
+
+
+# [STT] wire up the speculative-execution defense configuration
+def config_scheme(cpu_cls, cpu_list, options):
+    if not issubclass(cpu_cls, m5.objects.DerivO3CPU):
+        return
+
+    if options.needsTSO is None or options.threat_model is None:
+        fatal(
+            "Need to provide --needsTSO and --threat_model to run "
+            "simulation with DerivO3CPU"
+        )
+
+    STT = options.STT if options.STT is not None else 0
+    implicit_channel = (
+        options.implicit_channel if options.implicit_channel is not None else 0
+    )
+
+    print("**********")
+    print(
+        "info: Configure for DerivO3CPU. needsTSO=%d; threat_model=%s; "
+        "STT=%d; implicit_channel=%d; moreTransmitInsts=%d, printROB=%d"
+        % (
+            options.needsTSO,
+            options.threat_model,
+            STT,
+            implicit_channel,
+            options.moreTransmitInsts,
+            options.ifPrintROB,
+        )
+    )
+    print("**********")
+
+    for cpu in cpu_list:
+        cpu.needsTSO = bool(options.needsTSO)
+        cpu.threatModel = options.threat_model
+        cpu.STT = bool(STT)
+        cpu.implicitChannel = bool(implicit_channel)
+        cpu.ifPrintROB = options.ifPrintROB
+        cpu.moreTransmitInsts = options.moreTransmitInsts

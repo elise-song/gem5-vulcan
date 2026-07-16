@@ -486,6 +486,7 @@ IEW::squashDueToBranch(const DynInstPtr& inst, ThreadID tid)
         inst->staticInst->advancePC(*toCommit->pc[tid]);
 
         toCommit->mispredictInst[tid] = inst;
+        toCommit->instCausingSquash[tid] = inst;
         toCommit->includeSquashInst[tid] = false;
 
         wroteToTimeBuffer = true;
@@ -511,6 +512,7 @@ IEW::squashDueToMemOrder(const DynInstPtr& inst, ThreadID tid)
         toCommit->squashedSeqNum[tid] = inst->seqNum;
         set(toCommit->pc[tid], inst->pcState());
         toCommit->mispredictInst[tid] = NULL;
+        toCommit->instCausingSquash[tid] = inst;
 
         // Must include the memory violator in the squash.
         toCommit->includeSquashInst[tid] = true;
@@ -1208,6 +1210,17 @@ IEW::executeInsts()
                     continue;
                 }
             } else if (inst->isLoad()) {
+                // [STT] a tainted load's memory access must be deferred
+                // until it's untainted.
+                if (inst->fenceDelay()) {
+                    DPRINTF(IEW,
+                            "Execute: [STT] load [sn:%llu] is tainted, "
+                            "deferring.\n",
+                            inst->seqNum);
+                    instQueue.deferMemInst(inst);
+                    continue;
+                }
+
                 // Loads will mark themselves as executed, and their writeback
                 // event adds the instruction to the queue to commit
                 fault = ldstQueue.executeLoad(inst);
@@ -1285,9 +1298,21 @@ IEW::executeInsts()
         // instruction first, so the branch resolution order will be correct.
         ThreadID tid = inst->threadNumber;
 
-        if (!fetchRedirect[tid] ||
-            !toCommit->squash[tid] ||
-            toCommit->squashedSeqNum[tid] > inst->seqNum) {
+        if (inst->isControl() && inst->mispredicted() &&
+            inst->isArgsTainted() && !inst->isUnsquashable()) {
+            // [STT] This branch mispredicted but is still tainted and
+            // squashable by an older instruction. Sending its squash to
+            // commit now (or not) would itself be a secret-dependent
+            // signal, so instead just mark it pending: once it becomes
+            // untainted, Commit::tick() will squash on it via
+            // ROB::getResolvedPendingSquashInst().
+            DPRINTF(IEW,
+                    "[tid:%i] [sn:%llu] Execute: [STT] tainted branch "
+                    "misprediction detected, marking pending.\n",
+                    tid, inst->seqNum);
+            inst->hasPendingSquash(true);
+        } else if (!fetchRedirect[tid] || !toCommit->squash[tid] ||
+                   toCommit->squashedSeqNum[tid] > inst->seqNum) {
 
             // Prevent testing for misprediction on load instructions,
             // that have not been executed.
@@ -1426,6 +1451,13 @@ IEW::writebackInsts()
     }
 }
 
+// [STT]
+void
+IEW::wakeUntaintInsts()
+{
+    instQueue.wakeUntaintInsts();
+}
+
 void
 IEW::tick()
 {
@@ -1452,10 +1484,20 @@ IEW::tick()
         dispatch(tid);
     }
 
+    // [STT] update fenceDelay for in-flight loads before deciding what
+    // executes this cycle.
+    ldstQueue.updateVisibleState();
+
     if (exeStatus != Squashing) {
         executeInsts();
 
         writebackInsts();
+
+        // [STT] move any stalled-but-now-untainted insts back onto the
+        // ready lists (only used when moreTransmitInsts is enabled).
+        if (cpu->STT && cpu->moreTransmitInsts) {
+            wakeUntaintInsts();
+        }
 
         // Have the instruction queue try to schedule any ready instructions.
         // (In actuality, this scheduling is for instructions that will

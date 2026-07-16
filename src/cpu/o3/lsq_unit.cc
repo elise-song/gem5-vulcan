@@ -1293,6 +1293,32 @@ LSQUnit::checkStaleTranslations() const
     return false;
 }
 
+// [STT]
+void
+LSQUnit::updateVisibleState()
+{
+    for (auto &entry : loadQueue) {
+        if (!entry.valid()) {
+            continue;
+        }
+        DynInstPtr inst = entry.instruction();
+
+        if (cpu->protectionEnabled) {
+            if (cpu->STT) {
+                inst->fenceDelay(inst->isArgsTainted());
+            } else {
+                // No STT: block every speculative load until it can no
+                // longer be squashed (the coarse "block all speculative
+                // transmitters" fallback).
+                inst->fenceDelay(!inst->isUnsquashable());
+            }
+        } else {
+            // UnsafeBaseline: no protection.
+            inst->fenceDelay(false);
+        }
+    }
+}
+
 void
 LSQUnit::recvRetry()
 {

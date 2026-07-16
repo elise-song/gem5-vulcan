@@ -1599,6 +1599,15 @@ LSQ::checkStaleTranslations()
     staleTranslationWaitTxnId = 0;
 }
 
+// [STT]
+void
+LSQ::updateVisibleState()
+{
+    for (auto &unit : thread) {
+        unit.updateVisibleState();
+    }
+}
+
 Fault
 LSQ::read(LSQRequest* request, ssize_t load_idx)
 {
