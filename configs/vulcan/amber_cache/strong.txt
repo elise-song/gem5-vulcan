@@ -1,0 +1,356 @@
+['Three-step pattern: ', 'Vuu', 'Aaa', 'Vuu']
+['Different cases: ', ['Vaa', 'Aaa', 'Vaa'], ['Vbb', 'Aaa', 'Vbb'], ['NOPu', 'Aaa', 'NOPu']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:1	Numbering:17
+['Three-step pattern: ', 'Vuu', 'Aaa', 'Vuinv']
+['Different cases: ', ['Vaa', 'Aaa', 'Vkainv'], ['Vbb', 'Aaa', 'Vpbinv'], ['NOPu', 'Aaa', 'NOPuinv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:2	Numbering:32
+['Three-step pattern: ', 'Vuu', 'Vaa', 'Vuu']
+['Different cases: ', ['Vaa', 'Vaa', 'Vaa'], ['Vbb', 'Vaa', 'Vbb'], ['NOPu', 'Vaa', 'NOPu']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:3	Numbering:34
+['Three-step pattern: ', 'Vuu', 'Vaa', 'Vuinv']
+['Different cases: ', ['Vaa', 'Vaa', 'Vkainv'], ['Vbb', 'Vaa', 'Vpbinv'], ['NOPu', 'Vaa', 'NOPuinv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:4	Numbering:49
+['Three-step pattern: ', 'Vuu', 'Add', 'Vuu']
+['Different cases: ', ['Vaa', 'Add', 'Vaa'], ['Vbb', 'Add', 'Vbb'], ['NOPu', 'Add', 'NOPu']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:5	Numbering:85
+['Three-step pattern: ', 'Vuu', 'Add', 'Vuinv']
+['Different cases: ', ['Vaa', 'Add', 'Vkainv'], ['Vbb', 'Add', 'Vpbinv'], ['NOPu', 'Add', 'NOPuinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:6	Numbering:100
+['Three-step pattern: ', 'Vuu', 'Vdd', 'Vuu']
+['Different cases: ', ['Vaa', 'Vdd', 'Vaa'], ['Vbb', 'Vdd', 'Vbb'], ['NOPu', 'Vdd', 'NOPu']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:7	Numbering:102
+['Three-step pattern: ', 'Vuu', 'Vdd', 'Vuinv']
+['Different cases: ', ['Vaa', 'Vdd', 'Vkainv'], ['Vbb', 'Vdd', 'Vpbinv'], ['NOPu', 'Vdd', 'NOPuinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:8	Numbering:117
+['Three-step pattern: ', 'Vuu', 'Akainv', 'Vuu']
+['Different cases: ', ['Vaa', 'Akainv', 'Vaa'], ['Vbb', 'Akainv', 'Vbb'], ['NOPu', 'Akainv', 'NOPu']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:9	Numbering:153
+['Three-step pattern: ', 'Vuu', 'Akainv', 'Vuinv']
+['Different cases: ', ['Vaa', 'Akainv', 'Vkainv'], ['Vbb', 'Akainv', 'Vpbinv'], ['NOPu', 'Akainv', 'NOPuinv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:10	Numbering:168
+['Three-step pattern: ', 'Vuu', 'Vkainv', 'Vuu']
+['Different cases: ', ['Vaa', 'Vkainv', 'Vaa'], ['Vbb', 'Vkainv', 'Vbb'], ['NOPu', 'Vkainv', 'NOPu']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:11	Numbering:170
+['Three-step pattern: ', 'Vuu', 'Vkainv', 'Vuinv']
+['Different cases: ', ['Vaa', 'Vkainv', 'Vkainv'], ['Vbb', 'Vkainv', 'Vpbinv'], ['NOPu', 'Vkainv', 'NOPuinv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:12	Numbering:185
+['Three-step pattern: ', 'Aaa', 'Vuu', 'Aaa']
+['Different cases: ', ['Aaa', 'Vaa', 'Aaa'], ['Aaa', 'Vbb', 'Aaa'], ['Aaa', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:13	Numbering:290
+['Three-step pattern: ', 'Aaa', 'Vuu', 'Vaa']
+['Different cases: ', ['Aaa', 'Vaa', 'Vaa'], ['Aaa', 'Vbb', 'Vaa'], ['Aaa', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:14	Numbering:291
+['Three-step pattern: ', 'Aaa', 'Vuu', 'Akainv']
+['Different cases: ', ['Aaa', 'Vaa', 'Akainv'], ['Aaa', 'Vbb', 'Akainv'], ['Aaa', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:15	Numbering:298
+['Three-step pattern: ', 'Aaa', 'Vuu', 'Vkainv']
+['Different cases: ', ['Aaa', 'Vaa', 'Vkainv'], ['Aaa', 'Vbb', 'Vkainv'], ['Aaa', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:16	Numbering:299
+['Three-step pattern: ', 'Aaa', 'Vuinv', 'Aaa']
+['Different cases: ', ['Aaa', 'Vkainv', 'Aaa'], ['Aaa', 'Vpbinv', 'Aaa'], ['Aaa', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:17	Numbering:545
+['Three-step pattern: ', 'Aaa', 'Vuinv', 'Vaa']
+['Different cases: ', ['Aaa', 'Vkainv', 'Vaa'], ['Aaa', 'Vpbinv', 'Vaa'], ['Aaa', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:18	Numbering:546
+['Three-step pattern: ', 'Aaa', 'Vuinv', 'Akainv']
+['Different cases: ', ['Aaa', 'Vkainv', 'Akainv'], ['Aaa', 'Vpbinv', 'Akainv'], ['Aaa', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:19	Numbering:553
+['Three-step pattern: ', 'Aaa', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Aaa', 'Vkainv', 'Vkainv'], ['Aaa', 'Vpbinv', 'Vkainv'], ['Aaa', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:20	Numbering:554
+['Three-step pattern: ', 'Vaa', 'Vuu', 'Aaa']
+['Different cases: ', ['Vaa', 'Vaa', 'Aaa'], ['Vaa', 'Vbb', 'Aaa'], ['Vaa', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:21	Numbering:579
+['Three-step pattern: ', 'Vaa', 'Vuu', 'Vaa']
+['Different cases: ', ['Vaa', 'Vaa', 'Vaa'], ['Vaa', 'Vbb', 'Vaa'], ['Vaa', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:22	Numbering:580
+['Three-step pattern: ', 'Vaa', 'Vuu', 'Akainv']
+['Different cases: ', ['Vaa', 'Vaa', 'Akainv'], ['Vaa', 'Vbb', 'Akainv'], ['Vaa', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:23	Numbering:587
+['Three-step pattern: ', 'Vaa', 'Vuu', 'Vkainv']
+['Different cases: ', ['Vaa', 'Vaa', 'Vkainv'], ['Vaa', 'Vbb', 'Vkainv'], ['Vaa', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:24	Numbering:588
+['Three-step pattern: ', 'Vaa', 'Vuinv', 'Aaa']
+['Different cases: ', ['Vaa', 'Vkainv', 'Aaa'], ['Vaa', 'Vpbinv', 'Aaa'], ['Vaa', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:25	Numbering:834
+['Three-step pattern: ', 'Vaa', 'Vuinv', 'Vaa']
+['Different cases: ', ['Vaa', 'Vkainv', 'Vaa'], ['Vaa', 'Vpbinv', 'Vaa'], ['Vaa', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:26	Numbering:835
+['Three-step pattern: ', 'Vaa', 'Vuinv', 'Akainv']
+['Different cases: ', ['Vaa', 'Vkainv', 'Akainv'], ['Vaa', 'Vpbinv', 'Akainv'], ['Vaa', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:27	Numbering:842
+['Three-step pattern: ', 'Vaa', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Vaa', 'Vkainv', 'Vkainv'], ['Vaa', 'Vpbinv', 'Vkainv'], ['Vaa', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:28	Numbering:843
+['Three-step pattern: ', 'Add', 'Vuu', 'Add']
+['Different cases: ', ['Add', 'Vaa', 'Add'], ['Add', 'Vbb', 'Add'], ['Add', 'NOPu', 'Add']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:29	Numbering:1450
+['Three-step pattern: ', 'Add', 'Vuu', 'Vdd']
+['Different cases: ', ['Add', 'Vaa', 'Vdd'], ['Add', 'Vbb', 'Vdd'], ['Add', 'NOPu', 'Vdd']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:30	Numbering:1451
+['Three-step pattern: ', 'Add', 'Vuu', 'Aqdinv']
+['Different cases: ', ['Add', 'Vaa', 'Aqdinv'], ['Add', 'Vbb', 'Aqdinv'], ['Add', 'NOPu', 'Aqdinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:31	Numbering:1458
+['Three-step pattern: ', 'Add', 'Vuu', 'Vqdinv']
+['Different cases: ', ['Add', 'Vaa', 'Vqdinv'], ['Add', 'Vbb', 'Vqdinv'], ['Add', 'NOPu', 'Vqdinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:32	Numbering:1459
+['Three-step pattern: ', 'Vdd', 'Vuu', 'Add']
+['Different cases: ', ['Vdd', 'Vaa', 'Add'], ['Vdd', 'Vbb', 'Add'], ['Vdd', 'NOPu', 'Add']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:33	Numbering:1739
+['Three-step pattern: ', 'Vdd', 'Vuu', 'Vdd']
+['Different cases: ', ['Vdd', 'Vaa', 'Vdd'], ['Vdd', 'Vbb', 'Vdd'], ['Vdd', 'NOPu', 'Vdd']]
+['Corresponding timings: ', [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [4, 17, 18, 19, 23, 26, 39, 40, 41, 45], [3, 2, 14, 15, 16, 25, 24, 36, 37, 38]]
+Count:34	Numbering:1740
+['Three-step pattern: ', 'Vdd', 'Vuu', 'Aqdinv']
+['Different cases: ', ['Vdd', 'Vaa', 'Aqdinv'], ['Vdd', 'Vbb', 'Aqdinv'], ['Vdd', 'NOPu', 'Aqdinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:35	Numbering:1747
+['Three-step pattern: ', 'Vdd', 'Vuu', 'Vqdinv']
+['Different cases: ', ['Vdd', 'Vaa', 'Vqdinv'], ['Vdd', 'Vbb', 'Vqdinv'], ['Vdd', 'NOPu', 'Vqdinv']]
+['Corresponding timings: ', [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [32, 37, 40, 43, 45, 48, 61, 62, 63, 67], [31, 30, 36, 39, 42, 47, 46, 58, 59, 60]]
+Count:36	Numbering:1748
+['Three-step pattern: ', 'Ainv', 'Vuu', 'Aaa']
+['Different cases: ', ['Ainv', 'Vaa', 'Aaa'], ['Ainv', 'Vbb', 'Aaa'], ['Ainv', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [23, 45, 69], [23, 45, 69]]
+Count:37	Numbering:2024
+['Three-step pattern: ', 'Ainv', 'Vuu', 'Vaa']
+['Different cases: ', ['Ainv', 'Vaa', 'Vaa'], ['Ainv', 'Vbb', 'Vaa'], ['Ainv', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [23, 45, 69], [23, 45, 69]]
+Count:38	Numbering:2025
+['Three-step pattern: ', 'Ainv', 'Vuu', 'Akainv']
+['Different cases: ', ['Ainv', 'Vaa', 'Akainv'], ['Ainv', 'Vbb', 'Akainv'], ['Ainv', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [45, 67, 69], [45, 67, 69]]
+Count:39	Numbering:2032
+['Three-step pattern: ', 'Ainv', 'Vuu', 'Vkainv']
+['Different cases: ', ['Ainv', 'Vaa', 'Vkainv'], ['Ainv', 'Vbb', 'Vkainv'], ['Ainv', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [45, 67, 69], [45, 67, 69]]
+Count:40	Numbering:2033
+['Three-step pattern: ', 'Ainv', 'Vuinv', 'Aaa']
+['Different cases: ', ['Ainv', 'Vkainv', 'Aaa'], ['Ainv', 'Vpbinv', 'Aaa'], ['Ainv', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 69], [23, 45, 69]]
+Count:41	Numbering:2279
+['Three-step pattern: ', 'Ainv', 'Vuinv', 'Vaa']
+['Different cases: ', ['Ainv', 'Vkainv', 'Vaa'], ['Ainv', 'Vpbinv', 'Vaa'], ['Ainv', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 69], [23, 45, 69]]
+Count:42	Numbering:2280
+['Three-step pattern: ', 'Ainv', 'Vuinv', 'Akainv']
+['Different cases: ', ['Ainv', 'Vkainv', 'Akainv'], ['Ainv', 'Vpbinv', 'Akainv'], ['Ainv', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 69], [45, 67, 69]]
+Count:43	Numbering:2287
+['Three-step pattern: ', 'Ainv', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Ainv', 'Vkainv', 'Vkainv'], ['Ainv', 'Vpbinv', 'Vkainv'], ['Ainv', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 69], [45, 67, 69]]
+Count:44	Numbering:2288
+['Three-step pattern: ', 'Vinv', 'Vuu', 'Aaa']
+['Different cases: ', ['Vinv', 'Vaa', 'Aaa'], ['Vinv', 'Vbb', 'Aaa'], ['Vinv', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [23, 45, 69], [23, 45, 69]]
+Count:45	Numbering:2313
+['Three-step pattern: ', 'Vinv', 'Vuu', 'Vaa']
+['Different cases: ', ['Vinv', 'Vaa', 'Vaa'], ['Vinv', 'Vbb', 'Vaa'], ['Vinv', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [23, 45, 69], [23, 45, 69]]
+Count:46	Numbering:2314
+['Three-step pattern: ', 'Vinv', 'Vuu', 'Akainv']
+['Different cases: ', ['Vinv', 'Vaa', 'Akainv'], ['Vinv', 'Vbb', 'Akainv'], ['Vinv', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [45, 67, 69], [45, 67, 69]]
+Count:47	Numbering:2321
+['Three-step pattern: ', 'Vinv', 'Vuu', 'Vkainv']
+['Different cases: ', ['Vinv', 'Vaa', 'Vkainv'], ['Vinv', 'Vbb', 'Vkainv'], ['Vinv', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [45, 67, 69], [45, 67, 69]]
+Count:48	Numbering:2322
+['Three-step pattern: ', 'Vinv', 'Vuinv', 'Aaa']
+['Different cases: ', ['Vinv', 'Vkainv', 'Aaa'], ['Vinv', 'Vpbinv', 'Aaa'], ['Vinv', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 69], [23, 45, 69]]
+Count:49	Numbering:2568
+['Three-step pattern: ', 'Vinv', 'Vuinv', 'Vaa']
+['Different cases: ', ['Vinv', 'Vkainv', 'Vaa'], ['Vinv', 'Vpbinv', 'Vaa'], ['Vinv', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 69], [23, 45, 69]]
+Count:50	Numbering:2569
+['Three-step pattern: ', 'Vinv', 'Vuinv', 'Akainv']
+['Different cases: ', ['Vinv', 'Vkainv', 'Akainv'], ['Vinv', 'Vpbinv', 'Akainv'], ['Vinv', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 69], [45, 67, 69]]
+Count:51	Numbering:2576
+['Three-step pattern: ', 'Vinv', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Vinv', 'Vkainv', 'Vkainv'], ['Vinv', 'Vpbinv', 'Vkainv'], ['Vinv', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 69], [45, 67, 69]]
+Count:52	Numbering:2577
+['Three-step pattern: ', 'Akainv', 'Vuu', 'Aaa']
+['Different cases: ', ['Akainv', 'Vaa', 'Aaa'], ['Akainv', 'Vbb', 'Aaa'], ['Akainv', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:53	Numbering:2602
+['Three-step pattern: ', 'Akainv', 'Vuu', 'Vaa']
+['Different cases: ', ['Akainv', 'Vaa', 'Vaa'], ['Akainv', 'Vbb', 'Vaa'], ['Akainv', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:54	Numbering:2603
+['Three-step pattern: ', 'Akainv', 'Vuu', 'Akainv']
+['Different cases: ', ['Akainv', 'Vaa', 'Akainv'], ['Akainv', 'Vbb', 'Akainv'], ['Akainv', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:55	Numbering:2610
+['Three-step pattern: ', 'Akainv', 'Vuu', 'Vkainv']
+['Different cases: ', ['Akainv', 'Vaa', 'Vkainv'], ['Akainv', 'Vbb', 'Vkainv'], ['Akainv', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:56	Numbering:2611
+['Three-step pattern: ', 'Akainv', 'Vuinv', 'Aaa']
+['Different cases: ', ['Akainv', 'Vkainv', 'Aaa'], ['Akainv', 'Vpbinv', 'Aaa'], ['Akainv', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:57	Numbering:2857
+['Three-step pattern: ', 'Akainv', 'Vuinv', 'Vaa']
+['Different cases: ', ['Akainv', 'Vkainv', 'Vaa'], ['Akainv', 'Vpbinv', 'Vaa'], ['Akainv', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:58	Numbering:2858
+['Three-step pattern: ', 'Akainv', 'Vuinv', 'Akainv']
+['Different cases: ', ['Akainv', 'Vkainv', 'Akainv'], ['Akainv', 'Vpbinv', 'Akainv'], ['Akainv', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:59	Numbering:2865
+['Three-step pattern: ', 'Akainv', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Akainv', 'Vkainv', 'Vkainv'], ['Akainv', 'Vpbinv', 'Vkainv'], ['Akainv', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:60	Numbering:2866
+['Three-step pattern: ', 'Vkainv', 'Vuu', 'Aaa']
+['Different cases: ', ['Vkainv', 'Vaa', 'Aaa'], ['Vkainv', 'Vbb', 'Aaa'], ['Vkainv', 'NOPu', 'Aaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:61	Numbering:2891
+['Three-step pattern: ', 'Vkainv', 'Vuu', 'Vaa']
+['Different cases: ', ['Vkainv', 'Vaa', 'Vaa'], ['Vkainv', 'Vbb', 'Vaa'], ['Vkainv', 'NOPu', 'Vaa']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:62	Numbering:2892
+['Three-step pattern: ', 'Vkainv', 'Vuu', 'Akainv']
+['Different cases: ', ['Vkainv', 'Vaa', 'Akainv'], ['Vkainv', 'Vbb', 'Akainv'], ['Vkainv', 'NOPu', 'Akainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:63	Numbering:2899
+['Three-step pattern: ', 'Vkainv', 'Vuu', 'Vkainv']
+['Different cases: ', ['Vkainv', 'Vaa', 'Vkainv'], ['Vkainv', 'Vbb', 'Vkainv'], ['Vkainv', 'NOPu', 'Vkainv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:64	Numbering:2900
+['Three-step pattern: ', 'Vkainv', 'Vuinv', 'Aaa']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Aaa'], ['Vkainv', 'Vpbinv', 'Aaa'], ['Vkainv', 'NOPuinv', 'Aaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:65	Numbering:3146
+['Three-step pattern: ', 'Vkainv', 'Vuinv', 'Vaa']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Vaa'], ['Vkainv', 'Vpbinv', 'Vaa'], ['Vkainv', 'NOPuinv', 'Vaa']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:66	Numbering:3147
+['Three-step pattern: ', 'Vkainv', 'Vuinv', 'Akainv']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Akainv'], ['Vkainv', 'Vpbinv', 'Akainv'], ['Vkainv', 'NOPuinv', 'Akainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:67	Numbering:3154
+['Three-step pattern: ', 'Vkainv', 'Vuinv', 'Vkainv']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Vkainv'], ['Vkainv', 'Vpbinv', 'Vkainv'], ['Vkainv', 'NOPuinv', 'Vkainv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:68	Numbering:3155
+['Three-step pattern: ', 'Aqdinv', 'Vuinv', 'Add']
+['Different cases: ', ['Aqdinv', 'Vkainv', 'Add'], ['Aqdinv', 'Vpbinv', 'Add'], ['Aqdinv', 'NOPuinv', 'Add']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:69	Numbering:4017
+['Three-step pattern: ', 'Aqdinv', 'Vuinv', 'Vdd']
+['Different cases: ', ['Aqdinv', 'Vkainv', 'Vdd'], ['Aqdinv', 'Vpbinv', 'Vdd'], ['Aqdinv', 'NOPuinv', 'Vdd']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:70	Numbering:4018
+['Three-step pattern: ', 'Aqdinv', 'Vuinv', 'Aqdinv']
+['Different cases: ', ['Aqdinv', 'Vkainv', 'Aqdinv'], ['Aqdinv', 'Vpbinv', 'Aqdinv'], ['Aqdinv', 'NOPuinv', 'Aqdinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:71	Numbering:4025
+['Three-step pattern: ', 'Aqdinv', 'Vuinv', 'Vqdinv']
+['Different cases: ', ['Aqdinv', 'Vkainv', 'Vqdinv'], ['Aqdinv', 'Vpbinv', 'Vqdinv'], ['Aqdinv', 'NOPuinv', 'Vqdinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:72	Numbering:4026
+['Three-step pattern: ', 'Vqdinv', 'Vuinv', 'Add']
+['Different cases: ', ['Vqdinv', 'Vkainv', 'Add'], ['Vqdinv', 'Vpbinv', 'Add'], ['Vqdinv', 'NOPuinv', 'Add']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:73	Numbering:4306
+['Three-step pattern: ', 'Vqdinv', 'Vuinv', 'Vdd']
+['Different cases: ', ['Vqdinv', 'Vkainv', 'Vdd'], ['Vqdinv', 'Vpbinv', 'Vdd'], ['Vqdinv', 'NOPuinv', 'Vdd']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:74	Numbering:4307
+['Three-step pattern: ', 'Vqdinv', 'Vuinv', 'Aqdinv']
+['Different cases: ', ['Vqdinv', 'Vkainv', 'Aqdinv'], ['Vqdinv', 'Vpbinv', 'Aqdinv'], ['Vqdinv', 'NOPuinv', 'Aqdinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:75	Numbering:4314
+['Three-step pattern: ', 'Vqdinv', 'Vuinv', 'Vqdinv']
+['Different cases: ', ['Vqdinv', 'Vkainv', 'Vqdinv'], ['Vqdinv', 'Vpbinv', 'Vqdinv'], ['Vqdinv', 'NOPuinv', 'Vqdinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:76	Numbering:4315
+['Three-step pattern: ', 'Vuinv', 'Aaa', 'Vuu']
+['Different cases: ', ['Vkainv', 'Aaa', 'Vaa'], ['Vpbinv', 'Aaa', 'Vbb'], ['NOPuinv', 'Aaa', 'NOPu']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:77	Numbering:4352
+['Three-step pattern: ', 'Vuinv', 'Aaa', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Aaa', 'Vkainv'], ['Vpbinv', 'Aaa', 'Vpbinv'], ['NOPuinv', 'Aaa', 'NOPuinv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:78	Numbering:4367
+['Three-step pattern: ', 'Vuinv', 'Vaa', 'Vuu']
+['Different cases: ', ['Vkainv', 'Vaa', 'Vaa'], ['Vpbinv', 'Vaa', 'Vbb'], ['NOPuinv', 'Vaa', 'NOPu']]
+['Corresponding timings: ', [3, 2, 14, 15, 16, 25, 24, 36, 37, 38], [9, 23, 31, 45], [9, 23, 31, 45]]
+Count:79	Numbering:4369
+['Three-step pattern: ', 'Vuinv', 'Vaa', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Vaa', 'Vkainv'], ['Vpbinv', 'Vaa', 'Vpbinv'], ['NOPuinv', 'Vaa', 'NOPuinv']]
+['Corresponding timings: ', [31, 30, 36, 39, 42, 47, 46, 58, 59, 60], [25, 45, 47, 67], [25, 45, 47, 67]]
+Count:80	Numbering:4384
+['Three-step pattern: ', 'Vuinv', 'Akainv', 'Vuu']
+['Different cases: ', ['Vkainv', 'Akainv', 'Vaa'], ['Vpbinv', 'Akainv', 'Vbb'], ['NOPuinv', 'Akainv', 'NOPu']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:81	Numbering:4488
+['Three-step pattern: ', 'Vuinv', 'Akainv', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Akainv', 'Vkainv'], ['Vpbinv', 'Akainv', 'Vpbinv'], ['NOPuinv', 'Akainv', 'NOPuinv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:82	Numbering:4503
+['Three-step pattern: ', 'Vuinv', 'Vkainv', 'Vuu']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Vaa'], ['Vpbinv', 'Vkainv', 'Vbb'], ['NOPuinv', 'Vkainv', 'NOPu']]
+['Corresponding timings: ', [9, 23, 31, 45], [23, 45, 68], [9, 23, 31, 45]]
+Count:83	Numbering:4505
+['Three-step pattern: ', 'Vuinv', 'Vkainv', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Vkainv', 'Vkainv'], ['Vpbinv', 'Vkainv', 'Vpbinv'], ['NOPuinv', 'Vkainv', 'NOPuinv']]
+['Corresponding timings: ', [25, 45, 47, 67], [45, 67, 68], [25, 45, 47, 67]]
+Count:84	Numbering:4520
+['Three-step pattern: ', 'Vuinv', 'Aqdinv', 'Vuu']
+['Different cases: ', ['Vkainv', 'Aqdinv', 'Vaa'], ['Vpbinv', 'Aqdinv', 'Vbb'], ['NOPuinv', 'Aqdinv', 'NOPu']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:85	Numbering:4556
+['Three-step pattern: ', 'Vuinv', 'Aqdinv', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Aqdinv', 'Vkainv'], ['Vpbinv', 'Aqdinv', 'Vpbinv'], ['NOPuinv', 'Aqdinv', 'NOPuinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:86	Numbering:4571
+['Three-step pattern: ', 'Vuinv', 'Vqdinv', 'Vuu']
+['Different cases: ', ['Vkainv', 'Vqdinv', 'Vaa'], ['Vpbinv', 'Vqdinv', 'Vbb'], ['NOPuinv', 'Vqdinv', 'NOPu']]
+['Corresponding timings: ', [23, 45, 68], [23, 45, 68], [9, 23, 31, 45]]
+Count:87	Numbering:4573
+['Three-step pattern: ', 'Vuinv', 'Vqdinv', 'Vuinv']
+['Different cases: ', ['Vkainv', 'Vqdinv', 'Vkainv'], ['Vpbinv', 'Vqdinv', 'Vpbinv'], ['NOPuinv', 'Vqdinv', 'NOPuinv']]
+['Corresponding timings: ', [45, 67, 68], [45, 67, 68], [25, 45, 47, 67]]
+Count:88	Numbering:4588
+Type numbers:
+[17, 32, 34, 49, 85, 100, 102, 117, 153, 168, 170, 185, 290, 291, 298, 299, 545, 546, 553, 554, 579, 580, 587, 588, 834, 835, 842, 843, 1450, 1451, 1458, 1459, 1739, 1740, 1747, 1748, 2024, 2025, 2032, 2033, 2279, 2280, 2287, 2288, 2313, 2314, 2321, 2322, 2568, 2569, 2576, 2577, 2602, 2603, 2610, 2611, 2857, 2858, 2865, 2866, 2891, 2892, 2899, 2900, 3146, 3147, 3154, 3155, 4017, 4018, 4025, 4026, 4306, 4307, 4314, 4315, 4352, 4367, 4369, 4384, 4488, 4503, 4505, 4520, 4556, 4571, 4573, 4588]
+Total type counts:
+88
