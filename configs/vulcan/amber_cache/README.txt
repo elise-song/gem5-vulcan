@@ -99,6 +99,9 @@ $vic_num $probe_size $each_run $output_name > /dev/null
    The generated benchmark result for the specific machines will be output to
    folder benchmark_output.
 
+   AccOne/Two/Thr{0 = read, 1 = write}
+   Aff{0 = attacker/victim on separate cores, 1 = attacker/victim colocated}
+
 $ python3 plot_res.py RES_INFO
    
    Add RES_INFO as the argument for setting the corresponding result information.

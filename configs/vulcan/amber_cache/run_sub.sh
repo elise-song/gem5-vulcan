@@ -23,35 +23,38 @@
 #
 #
 
-output_name=$1
+# Compiles all C files in the current directory
 
-i=0
+
+# output_name=$1
+
+# i=0
 for file in `find . -name '*.c' | sed 's_./__'| sort -n`
 do
-  echo "i is $i"
-  let i=$i+1
-  echo "Compiling and executing: file $file"
+  # echo "i is $i"
+  # let i=$i+1
+  # echo "Compiling: file $file"
   gcc $file -std=gnu99 -lm -o ${file:0:-2} -O0 
-  ./${file:0:-2} ../benchmark_output/$output_name &
+  # ./${file:0:-2} ../benchmark_output/$output_name &
 
-  ps
-  PID2=$(ps -ef | grep ${file:0:-2} | awk '{print $2}')
-  j=0 
-  pid=0
-  ori=1
-  for word in $PID2
-  do
-    let j=$j+1
-      echo $word
-      if [ "$j" == "$ori" ]
-    then
-        pid=$word
-    fi
-  done
-  echo $pid
-  echo "Before finishing ${file:0:-2}"
-  while ps -ef | grep ${file:0:-2} | grep -v grep > /dev/null; do sleep 0.5; done
-  echo "Finished ${file:0:-2}"
+  # ps
+  # PID2=$(ps -ef | grep ${file:0:-2} | awk '{print $2}')
+  # j=0 
+  # pid=0
+  # ori=1
+  # for word in $PID2
+  # do
+  #   let j=$j+1
+  #     echo $word
+  #     if [ "$j" == "$ori" ]
+  #   then
+  #       pid=$word
+  #   fi
+  # done
+  # echo $pid
+  # echo "Before finishing ${file:0:-2}"
+  # while ps -ef | grep ${file:0:-2} | grep -v grep > /dev/null; do sleep 0.5; done
+  # echo "Finished ${file:0:-2}"
 
 done
 echo "Finished"

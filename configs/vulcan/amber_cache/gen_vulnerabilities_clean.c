@@ -58,15 +58,7 @@
 #define MUTEX_BOUND 10000
 #define RANDOM_NUM 1000
 
-#define WKST10 0
-#define WKST5 1
-#define SRV1 2
-#define SRV2ONCHIP 3
-#define SRV2INTERCHIP 4
-#define AMDCORE4 5
-#define BROADWELL 6
-#define SKYLAKE 7
-#define AMDLOCAL 8
+#define GEM5_SIMPLE 0
 
 typedef int bool;
 enum { false, true };
@@ -1698,60 +1690,12 @@ int main(int argc, char const *argv[])
 	char buf[40];
 
 	int cpu[5] = {0};
-	if (vic_machine==WKST10){
-		cpu[0]=3;
-		cpu[1]=7;
-		cpu[2]=2;
-		cpu[3]=6;
-		cpu[4]=5;
-	} else if (vic_machine==SRV2ONCHIP){
-		cpu[0]=8;
-		cpu[1]=20;
-		cpu[2]=10;
-		cpu[3]=22;
-		cpu[4]=6;
-	} else if (vic_machine==SRV2INTERCHIP){
-		cpu[0]=8;
-		cpu[1]=20;
-		cpu[2]=11;
-		cpu[3]=23;
-		cpu[4]=6;
-	} else if (vic_machine==SRV1){
-		cpu[0]=6;
-		cpu[1]=14;
-		cpu[2]=7;
-		cpu[3]=15;
-		cpu[4]=5;
-	} else if (vic_machine==WKST5){
-		cpu[0]=3;
-		cpu[1]=3;
-		cpu[2]=2;
-		cpu[3]=2;
-		cpu[4]=1;
-	} else if (vic_machine==AMDCORE4){
-       	cpu[0]=3;
-        cpu[1]=1;
-	    cpu[2]=2;
-        cpu[3]=0;
-        cpu[4]=0;
-    } else if (vic_machine==BROADWELL){
-	    cpu[0]=3;
-        cpu[1]=3;
-	    cpu[2]=2;
-        cpu[3]=2;
-        cpu[4]=1;
-    } else if (vic_machine==SKYLAKE){
-        cpu[0]=3;
-        cpu[1]=7;
-        cpu[2]=2;
-        cpu[3]=6;
-        cpu[4]=5;
-    } else if (vic_machine==AMDLOCAL){
-		cpu[0]=5;
-		cpu[1]=5;
-		cpu[2]=7;
-		cpu[3]=7;
-		cpu[4]=3;
+	if (vic_machine == GEM5_SIMPLE){
+		cpu[0] = 0;
+		cpu[1] = 1;	
+		cpu[2] = 2;
+		cpu[3] = 3;
+		cpu[4] = 4;
 	} else {
 		printf("Error in choosing machines\n");
 		exit(1);
@@ -2184,9 +2128,9 @@ int main(int argc, char const *argv[])
 									if(skip_case==1){
 										//
 									}
-									else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
-										//
-									}
+									// else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
+									// 	//
+									// }
 									else { 
                                             fprintf(fout, "     fprintf(fp_res, \"1\");\n");
 									}	
@@ -2196,9 +2140,9 @@ int main(int argc, char const *argv[])
 									if(skip_case==1){
 										fprintf(fout, "     fprintf(fp_res, \"222\\n\");\n");
 									}
-									else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
-										fprintf(fout, "     fprintf(fp_res, \"111\\n\");\n");
-									}
+									// else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
+									// 	fprintf(fout, "     fprintf(fp_res, \"111\\n\");\n");
+									// }
 									else { 
                                             fprintf(fout, "     fprintf(fp_res, \"1\\n\");\n");	
 									}
@@ -2210,9 +2154,9 @@ int main(int argc, char const *argv[])
 									if(skip_case==1){
 										//
 									}
-									else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
-										//
-									}
+									// else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
+									// 	//
+									// }
 									else { 
                                             fprintf(fout, "     fprintf(fp_res, \"0\");\n");
 									}
@@ -2221,9 +2165,9 @@ int main(int argc, char const *argv[])
 									if(skip_case==1){
 										fprintf(fout, "     fprintf(fp_res, \"222\\n\");\n");
 									}
-									else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
-										fprintf(fout, "     fprintf(fp_res, \"111\\n\");\n");
-									}
+									// else if(affinity_rel==0 && (vic_machine==WKST5 || vic_machine==BROADWELL || vic_machine==AMDLOCAL)){
+									// 	fprintf(fout, "     fprintf(fp_res, \"111\\n\");\n");
+									// }
 									else { 
                                             fprintf(fout, "     fprintf(fp_res, \"0\\n\");\n");	
 									}

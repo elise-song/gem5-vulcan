@@ -40,8 +40,11 @@ mkdir gen_output
 cp run_sub.sh gen_output/
 
 gcc -std=gnu99 -o gen_vulnerabilities_clean gen_vulnerabilities_clean.c
-./gen_vulnerabilities_clean $machine $max_cycle $cache_size $cache_asso $cache_line $num_test $vic_num $probe_size $each_run
+# ./gen_vulnerabilities_clean $machine $max_cycle $cache_size $cache_asso $cache_line $num_test $vic_num $probe_size $each_run
+# $cache_size $cache_asso matches sim_attack.py
+# $vic_num is 9 for GEM5_SIMPLE
+./gen_vulnerabilities_clean x86 8000 32768 8 64 10 9 3 30 gem5 > /dev/null
 
-cd gen_output
-./run_sub.sh $output_name
+# cd gen_output
+# ./run_sub.sh $output_name
 

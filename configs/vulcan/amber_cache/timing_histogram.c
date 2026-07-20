@@ -38,18 +38,29 @@
 #include <time.h>
 
 
-#define L1_CACHE_SIZE 0x8000 
+#ifndef L1_CACHE_SIZE
+#define L1_CACHE_SIZE 0x8000
+#endif
+#ifndef L1_ASSOC
 #define L1_ASSOC 8
+#endif
 #define CACHE_LINE 0x40
 #define L1_CACHE_SET L1_CACHE_SIZE/L1_ASSOC/CACHE_LINE
 
-#define L2_CACHE_SIZE 0x40000 
+#ifndef L2_CACHE_SIZE
+#define L2_CACHE_SIZE 0x40000
+#endif
+#ifndef L2_ASSOC
 #define L2_ASSOC 8
+#endif
 #define L2_CACHE_SET L2_CACHE_SIZE/L2_ASSOC/CACHE_LINE
 
-
-#define L3_CACHE_SIZE 0xA00000 
+#ifndef L3_CACHE_SIZE
+#define L3_CACHE_SIZE 0xA00000
+#endif
+#ifndef L3_ASSOC
 #define L3_ASSOC 20
+#endif
 #define L3_CACHE_SET L3_CACHE_SIZE/L3_ASSOC/CACHE_LINE
 
 
@@ -84,7 +95,9 @@
 
 
 #define NUM_CALIBRE 66
+#ifndef NUM_CALIBRE_SINGLE
 #define NUM_CALIBRE_SINGLE 22
+#endif
 
 #define MAX_CYCLE 2500
 
@@ -596,7 +609,7 @@ int main(int argc, char *argv[]) {
     }
 
   char file_long[50];
-  sprintf(file_long, "histogram_output/histogram_%s.out", argv[1]);
+  sprintf(file_long, "configs/vulcan/amber_cache/histogram_output/histogram_%s.out", argv[1]);
 
   char file_name[50];
   sprintf(file_name, "histogram_output/coarse_histogram_%s.out", argv[1]);
