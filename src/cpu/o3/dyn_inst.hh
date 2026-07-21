@@ -240,21 +240,18 @@ class DynInst : public ExecContext, public RefCounted
         IsArgsTainted,
         // IsAddrTainted: true if a load/store's *effective address*
         // (as opposed to, for a store, the value being stored) is
-        // computed from tainted data. See ROB::address_flow(). Currently
-        // computed but not read outside compute_taint() in this port
-        // (available for stricter policies that want to gate purely on
-        // address taint rather than IsArgsTainted).
+        // computed from tainted data. See ROB::address_flow(). Read by
+        // LSQUnit's store-to-load forwarding check: if a store's address
+        // is tainted but the load's own address isn't, whether
+        // forwarding happened is itself an address-dependent (implicit
+        // channel) signal, so a real memory access is issued too rather
+        // than skipping it (see LSQUnit::read()/writeback()).
         IsAddrTainted,
         // HasExplicitFlow: true if this instruction reads a tainted
         // source register through ordinary data-flow. See
         // ROB::explicit_flow(); IsArgsTainted/IsDestTainted are both
         // derived directly from this each cycle.
         HasExplicitFlow,
-        // HasImplicitFlow: true if this instruction is control-dependent
-        // on an older branch whose own condition was tainted (only
-        // tracked when --implicit_channel is enabled). See
-        // ROB::implicit_flow().
-        HasImplicitFlow,
         HasPendingSquash, // for branch/load, if a squash is postponed due
                           // to the tainted dependent operands
         // Set instead of signalling a squash immediately (in
@@ -431,6 +428,16 @@ class DynInst : public ExecContext, public RefCounted
     /** Pointer to the data for the memory access. */
     uint8_t *memData = nullptr;
 
+    /** [STT] Data forwarded from a store whose address is tainted (while
+     * this load's own address is not). In that case the forwarding
+     * result is still used for correctness, but a real memory access is
+     * also issued (see LSQUnit::read()) so that whether forwarding
+     * happened isn't itself an observable, address-dependent signal;
+     * writeback() then overwrites memData with this forwarded value. */
+    uint8_t *stFwdData = nullptr;
+    int stFwdDataSize = 0;
+    bool alreadyForwarded = false;
+
     /** Load queue index. */
     ssize_t lqIdx = -1;
     typename LSQUnit::LQIterator lqIt;
@@ -533,17 +540,6 @@ class DynInst : public ExecContext, public RefCounted
     hasExplicitFlow(bool f)
     {
         instFlags[HasExplicitFlow] = f;
-    }
-
-    bool
-    hasImplicitFlow() const
-    {
-        return instFlags[HasImplicitFlow];
-    }
-    void
-    hasImplicitFlow(bool f)
-    {
-        instFlags[HasImplicitFlow] = f;
     }
 
     bool

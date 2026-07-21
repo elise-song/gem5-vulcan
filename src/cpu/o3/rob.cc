@@ -40,6 +40,7 @@
 
 #include "cpu/o3/rob.hh"
 
+#include <cstdio>
 #include <list>
 
 #include "base/logging.hh"
@@ -716,49 +717,13 @@ ROB::address_flow(ThreadID tid, InstIt instIt)
     inst->isAddrTainted(false);
 }
 
-// [STT] "Implicit flow" (control-flow / implicit channel): even if an
-// instruction's own operands aren't tainted, if it is control-dependent on
-// an *earlier branch whose condition was tainted*, its very presence in the
-// pipeline (i.e. whether it executes at all, and when) leaks information
-// about that branch's tainted condition. This models the classic "if
-// (secret) { transmit() }" pattern where the leak is through *which* path
-// is taken, not through any register value. Only tracked when
-// cpu->impChannel (the --implicit_channel flag) is enabled -- it's strictly
-// more conservative/expensive than the explicit/address channels alone.
-void
-ROB::implicit_flow(ThreadID tid, InstIt instIt)
-{
-    DynInstPtr inst = *instIt;
-    if (cpu->impChannel) {
-        // Scan every instruction *older* than this one in program order
-        // (from the head of the ROB up to, but not including, instIt)...
-        for (auto prevInstIt = instList[tid].begin(); prevInstIt != instIt;
-             ++prevInstIt) {
-            DynInstPtr prevInst = *prevInstIt;
-            // ...looking for an older branch whose own condition was
-            // itself explicitly tainted (hasExplicitFlow(), computed
-            // earlier this same cycle by explicit_flow() -- compute_taint()
-            // calls explicit_flow() before implicit_flow() for exactly
-            // this reason). If found, this instruction is on a
-            // taint-dependent control path.
-            if (prevInst->isControl() && prevInst->hasExplicitFlow()) {
-                inst->hasImplicitFlow(true);
-                return;
-            }
-        }
-    }
-    // Either implicit-channel protection is off, or no tainted branch
-    // was found ahead of this instruction.
-    inst->hasImplicitFlow(false);
-}
-
 // [STT] The top-level taint recomputation, called once per cycle from
 // Commit::markCompletedInsts() (only when cpu->STT is set). This is the
 // entire STT taint-propagation algorithm for one cycle: for every in-flight
 // instruction, in program order (oldest first, which matters because
-// implicit_flow() and explicit_flow() both look at *older* instructions'
-// already-updated-this-cycle taint state), recompute whether it's tainted
-// from scratch. Taint is not sticky/incremental across cycles by design --
+// explicit_flow() looks at *older* instructions' already-updated-this-cycle
+// taint state), recompute whether it's tainted from scratch. Taint is not
+// sticky/incremental across cycles by design --
 // as producers commit or squash, an instruction that was tainted last cycle
 // may no longer be tainted this cycle, so it's cheaper and simpler to just
 // redo the whole pass than to try to invalidate a stale taint graph.
@@ -774,32 +739,27 @@ ROB::compute_taint()
 
         // Oldest-to-youngest order is required: address_flow/explicit_flow
         // for instIt only look at instIt's own argProducers (which are
-        // always older), and implicit_flow for instIt scans everything
-        // *before* instIt in this same list -- so by the time we reach a
-        // given instruction, every instruction it might depend on has
-        // already had its taint flags refreshed this cycle.
+        // always older) -- so by the time we reach a given instruction,
+        // every instruction it might depend on has already had its taint
+        // flags refreshed this cycle.
         for (auto instIt = instList[tid].begin();
              instIt != instList[tid].end(); ++instIt) {
-            // Recompute the three taint "sources" for this instruction:
-            // explicit (data through registers), implicit (control
-            // dependence on a tainted branch), address (tainted effective
-            // address for a load/store).
+            // Recompute the two taint "sources" for this instruction:
+            // explicit (data through registers) and address (tainted
+            // effective address for a load/store).
             explicit_flow(tid, instIt);
-            implicit_flow(tid, instIt);
             address_flow(tid, instIt);
 
             DynInstPtr inst = *instIt;
             // An instruction's *result* (its args, from the perspective of
             // anything that consumes it later) is tainted if it has
             // explicit flow -- i.e. it computed its result from a tainted
-            // operand. (Implicit/address taint affects whether *this*
-            // instruction is dangerous to let execute/transmit, not
-            // whether its own register result is poisoned -- see
+            // operand. (Address taint affects whether *this* instruction
+            // is dangerous to let execute/transmit -- see
             // LSQUnit::updateVisibleState(), which reads isArgsTainted()
             // directly to decide fenceDelay, and IEW::executeInsts(),
             // which checks isArgsTainted() on branches -- but taint isn't
-            // propagated *from* isAddrTainted/hasImplicitFlow into
-            // isDestTainted here.)
+            // propagated *from* isAddrTainted into isDestTainted here.)
             inst->isArgsTainted(inst->hasExplicitFlow());
             // isDestTainted mirrors isArgsTainted by default: an
             // instruction whose args are tainted produces a tainted
@@ -858,6 +818,77 @@ ROB::getResolvedPendingSquashInst(ThreadID tid)
     }
     // No pending squash has resolved yet this cycle.
     return nullptr;
+}
+
+// [STT] Debug dump, enabled via --ifPrintROB: every in-flight instruction
+// in every thread's ROB, with its registers, physical-register mapping,
+// argProducers, and taint status.
+void
+ROB::print_robs()
+{
+    for (ThreadID tid : *activeThreads) {
+        printf("\nROB for thread %d\n", tid);
+        for (int i = 0; i < 50; i++)
+            printf("-");
+        printf("\n");
+
+        for (auto &inst : instList[tid]) {
+            printf("ptr=%p, [sn:%lu], inst=%s ", inst.get(), inst->seqNum,
+                    inst->staticInst->getName().c_str());
+            for (int j = 0; j < inst->numDestRegs(); j++)
+                printf("%d(%s), ", inst->destRegIdx(j).index(),
+                        inst->destRegIdx(j).className());
+            printf("| ");
+            for (int j = 0; j < inst->numSrcRegs(); j++)
+                printf("%d(%s), ", inst->srcRegIdx(j).index(),
+                        inst->srcRegIdx(j).className());
+            printf("| ");
+
+            for (int j = 0; j < inst->numDestRegs(); j++)
+                printf("destPhys[%d] = %d(%d), ", j,
+                        inst->renamedDestIdx(j)->index(),
+                        inst->renamedDestIdx(j)->flatIndex());
+            for (int j = 0; j < inst->numSrcRegs(); j++)
+                printf("srcPhys[%d] = %d(%d), ", j,
+                        inst->renamedSrcIdx(j)->index(),
+                        inst->renamedSrcIdx(j)->flatIndex());
+            printf("fenceDelay=%d, ", inst->fenceDelay());
+            printf("squash=%d, fault?=%d, ", inst->isSquashed(),
+                    inst->getFault() != NoFault);
+            printf("pendingSquash?=%d, ", inst->hasPendingSquash());
+            printf("status=");
+            if (inst->isCommitted())
+                printf("Committed, ");
+            else if (inst->readyToCommit()) {
+                if (inst->isExecuted())
+                    printf("CanCommit(Exec), ");
+                else
+                    printf("CanCommit(NonExec), ");
+            } else if (inst->isExecuted())
+                printf("Executed, ");
+            else if (inst->isIssued())
+                printf("Issued, ");
+            else
+                printf("Not Issued, ");
+            printf("unsquashable=%d, DestTainted=%d, ArgsTainted=%d, "
+                    "AddrTainted=%d, ",
+                    inst->isUnsquashable(), inst->isDestTainted(),
+                    inst->isArgsTainted(), inst->isAddrTainted());
+            printf("PrevBrsResolved=%d, PrevInstsCompleted=%d, ",
+                    inst->isPrevBrsResolved(),
+                    inst->isPrevInstsCompleted());
+            for (int j = 0; j < inst->numSrcRegs(); j++) {
+                DynInstPtr producer = inst->getArgProducer(j);
+                printf("Producer[%d] = %p ", j, producer.get());
+                if (producer)
+                    printf("[sn:%lu], ", producer->seqNum);
+            }
+            printf("\n");
+            for (int i = 0; i < 50; i++)
+                printf("-");
+            printf("\n");
+        }
+    }
 }
 
 void

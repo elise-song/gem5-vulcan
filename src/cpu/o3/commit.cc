@@ -1541,6 +1541,11 @@ Commit::markCompletedInsts()
     if (cpu->STT) {
         rob->compute_taint();
     }
+
+    // [STT] debug: dump the ROB's taint state every cycle.
+    if (cpu->ifPrintROB) {
+        rob->print_robs();
+    }
 }
 
 void

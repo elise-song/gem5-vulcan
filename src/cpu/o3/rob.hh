@@ -218,9 +218,9 @@ class ROB
      */
     void updateVisibleState();
 
-    /** [STT] (Re)computes taint (hasExplicitFlow/hasImplicitFlow/
-     * isAddrTainted/isArgsTainted/isDestTainted) for every in-flight
-     * instruction, in program order. Called once per cycle when cpu->STT.
+    /** [STT] (Re)computes taint (hasExplicitFlow/isAddrTainted/
+     * isArgsTainted/isDestTainted) for every in-flight instruction, in
+     * program order. Called once per cycle when cpu->STT.
      */
     void compute_taint();
 
@@ -228,6 +228,11 @@ class ROB
      * pending squash (an earlier mispredict/violation was deferred while
      * tainted) whose taint has now cleared, or nullptr if none. */
     DynInstPtr getResolvedPendingSquashInst(ThreadID tid);
+
+    /** [STT] Debug dump: prints every in-flight instruction in every
+     * thread's ROB, with register/producer and taint info. Enabled via
+     * --ifPrintROB. */
+    void print_robs();
 
     /** Reads the PC of the oldest head instruction. */
 //    uint64_t readHeadPC();
@@ -290,7 +295,6 @@ class ROB
     /** [STT] helpers for compute_taint(); called in program order. */
     void explicit_flow(ThreadID tid, InstIt instIt);
     void address_flow(ThreadID tid, InstIt instIt);
-    void implicit_flow(ThreadID tid, InstIt instIt);
 
     /** Pointer to the CPU. */
     CPU *cpu;
