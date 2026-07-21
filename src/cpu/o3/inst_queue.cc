@@ -1256,6 +1256,19 @@ InstructionQueue::getDeferredMemInstToExecute()
         // retry it once it's no longer fenceDelay-blocked. Loads deferred
         // by an in-flight hw page walk are handled by the existing
         // translationCompleted() check below.
+        // Three ways a deferred load can become retry-eligible:
+        //  (1) translationCompleted() -- pre-existing gem5 path: it was
+        //      deferred waiting on a hardware page-table walk, and that
+        //      walk has finished.
+        //  (2) isSquashed() -- pre-existing gem5 path: it's been squashed,
+        //      so just let it drain through rather than keep deferring it.
+        //  (3) STT path: it was deferred by IEW::executeInsts() purely
+        //      because inst->fenceDelay() was set (see
+        //      LSQUnit::updateVisibleState()) -- it never even attempted
+        //      translation (!translationStarted()), so
+        //      translationCompleted() will never fire for it. Instead,
+        //      retry it as soon as fenceDelay() has cleared (i.e. the load
+        //      untainted, or became unsquashable in the no-STT fallback).
         if ((*it)->translationCompleted() || (*it)->isSquashed() ||
             (!(*it)->translationStarted() && !(*it)->fenceDelay())) {
             DynInstPtr mem_inst = std::move(*it);
@@ -1545,6 +1558,10 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
     // (div/sqrt/fp) are additionally treated as transmitters: a tainted
     // one that's otherwise ready is parked on the taint-stall list
     // instead of the ready list, until wakeUntaintInsts() releases it.
+    // Pick which readiness check applies: the taint-aware
+    // readyToIssue_UT() (register-ready AND, for certain op classes,
+    // untainted) when the moreTransmitInsts mode is active, otherwise the
+    // plain register-readiness-only readyToIssue().
     bool ready = (cpu->STT && cpu->moreTransmitInsts) ? inst->readyToIssue_UT()
                                                       : inst->readyToIssue();
 
@@ -1582,7 +1599,14 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
         }
     } else if (cpu->STT && cpu->moreTransmitInsts && inst->readyToIssue()) {
         // [STT] ready but tainted: park it until it untaints.
+        // We only get here if readyToIssue_UT() said "not ready" above but
+        // plain readyToIssue() says its registers actually are all ready
+        // -- i.e. the *only* reason it's not ready is the taint check
+        // inside readyToIssue_UT(), so it must currently be tainted.
         assert(inst->isArgsTainted());
+        // Avoid double-adding it to the stall list if it's already there
+        // (addIfReady() can be called on the same instruction more than
+        // once, e.g. once per source register that becomes ready).
         if (!inst->isInStallList()) {
             inst->addToStallList();
             stalledTaintedInstList[inst->threadNumber].push_back(inst);
@@ -1590,24 +1614,38 @@ InstructionQueue::addIfReady(const DynInstPtr &inst)
     }
 }
 
-// [STT]
+// [STT] Called once per cycle from IEW::wakeUntaintInsts() (only when
+// cpu->STT && cpu->moreTransmitInsts), after execute/writeback, to move any
+// instruction sitting on the taint-stall list back onto the normal ready
+// lists once it's no longer blocked.
 void
 InstructionQueue::wakeUntaintInsts()
 {
     assert(cpu->STT && cpu->moreTransmitInsts);
 
     for (ThreadID tid = 0; tid < numThreads; tid++) {
+        // Iterate with a manually-advanced iterator (not range-for)
+        // because entries are erased from the list mid-loop.
         for (auto it = stalledTaintedInstList[tid].begin();
              it != stalledTaintedInstList[tid].end();) {
             DynInstPtr inst = *it;
             if (inst->isSquashed()) {
+                // No longer relevant -- drop it from the stall list
+                // without trying to issue it.
                 inst->removeFromStallList();
                 it = stalledTaintedInstList[tid].erase(it);
             } else if (inst->readyToIssue_UT()) {
+                // It's untainted now (or its registers/taint state
+                // changed such that the taint-aware check now passes):
+                // take it off the stall list and route it back through
+                // addIfReady(), which will now take the "ready" branch
+                // above and push it onto the real ready list for its op
+                // class.
                 inst->removeFromStallList();
                 addIfReady(inst);
                 it = stalledTaintedInstList[tid].erase(it);
             } else {
+                // Still tainted -- leave it parked and move on.
                 ++it;
             }
         }

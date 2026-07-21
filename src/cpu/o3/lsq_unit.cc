@@ -1293,10 +1293,16 @@ LSQUnit::checkStaleTranslations() const
     return false;
 }
 
-// [STT]
+// [STT] Called once per cycle from IEW::tick(), before executeInsts()
+// decides what to issue this cycle. Sets FenceDelay on every in-flight
+// load so that IEW::executeInsts() knows, this cycle, which loads must not
+// be allowed to touch memory yet.
 void
 LSQUnit::updateVisibleState()
 {
+    // Walk every valid entry in this thread's load queue (not just ready
+    // ones -- a load that hasn't issued yet still needs its FenceDelay bit
+    // kept current, since it's about to be checked in executeInsts()).
     for (auto &entry : loadQueue) {
         if (!entry.valid()) {
             continue;
@@ -1305,15 +1311,30 @@ LSQUnit::updateVisibleState()
 
         if (cpu->protectionEnabled) {
             if (cpu->STT) {
+                // STT enabled: only delay a load while its own
+                // args/address are tainted (isArgsTainted(), refreshed
+                // this same cycle by ROB::compute_taint() before IEW
+                // runs). This is the precise, taint-driven delay -- an
+                // untainted load may issue immediately even if it's still
+                // speculative/squashable.
                 inst->fenceDelay(inst->isArgsTainted());
             } else {
                 // No STT: block every speculative load until it can no
                 // longer be squashed (the coarse "block all speculative
                 // transmitters" fallback).
+                // Without taint tracking, there's no way to tell a
+                // "dangerous" speculative load from a "safe" one, so this
+                // is the conservative alternative: delay *every*
+                // speculative load (one that could still be squashed)
+                // regardless of taint, and only let it through once
+                // isUnsquashable(). This is strictly more conservative
+                // (and slower) than the STT=1 case above.
                 inst->fenceDelay(!inst->isUnsquashable());
             }
         } else {
             // UnsafeBaseline: no protection.
+            // No threat model is being defended against at all -- never
+            // delay a load's memory access.
             inst->fenceDelay(false);
         }
     }

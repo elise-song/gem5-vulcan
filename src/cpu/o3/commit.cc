@@ -596,7 +596,12 @@ Commit::squashAfter(ThreadID tid, const DynInstPtr &head_inst)
     squashAfterInst[tid] = head_inst;
 }
 
-// [STT]
+// [STT] This is the pre-existing "act on a squash IEW signalled this cycle"
+// logic, factored out of Commit::commit() verbatim into its own function so
+// it can be called from two places: directly, when the squash is safe to
+// act on immediately (see the call site in Commit::commit()), or not at
+// all this cycle, if it needs to be deferred instead (in which case
+// handleSquashSignalFromROB() below runs later once it's safe).
 void
 Commit::handleSquashSignalFromIEW(ThreadID tid)
 {
@@ -652,7 +657,18 @@ Commit::handleSquashSignalFromIEW(ThreadID tid)
     set(toIEW->commitInfo[tid].pc, fromIEW->pc[tid]);
 }
 
-// [STT]
+// [STT] Acts on a squash that was deferred earlier (hasPendingSquash was
+// set instead of squashing immediately, either by IEW::executeInsts() for
+// a tainted branch mispredict, or by Commit::commit() for a tainted
+// squash-causing instruction under --implicit_channel) and has now
+// untainted, per ROB::getResolvedPendingSquashInst(). This mirrors
+// handleSquashSignalFromIEW() above, but it can't just reuse fromIEW's
+// saved state: fromIEW only holds *this cycle's* signal, and the squash
+// being resolved here may have been signalled several cycles ago (whenever
+// it was originally deferred) and then overwritten by newer, unrelated
+// fromIEW traffic since. So everything handleSquashSignalFromIEW() would
+// have read from fromIEW, this reconstructs directly from pendingMispInst
+// itself.
 void
 Commit::handleSquashSignalFromROB(ThreadID tid,
                                   const DynInstPtr &pendingMispInst)
@@ -664,20 +680,38 @@ Commit::handleSquashSignalFromROB(ThreadID tid,
             "be resolved now\n",
             tid, pendingMispInst->seqNum, pendingMispInst->pcState());
 
+    // Clone the instruction's own PC state as the starting point for the
+    // redirect target; for a branch it gets advanced below, for a load
+    // it's used as-is (redirect to the violating load itself, so it and
+    // everything after it gets re-fetched/re-executed).
     std::unique_ptr<PCStateBase> nextPC(pendingMispInst->pcState().clone());
 
+    // A pending squash can only have been set on a branch mispredict (see
+    // IEW::executeInsts()) or a load order-violation (see
+    // Commit::commit()'s cpu->STT && cpu->impChannel branch below) --
+    // those are the only two paths that ever call hasPendingSquash(true).
     if (pendingMispInst->isControl()) {
         DPRINTF(Commit,
                 "[tid:%i] [STT] Squashing due to branch mispred PC:%#x "
                 "[sn:%llu]\n",
                 tid, pendingMispInst->pcState().instAddr(),
                 pendingMispInst->seqNum);
+        // For a mispredicted branch, the correct redirect target is the
+        // instruction *after* the branch on the correct path, i.e. advance
+        // past it -- mirrors what squashDueToBranch() does in IEW at the
+        // time of the original (deferred) mispredict.
         pendingMispInst->staticInst->advancePC(*nextPC);
     } else if (pendingMispInst->isLoad()) {
         DPRINTF(Commit,
                 "[tid:%i] [STT] Squashing due to order violation [sn:%llu]\n",
                 tid, pendingMispInst->seqNum);
+        // For a load order violation, nextPC stays as the load's own PC
+        // (unmodified) -- the load itself must be re-executed, matching
+        // squashDueToMemOrder()'s use of the violating instruction's own
+        // pcState() as the redirect target.
     } else {
+        // No other instruction type can carry hasPendingSquash -- if this
+        // fires, some code path is setting the flag incorrectly.
         panic("Pending squash on non-control, non-load inst [sn:%llu]",
               pendingMispInst->seqNum);
     }
@@ -689,10 +723,21 @@ Commit::handleSquashSignalFromROB(ThreadID tid,
 
     InstSeqNum squashed_inst = pendingMispInst->seqNum;
 
+    // Mirrors includeSquashInst[tid] in handleSquashSignalFromIEW(): a
+    // load order violation must include the violating load itself in the
+    // squash (it has to re-execute), so back the boundary up by one,
+    // exactly like squashDueToMemOrder() setting includeSquashInst=true. A
+    // mispredicted branch, by contrast, is not itself squashed -- only
+    // everything fetched after it -- so no adjustment for the control
+    // case.
     if (pendingMispInst->isLoad()) {
         squashed_inst--;
     }
 
+    // From here down this is the same bookkeeping as
+    // handleSquashSignalFromIEW(): mark the youngest surviving sequence
+    // number, drive the ROB squash, and fill in the signal sent back to
+    // IEW.
     youngestSeqNum[tid] = squashed_inst;
 
     rob->squash(squashed_inst, tid);
@@ -704,6 +749,11 @@ Commit::handleSquashSignalFromROB(ThreadID tid,
 
     if (pendingMispInst->isControl()) {
         toIEW->commitInfo[tid].mispredictInst = pendingMispInst;
+        // branching() reports whether the branch's own resolved outcome
+        // was taken -- used downstream (e.g. by the branch predictor
+        // update path) the same way fromIEW->branchTaken[tid] would have
+        // been, had this squash been acted on immediately instead of
+        // deferred.
         toIEW->commitInfo[tid].branchTaken =
             pendingMispInst->pcState().branching();
     } else {
@@ -918,6 +968,17 @@ Commit::commit()
             // violation, or a branch mispredict that reached this point
             // still tainted) is itself an observable signal, so defer it
             // until the instruction untaints instead of acting on it now.
+            // Only relevant when both cpu->STT (taint tracking is active
+            // at all) and cpu->impChannel (the implicit/control-flow
+            // channel specifically is being protected) are set --
+            // otherwise fall straight through to the normal, immediate
+            // squash path.
+            // instCausingSquash[tid] is either the mispredicted branch
+            // itself, or the memory-order violator, set alongside
+            // mispredictInst/squashedSeqNum in
+            // IEW::squashDueToBranch()/squashDueToMemOrder() (see
+            // comm.hh) -- checking *its* taint is what decides whether
+            // squashing on it right now would leak the tainted condition.
             if (cpu->STT && cpu->impChannel &&
                 fromIEW->instCausingSquash[tid]->isArgsTainted()) {
                 DPRINTF(Commit,
@@ -925,18 +986,41 @@ Commit::commit()
                         "[sn:%llu] PC %s is tainted, marking pending.\n",
                         tid, fromIEW->instCausingSquash[tid]->seqNum,
                         fromIEW->instCausingSquash[tid]->pcState());
+                // Don't squash now: just record that this instruction has
+                // a squash waiting on it. Nothing else changes this
+                // cycle -- commitStatus[tid] stays whatever it was, and
+                // the ROB is left untouched, so the tainted instruction
+                // and everything around it simply continues on as if no
+                // squash had been signalled, until it untaints.
                 fromIEW->instCausingSquash[tid]->hasPendingSquash(true);
             } else {
+                // Either STT/implicit-channel protection doesn't apply
+                // here, or the squash-causing instruction is already
+                // untainted -- safe to act on the squash immediately, via
+                // the same logic as the non-STT baseline.
                 handleSquashSignalFromIEW(tid);
             }
         } else if (cpu->STT) {
             // [STT] No incoming squash this cycle: check whether a
             // previously-deferred pending squash has now untainted.
+            // (This branch runs whenever cpu->STT is set, regardless of
+            // impChannel, because a tainted branch mispredict can also be
+            // deferred directly by IEW::executeInsts() -- see the
+            // hasPendingSquash(true) there -- independent of the
+            // implicit-channel-specific deferral above.)
             DynInstPtr resolvedPendingSquashInst =
                 rob->getResolvedPendingSquashInst(tid);
+            // Guard conditions mirror the ordinary squash path above:
+            // don't act while a trap is pending, and don't let an older
+            // deferred squash apply past instructions that are already
+            // younger than the current ROB tail (youngestSeqNum) -- both
+            // safety checks that also gate the immediate-squash branch.
             if (resolvedPendingSquashInst &&
                 commitStatus[tid] != TrapPending &&
                 resolvedPendingSquashInst->seqNum <= youngestSeqNum[tid]) {
+                // Clear the pending flag first so readyToCommit() and any
+                // re-entrant checks inside handleSquashSignalFromROB() see
+                // it as already resolved, then perform the actual squash.
                 resolvedPendingSquashInst->hasPendingSquash(false);
                 handleSquashSignalFromROB(tid, resolvedPendingSquashInst);
             }
@@ -1442,9 +1526,18 @@ Commit::markCompletedInsts()
     }
 
     // [STT] update isPrevInstsCompleted/isPrevBrsResolved (-> isUnsquashable)
+    // This must run every cycle regardless of cpu->STT: even the no-STT
+    // protected fallback in LSQUnit::updateVisibleState() (block every
+    // speculative load until unsquashable) depends on isUnsquashable()
+    // being kept current.
     rob->updateVisibleState();
 
     // [STT] (re)compute taint for every in-flight instruction
+    // Only meaningful (and only run) when STT itself is enabled -- taint
+    // tracking is what STT specifically adds on top of the coarser
+    // "block everything speculative" baseline. Must run after
+    // updateVisibleState() above, since compute_taint()'s
+    // access-instruction-is-a-taint-root rule reads isUnsquashable().
     if (cpu->STT) {
         rob->compute_taint();
     }
