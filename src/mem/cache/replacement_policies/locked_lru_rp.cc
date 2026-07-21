@@ -83,7 +83,7 @@ LockedLRU::getVictim(const ReplacementCandidates& candidates) const
             continue;
         }
         if (victim == nullptr) {
-            victim = candidate; 
+            victim = candidate;
             continue;
         }
         // Update victim entry if necessary
@@ -109,7 +109,7 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
                 const ReplacementCandidates& candidates)
 {
     auto data = std::static_pointer_cast<PartitionData>(replacement_data);
-    if (data -> locked) 
+    if (data -> locked)
         return;
     int count = 0;
     for (const auto& candidate: candidates) {
@@ -121,7 +121,7 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
         warn("not enough unlocked ways did not lock");
         return;
     }
-    data->unlocked = false;
+    data->locked = true;
 }
 
 void

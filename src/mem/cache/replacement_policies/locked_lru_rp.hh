@@ -54,12 +54,11 @@ class LockedLRU : public Base
         /** Tick on which the entry was last touched. */
         Tick lastTouchTick;
         int locked;
-        int unlocked;
 
         /**
          * Default constructor. Invalidate data.
          */
-        PartitionData() : lastTouchTick(0), locked(0), unlocked(1) {}
+        PartitionData() : lastTouchTick(0), locked(0) {}
     };
 
   public:
