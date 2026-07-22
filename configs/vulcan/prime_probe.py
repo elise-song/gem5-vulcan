@@ -7,6 +7,8 @@ from just_dcache_hierarchy2 import JustDCacheHierarchy
 from prime_probe_generator import PrimeProbeGenerator
 from _m5 import sim as m5sim
 import math
+import random
+import sys
 
 # usage: gem5.opt run_prime_probe.py <num_accesses> <cache_size> <lock_mode> <assoc> [seed]
 #   lock_mode: locked | unlocked | nolock
@@ -56,7 +58,7 @@ cache_hierarchy = JustDCacheHierarchy(
 )
 memory = SingleChannelDDR3_1600(size="4GiB")
 
-generator = PrimeProbeGenerator(victim_accesses, num_sets)
+generator = PrimeProbeGenerator(victim_accesses, num_sets, assoc)
 
 board = TestBoard(
     clk_freq="3GHz",

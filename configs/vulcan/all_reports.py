@@ -9,13 +9,13 @@ import csv
 #   output_prefix: prefix for output files (default: configs/vulcan/data/summary)
 #
 # Expects report filenames of the form:
-#   <size>.assoc<N>.<i>.report.txt
-# e.g. 16KiB.assoc2.3.report.txt
+#   <size>.assoc<N>.<lock_mode>.<i>.report.txt
+# e.g. 16KiB.assoc2.locked.3.report.txt
 #
 # Each report file is expected to contain a line:
 #   success_rate = <num>/<den> = <float>
 
-FILENAME_RE = re.compile(r"^(.+)\.assoc(\d+)\.(\d+)\.report\.txt$")
+FILENAME_RE = re.compile(r"^(.+)\.assoc(\d+)\.(locked|nolock|unlocked)\.(\d+)\.report\.txt$")
 RATE_RE = re.compile(r"success_rate\s*=\s*\d+/\d+\s*=\s*([0-9.]+)")
 
 SIZE_ORDER = {
@@ -56,7 +56,7 @@ def main():
         print(f"No report files found matching {pattern}")
         return
 
-    # results[(size, assoc)] = list of rates
+    # results[(size, assoc, lock_mode)] = list of rates
     results = {}
 
     for path in files:
@@ -66,7 +66,7 @@ def main():
             print(f"Skipping unrecognized filename: {fname}")
             continue
 
-        size, assoc_str, idx_str = m.groups()
+        size, assoc_str, lock_mode, idx_str = m.groups()
         assoc = int(assoc_str)
 
         rate = parse_rate_from_file(path)
@@ -74,19 +74,26 @@ def main():
             print(f"Could not parse success_rate from {path}")
             continue
 
-        results.setdefault((size, assoc), []).append(rate)
+        results.setdefault((size, assoc, lock_mode), []).append(rate)
 
     if not results:
         print("No valid results parsed.")
         return
 
-    rows = []
-    for (size, assoc), rates in results.items():
+    # pivot[(size, assoc)][lock_mode] = (n, avg)
+    pivot = {}
+    for (size, assoc, lock_mode), rates in results.items():
         avg = sum(rates) / len(rates)
-        rows.append((size, assoc, len(rates), avg))
+        pivot.setdefault((size, assoc), {})[lock_mode] = (len(rates), avg)
+
+    lock_modes_present = sorted({lm for _, _, lm in results.keys()})
+
+    rows = []
+    for (size, assoc), by_mode in pivot.items():
+        rows.append((size, assoc, by_mode))
 
     def sort_key(row):
-        size, assoc, _, _ = row
+        size, assoc, _ = row
         size_bytes = SIZE_ORDER.get(size, float("inf"))
         return (size_bytes, assoc)
 
@@ -95,18 +102,50 @@ def main():
     csv_path = out_prefix + ".csv"
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["cache_size", "assoc", "num_runs", "avg_success_rate"])
-        for size, assoc, n, avg in rows:
-            writer.writerow([size, assoc, n, f"{avg:.4f}"])
+        header = ["cache_size", "assoc"]
+        for lm in lock_modes_present:
+            header += [f"{lm}_avg_success_rate", f"{lm}_num_runs"]
+        if "locked" in lock_modes_present and "nolock" in lock_modes_present:
+            header.append("nolock_minus_locked")
+        writer.writerow(header)
+        for size, assoc, by_mode in rows:
+            row = [size, assoc]
+            for lm in lock_modes_present:
+                n, avg = by_mode.get(lm, (0, None))
+                row += [f"{avg:.4f}" if avg is not None else "", n]
+            if "locked" in lock_modes_present and "nolock" in lock_modes_present:
+                locked_avg = by_mode.get("locked", (0, None))[1]
+                nolock_avg = by_mode.get("nolock", (0, None))[1]
+                if locked_avg is not None and nolock_avg is not None:
+                    row.append(f"{nolock_avg - locked_avg:.4f}")
+                else:
+                    row.append("")
+            writer.writerow(row)
 
     print(f"Wrote summary CSV to {csv_path}")
 
     txt_path = out_prefix + ".txt"
     with open(txt_path, "w") as f:
-        f.write(f"{'cache_size':<10} {'assoc':<6} {'num_runs':<9} {'avg_success_rate':<18}\n")
-        f.write("-" * 45 + "\n")
-        for size, assoc, n, avg in rows:
-            f.write(f"{size:<10} {assoc:<6} {n:<9} {avg:<18.4f}\n")
+        col_headers = ["cache_size", "assoc"]
+        for lm in lock_modes_present:
+            col_headers.append(f"{lm}_avg")
+        if "locked" in lock_modes_present and "nolock" in lock_modes_present:
+            col_headers.append("nolock-locked")
+        f.write("".join(f"{h:<16}" for h in col_headers) + "\n")
+        f.write("-" * (16 * len(col_headers)) + "\n")
+        for size, assoc, by_mode in rows:
+            cells = [size, str(assoc)]
+            for lm in lock_modes_present:
+                n, avg = by_mode.get(lm, (0, None))
+                cells.append(f"{avg:.4f}" if avg is not None else "n/a")
+            if "locked" in lock_modes_present and "nolock" in lock_modes_present:
+                locked_avg = by_mode.get("locked", (0, None))[1]
+                nolock_avg = by_mode.get("nolock", (0, None))[1]
+                if locked_avg is not None and nolock_avg is not None:
+                    cells.append(f"{nolock_avg - locked_avg:+.4f}")
+                else:
+                    cells.append("n/a")
+            f.write("".join(f"{c:<16}" for c in cells) + "\n")
 
     print(f"Wrote summary table to {txt_path}")
 
@@ -119,28 +158,40 @@ def main():
               "Install with: pip install matplotlib --break-system-packages")
         return
 
+    # by_assoc[assoc][lock_mode] = list of (size_bytes, size_str, avg)
     by_assoc = {}
-    for size, assoc, n, avg in rows:
-        by_assoc.setdefault(assoc, []).append((SIZE_ORDER.get(size, 0), size, avg))
+    for size, assoc, by_mode in rows:
+        for lm, (n, avg) in by_mode.items():
+            by_assoc.setdefault(assoc, {}).setdefault(lm, []).append(
+                (SIZE_ORDER.get(size, 0), size, avg)
+            )
 
-    fig, ax = plt.subplots(figsize=(8, 5))
+    fig, ax = plt.subplots(figsize=(9, 6))
 
-    for assoc in sorted(by_assoc.keys()):
-        points = sorted(by_assoc[assoc], key=lambda p: p[0])
-        xs = [p[0] for p in points]
-        ys = [p[2] for p in points]
-        labels = [p[1] for p in points]
-        ax.plot(xs, ys, marker="o", label=f"assoc={assoc}")
+    colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+    linestyles = {"locked": "-", "nolock": "--", "unlocked": ":"}
+
+    for idx, assoc in enumerate(sorted(by_assoc.keys())):
+        color = colors[idx % len(colors)]
+        for lm in lock_modes_present:
+            points = sorted(by_assoc[assoc].get(lm, []), key=lambda p: p[0])
+            if not points:
+                continue
+            xs = [p[0] for p in points]
+            ys = [p[2] for p in points]
+            ax.plot(xs, ys, marker="o", color=color,
+                     linestyle=linestyles.get(lm, "-."),
+                     label=f"assoc={assoc}, {lm}")
 
     ax.set_xscale("log", base=2)
     ax.set_xlabel("Cache size (bytes)")
-    ax.set_ylabel("Average attacker-success rate\n(fraction of secrets visible during probe)")
-    ax.set_title("Prime+Probe visibility vs cache size and associativity\n(locked_lru, every secret locked)")
+    ax.set_ylabel("Average attacker-success rate\n(fraction of secrets whose reaccess missed)")
+    ax.set_title("Prime+Probe visibility vs cache size and associativity\n(locked_lru: locked vs nolock)")
     ax.set_ylim(-0.05, 1.05)
-    ax.legend(title="Associativity")
+    ax.legend(title="Config", fontsize=8)
     ax.grid(True, which="both", linestyle="--", alpha=0.5)
 
-    all_sizes = sorted(set((SIZE_ORDER.get(size, 0), size) for size, _, _, _ in rows))
+    all_sizes = sorted(set((SIZE_ORDER.get(size, 0), size) for size, _, _ in rows))
     ax.set_xticks([s[0] for s in all_sizes])
     ax.set_xticklabels([s[1] for s in all_sizes], rotation=45, ha="right")
 

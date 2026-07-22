@@ -11,65 +11,48 @@ def parse_victim_accesses(first_line):
         return []
     return [int(x.strip(), 16) for x in inner.split(",")]
 
-#success_rate = fraction of secrets that yielded a miss among the victims
+#success_rate = fraction of secrets whose reaccess (after the prime phase)
+#missed, i.e. was evicted despite (supposed) locking.
+
 def check_mapping(victim_accesses, debug_file, out_file, num_accesses, num_sets):
     if len(victim_accesses) == 0:
         return 0.0
 
     set_mask = num_sets - 1
-
-    total_accesses = 2 * num_accesses + 2 * num_sets
-    probe_start = 2 * num_accesses + num_sets + 1
-    probe_end = total_accesses
-
     victim_sets = [(addr >> 6) & set_mask for addr in victim_accesses]
 
-    visible_sets = set()
+    # addr_str -> number of "access for Read/WriteReq [addr_str:...]" lines
+    # seen so far for that address. The 2nd occurrence of a victim's address
+    # is its reaccess (the 1st is the initial warm-up access).
+    seen_count = {}
+    reaccess_missed = {}
 
-    access_count = 0
-    missed_addr = None
+    addr_strs = [format(addr, "x") for addr in victim_accesses]
+    addr_str_to_secret = dict(zip(addr_strs, victim_accesses))
 
     with open(debug_file, "r") as f:
         for line in f:
-            if "access for ReadReq" in line or "access for WriteReq" in line:
-                access_count += 1
+            if "access for ReadReq" not in line and "access for WriteReq" not in line:
+                continue
 
-                if access_count > total_accesses:
-                    break
+            bracket_split = line.split("[")[1]
+            addr_str = bracket_split.split(":")[0]
 
-                if "miss" in line:
-                    bracket_split = line.split("[")[1]
-                    addr_str = bracket_split.split(":")[0]
-                    missed_addr = int(addr_str, 16)
-                else:
-                    missed_addr = None
+            if addr_str not in addr_str_to_secret:
+                continue
 
-            if (probe_start <= access_count <= probe_end
-                    and missed_addr is not None
-                    and "Block addr" in line and "set:" in line):
+            seen_count[addr_str] = seen_count.get(addr_str, 0) + 1
+            if seen_count[addr_str] == 2:
+                reaccess_missed[addr_str] = "miss" in line
 
-                set_split = line.split("set:")[1]
-                set_value = set_split.split()[0]
-                miss_set = int(set_value, 16)
-
-                visible_sets.add(miss_set)
-                missed_addr = None
-
-    visible = [vs in visible_sets for vs in victim_sets]
+    visible = [reaccess_missed.get(s, False) for s in addr_strs]
     successes = sum(1 for v in visible if v)
     success_rate = successes / len(victim_accesses)
 
     with open(out_file, "w") as w:
         w.write('victim_accesses = [{}]\n'.format(
             ', '.join(hex(x) for x in victim_accesses)))
-        w.write(
-            f"num_accesses={num_accesses} num_sets={num_sets} "
-            f"total_accesses={total_accesses} "
-            f"probe_window=[{probe_start},{probe_end}]\n\n"
-        )
-
-        w.write("visible_sets (saw a miss during probe) = [{}]\n\n".format(
-            ', '.join(hex(s) for s in sorted(visible_sets))))
+        w.write(f"num_accesses={num_accesses} num_sets={num_sets}\n\n")
 
         for idx, secret in enumerate(victim_accesses):
             status = "VISIBLE" if visible[idx] else "HIDDEN"
@@ -101,4 +84,5 @@ if __name__ == "__main__":
 
     victim_accesses = parse_victim_accesses(first_line)
 
-    rate = check_mapping(victim_accesses, debug_file, out_file, num_accesses, num_sets)
+    rate = check_mapping(victim_accesses, debug_file, out_file, num_accesses,
+                          num_sets)

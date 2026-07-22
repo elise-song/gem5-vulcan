@@ -19,6 +19,7 @@ declare -A sizes=(
 )
 
 assocs=(1 2 4 8)
+lock_modes=(locked nolock)
 
 num_runs=$1       # number of repeated runs per (size, assoc) combo
 num_accesses=$2  # number of secrets per run
@@ -31,14 +32,16 @@ for size in "${!sizes[@]}"; do
         fi
         num_sets=$(( total_blocks / assoc ))
 
-        for ((i = 0 ; i < num_runs ; i++ )); do
-            outprefix="configs/vulcan/data/${size}.assoc${assoc}.${i}"
-            build/X86/gem5.opt --debug-flags=Cache \
-                configs/vulcan/prime_probe.py $num_accesses $size locked $assoc $i \
-                > "${outprefix}.debug.txt" 2>&1
-            python3 configs/vulcan/report2.py \
-                "${outprefix}.debug.txt" "${outprefix}.report.txt" \
-                $num_accesses $num_sets
+        for lock_mode in "${lock_modes[@]}"; do
+            for ((i = 0 ; i < num_runs ; i++ )); do
+                outprefix="configs/vulcan/data/${size}.assoc${assoc}.${lock_mode}.${i}"
+                build/X86/gem5.opt --debug-flags=Cache \
+                    configs/vulcan/prime_probe.py $num_accesses $size $lock_mode $assoc $i \
+                    > "${outprefix}.debug.txt" 2>&1
+                python3 configs/vulcan/report2.py \
+                    "${outprefix}.debug.txt" "${outprefix}.report.txt" \
+                    $num_accesses $num_sets
+            done
         done
     done
 done
