@@ -75,23 +75,17 @@ LockedLRU::getVictim(const ReplacementCandidates& candidates) const
     // There must be at least one replacement candidate
     assert(candidates.size() > 0);
     ReplaceableEntry* victim = nullptr;
+    Tick victimTick = 0;
     // Visit all candidates to find victim
     for (const auto& candidate : candidates) {
-        auto data = std::static_pointer_cast<PartitionData>(
-            candidate->replacementData);
+        const auto *data =
+            static_cast<PartitionData *>(candidate->replacementData.get());
         if (data->locked) {
             continue;
         }
-        if (victim == nullptr) {
+        if (victim == nullptr || data->lastTouchTick < victimTick) {
             victim = candidate;
-            continue;
-        }
-        // Update victim entry if necessary
-        if (std::static_pointer_cast<PartitionData>(
-                    candidate->replacementData)->lastTouchTick <
-                std::static_pointer_cast<PartitionData>(
-                    victim->replacementData)->lastTouchTick) {
-            victim = candidate;
+            victimTick = data->lastTouchTick;
         }
     }
 
