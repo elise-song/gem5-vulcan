@@ -14,22 +14,29 @@ namespace o3
 class RegFile
 {
     int freeCount;
+    RegVal free[NUM_PREGS];
+    RegVal *freeHead, *freeTail;
+
 
     void init() {
-        freeCount = NUM_PREGS;
+        RegVal* pregs = calloc(NUM_PREGS, sizeof(RegVal));
+        freeHead = freeTail = 0;
+        for(int i = 0; i < NUM_PREGS; i++) {
+            free[i] = pregs + i*sizeof(RegVal);
+        }
     }
 
     int rename(int pid, RegId areg) {
-        if(freeCount == 0) return STALL;
-        RegVal* preg = (RegVal*) calloc(1, sizeof(RegVal));
-        freeCount--;
+        if(freeHead == freeTail) return STALL;
+        RegVal preg = free[freeHead];
+        freeHead = (freeHead + 1) % NUM_PREGS;
         map[pid][areg] = preg;
         return 0;
     }
 
-    void free(RegVal* preg) {
-        ::free(preg);
-        freeCount++;
+    void free(PhysRegIdPtr preg) {
+        free[freeTail] = preg;
+        freeTail = (freeTail + 1) % NUM_PREGS;
     }
 };
 }
