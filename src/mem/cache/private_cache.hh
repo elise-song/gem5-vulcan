@@ -13,7 +13,7 @@ class PrivateCache : public Cache {
         int pPage = pageLookup(vPage, pid);
         Addr pLineAddr = (((pPage << OFFSET_BITS) + offset) << PID_BITS) + pid;
         int tag = pLineAddr >> SET_BITS;
-        int set = pLineAddr & ((1 << SET_BITS) - 1);
+        int set = vLineAddr & ((1 << SET_BITS) - 1);
     }
 };
 }
