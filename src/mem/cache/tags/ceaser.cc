@@ -43,6 +43,17 @@ Ceaser::Ceaser(const Params &p)
         }
     }
 
+    // Precompute substitute()'s per-position XOR masks
+    for (int i = 0; i < num_stages; i++) {
+        for (int j = 0; j < ceaser_size; j++) {
+            uint32_t mask = 0;
+            for (int pos : sbox[i][j]) {
+                mask |= (1u << pos);
+            }
+            sboxMask[i][j] = mask;
+        }
+    }
+
     // Build string for sbox and pbox
     std::stringstream ss;
     ss << "\nS-box:\n{";
@@ -76,11 +87,8 @@ uint16_t
 Ceaser::substitute(const uint32_t input, int stage) const
 {
     uint16_t output = 0;
-    for (auto s : sbox[stage]){
-        uint8_t bit = 0;
-        for (auto pos : s){
-            bit = bit ^ ((input >> pos) & 1);
-        }
+    for (int j = 0; j < ceaser_size; j++) {
+        uint8_t bit = __builtin_parity(input & sboxMask[stage][j]);
         output = (output << 1) | bit;
     }
     return output;
