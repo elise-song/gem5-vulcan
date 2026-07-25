@@ -23,19 +23,24 @@ Ceaser::Ceaser(const Params &p)
     std::uniform_int_distribution<uint32_t> dist32(0, 0xFFFFFFFF); // 32-bit
     std::uniform_int_distribution<uint16_t> dist16(0, 0xFFFF);     // 16-bit
 
+    if (!boxFile.empty()) {
+        parseBoxFile(boxFile);
+    }
     // generate random sbox and pbox
     for (int i = 0; i < num_stages; i++){
         ceaser_key[i] = dist16(generator);
-        for (int j = 0; j < ceaser_size; j++) {
-            sbox[i][j] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
-                          11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-                          22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
-            std::shuffle(sbox[i][j].begin(), sbox[i][j].end(), generator);
-            sbox[i][j].erase(sbox[i][j].begin() + ceaser_size,
-                             sbox[i][j].end());
+        if (boxFile.empty()) {
+            for (int j = 0; j < ceaser_size; j++) {
+                sbox[i][j] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10,
+                              11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+                              22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+                std::shuffle(sbox[i][j].begin(), sbox[i][j].end(), generator);
+                sbox[i][j].erase(sbox[i][j].begin() + ceaser_size,
+                                 sbox[i][j].end());
+            }
+            pbox[i] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+            std::shuffle(pbox[i].begin(), pbox[i].end(), generator);
         }
-        pbox[i] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-        std::shuffle(pbox[i].begin(), pbox[i].end(), generator);
     }
 
     // Build string for sbox and pbox
