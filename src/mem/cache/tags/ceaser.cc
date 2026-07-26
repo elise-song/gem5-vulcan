@@ -43,6 +43,22 @@ Ceaser::Ceaser(const Params &p)
         }
     }
 
+    // Precompute permutate()'s rearrangement according to the fixed pbox, so
+    // it becomes a single array lookup instead of a 16 iteration loop.
+    for (int s = 0; s < num_stages; s++) {
+        permuteLUT[s].resize(1u << ceaser_size);
+        for (uint32_t in = 0; in < (1u << ceaser_size); in++) {
+            uint16_t output = 0;
+            int i = 0;
+            for (auto p : pbox[s]) {
+                uint16_t bit = ((in >> i) & 1) << p;
+                output = output | bit;
+                i++;
+            }
+            permuteLUT[s][in] = output;
+        }
+    }
+
     // Build string for sbox and pbox
     std::stringstream ss;
     ss << "\nS-box:\n{";
@@ -89,14 +105,7 @@ Ceaser::substitute(const uint32_t input, int stage) const
 uint16_t
 Ceaser::permutate(const uint16_t input, int stage) const
 {
-    int i = 0;
-    uint16_t output = 0;
-    for (auto p : pbox[stage]) {
-        uint16_t bit = ((input >> i) & 1) << p;
-        output = output | bit;
-        i++;
-    }
-    return output;
+    return permuteLUT[stage][input];
 }
 
 uint16_t

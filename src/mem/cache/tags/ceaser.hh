@@ -37,6 +37,9 @@ class Ceaser : public TaggedIndexingPolicy
       //   {0, 1, 11, 8, 9, 2, 7, 6, 4, 3, 10, 5, },
       // };
 
+      // Precomputed permutate() results for every possible 16-bit input
+      std::vector<uint16_t> permuteLUT[4];
+
       const std::string boxFile;
 
       uint32_t encrypt(const uint32_t line_addr) const;
