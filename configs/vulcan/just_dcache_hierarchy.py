@@ -30,14 +30,20 @@ class DCache(Cache):
     tags = BaseSetAssoc()
     tags.indexing_policy = Ceaser()
 
-    def __init__(self, ceaser, size):
+    def __init__(self, ceaser, size, box_file=None):
         self.size = size
         super().__init__()
         if ceaser == "ceaser":
             policy = Ceaser()
-            policy.box_file = os.getcwd() + "/configs/vulcan/box/" + size + ".txt"
+            if box_file is None:
+                # Default: per-size curated "known good" box.
+                policy.box_file = os.getcwd() + "/configs/vulcan/box/" + size + ".txt"
+            else:
+                # "" means fully random (Ceaser generates + logs a fresh
+                # sbox/pbox/key); a path means load that frozen box.
+                policy.box_file = box_file
             self.tags.indexing_policy = policy
-        else: 
+        else:
             self.tags.indexing_policy = TaggedSetAssociative()
 
 
@@ -53,13 +59,14 @@ class DCache(Cache):
 
 # from cachehierarchies/classic/private_l1_cache_hierarchy.py
 class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
-    def __init__(self, ceaser="", cache_size="16KiB"):
+    def __init__(self, ceaser="", cache_size="16KiB", box_file=None):
         super().__init__()
         self.membus = SystemXBar(width=64)
         self.membus.badaddr_responder = BadAddr()
         self.membus.default = self.membus.badaddr_responder.pio
         self._ceaser = ceaser
         self._cache_size = cache_size
+        self._box_file = box_file
 
     def get_l1dcache_size(self):
         return self.l1dcache.size 
@@ -82,7 +89,7 @@ class JustDCacheHierarchy(AbstractClassicCacheHierarchy):
 
         assert board.get_processor().get_num_cores() == 1
 
-        self.l1dcache = DCache(self._ceaser, self._cache_size)
+        self.l1dcache = DCache(self._ceaser, self._cache_size, self._box_file)
 
         if board.has_coherent_io():
             self._setup_io_cache(board)

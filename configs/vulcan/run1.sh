@@ -20,8 +20,10 @@ declare -A sizes=(
 num_runs=$2
 for size in "${!sizes[@]}"; do
     num_sets=${sizes[$size]}
-    for ((i = 0 ; i < $1 ; i++ )); do 
-        build/ALL/gem5.opt --debug-flags=Cache  configs/vulcan/prime_probe.py $num_runs $size > configs/vulcan/data/$num_sets.$i.debug.txt
+    for ((i = 0 ; i < $1 ; i++ )); do
+        build/X86/gem5.opt --debug-flags=Cache  configs/vulcan/prime_probe.py $num_runs $size > configs/vulcan/data/$num_sets.$i.debug.txt
         python3 configs/vulcan/report.py configs/vulcan/data/$num_sets.$i.debug.txt configs/vulcan/data/$num_sets.$i.report.txt $num_runs $num_sets
     done
 done
+
+python3 configs/vulcan/plot_results.py

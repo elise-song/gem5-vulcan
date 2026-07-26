@@ -11,6 +11,9 @@ cscope.out
 .*.swp
 .*.swo
 m5out
+m5out*/
+sweep_out/
+spectre_stt_out/
 /src/doxygen/html
 /docs/_build
 /ext/dramsim2/DRAMSim2
@@ -38,3 +41,42 @@ configs/dram/lowp_sweep.cfg
 .vscode
 typings
 .DS_Store
+
+# vulcan CEASER experiment data/logs (generated, not source --
+# box/*.txt curated fixtures are the exception, tracked deliberately)
+configs/vulcan/data/
+configs/vulcan/data_random/
+configs/vulcan/data_known_good/
+configs/vulcan/data_bug_*/
+configs/vulcan/box/random/
+configs/vulcan/*_summary.csv
+configs/vulcan/*_plot.png
+configs/vulcan/*_comparison.png
+configs/vulcan/known_good_vs_random.png
+configs/vulcan/debug*.txt
+configs/vulcan/*_trace.txt
+configs/vulcan/trace.txt
+configs/vulcan/full.txt
+configs/vulcan/output.txt
+configs/vulcan/stdout.txt
+configs/vulcan/results.txt
+configs/vulcan/program_out.txt
+configs/vulcan/paired_events.txt
+configs/vulcan/prime_probe_*.txt
+configs/vulcan/test_output.txt
+configs/vulcan/stats_*.txt
+configs/vulcan/tlb_trace.txt
+/configs/test_output.txt
+
+# root-level scratch logs from vulcan scripts run from repo root
+/.debug.txt
+/cache_trace.txt
+/full_cache_trace.txt
+/output.txt
+/program_out.txt
+/paired_events.txt
+/results.txt
+/stdout.txt
+/stats_0x*.txt
+/tlb_trace.txt
+/test_output.txt

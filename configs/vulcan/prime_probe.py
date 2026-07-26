@@ -22,7 +22,14 @@ def get_num_sets(cache_size, block_size):
 cache_size = sys.argv[2]
 num_probes = cache_size
 
-cache_hierarchy = JustDCacheHierarchy("ceaser", cache_size) # "ceaser" for encrypted indexing
+# Optional 3rd arg: box_file override.
+#   omitted            -> default per-size curated "known good" box
+#   "" (empty string)  -> fully random sbox/pbox/key (also logged via
+#                         --debug-flags=Cache so it can be frozen later)
+#   a path              -> load that frozen box (sbox/pbox, and key if present)
+box_file = sys.argv[3] if len(sys.argv) > 3 else None
+
+cache_hierarchy = JustDCacheHierarchy("ceaser", cache_size, box_file) # "ceaser" for encrypted indexing
                                                 # "" for default indexing policy
 memory = SingleChannelDDR3_1600(size="4GiB") #32 bit address
 
