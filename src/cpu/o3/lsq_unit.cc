@@ -1312,10 +1312,11 @@ LSQUnit::updateVisibleState()
         if (cpu->protectionEnabled) {
             if (cpu->STT) {
                 // STT enabled: only delay a load while its own
-                // args/address are tainted (isArgsTainted(), refreshed
-                // this same cycle by ROB::compute_taint() before IEW
-                // runs). This is the precise, taint-driven delay -- an
-                // untainted load may issue immediately even if it's still
+                // args/address are tainted (isArgsTainted(), derived on
+                // read from the load's yrot -- set once at rename time --
+                // against the current visibility-point threshold). This
+                // is the precise, taint-driven delay -- an untainted load
+                // may issue immediately even if it's still
                 // speculative/squashable.
                 inst->fenceDelay(inst->isArgsTainted());
             } else {

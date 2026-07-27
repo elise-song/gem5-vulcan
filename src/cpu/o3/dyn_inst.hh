@@ -220,41 +220,11 @@ class DynInst : public ExecContext, public RefCounted
         // [STT] the following are STT flags
         // IsUnsquashable: true once no older, unresolved instruction/
         // branch can still squash this one away. Computed by
-        // ROB::updateVisibleState(); gates whether an access (load)
-        // instruction is treated as a root of taint in
-        // ROB::compute_taint().
+        // ROB::updateVisibleState(); the seqNum of the youngest such
+        // instruction feeds the per-thread visibility-point threshold
+        // (see ROB::getVisibilityPointSeqNum()) against which yrot/
+        // addrYrot are compared to derive isArgsTainted()/isAddrTainted().
         IsUnsquashable,
-        // IsDestTainted: true if this instruction's destination/result is
-        // currently tainted -- either because it inherited taint from a
-        // tainted source (mirrors IsArgsTainted), or because it's a load
-        // that is still squashable and is therefore forced-tainted (see
-        // ROB::compute_taint()). This is what a *later* instruction reads,
-        // via its argProducer, to decide its own taint.
-        IsDestTainted,
-        // IsArgsTainted: true if any of this instruction's own source
-        // registers are tainted (explicit data-flow taint only -- see
-        // ROB::explicit_flow()). Also what LSQUnit::updateVisibleState()
-        // reads directly to set FenceDelay on a load, and what
-        // IEW::executeInsts() reads on a mispredicted branch to decide
-        // whether to defer its squash.
-        IsArgsTainted,
-        // IsAddrTainted: true if a load/store's *effective address*
-        // (as opposed to, for a store, the value being stored) is
-        // computed from tainted data. See ROB::address_flow(). Currently
-        // computed but not read outside compute_taint() in this port
-        // (available for stricter policies that want to gate purely on
-        // address taint rather than IsArgsTainted).
-        IsAddrTainted,
-        // HasExplicitFlow: true if this instruction reads a tainted
-        // source register through ordinary data-flow. See
-        // ROB::explicit_flow(); IsArgsTainted/IsDestTainted are both
-        // derived directly from this each cycle.
-        HasExplicitFlow,
-        // HasImplicitFlow: true if this instruction is control-dependent
-        // on an older branch whose own condition was tainted (only
-        // tracked when --implicit_channel is enabled). See
-        // ROB::implicit_flow().
-        HasImplicitFlow,
         HasPendingSquash, // for branch/load, if a squash is postponed due
                           // to the tainted dependent operands
         // Set instead of signalling a squash immediately (in
@@ -316,12 +286,24 @@ class DynInst : public ExecContext, public RefCounted
     // Whether or not the source register is ready, one bit per register.
     uint8_t *_readySrcIdx;
 
-    // [STT] the producer instruction of each source register, if that
-    // producer is still in flight (nullptr otherwise). Indexed like
-    // _srcIdx. Maintained by the ROB as instructions enter/leave it.
-    std::vector<DynInstPtr> argProducers;
+    // [STT] Youngest Root of Taint (Section 7 of the STT paper): the
+    // seqNum of the youngest access (load) instruction whose result may
+    // still be flowing into this instruction, or InvalidYRoT if none.
+    // Computed once at rename time (Rename::renameSrcRegs()/
+    // renameDestRegs()) from the YRoT/AccessInstrIdx recorded against
+    // this instruction's *source* physical registers -- no per-cycle
+    // recomputation or dependency-chain walk is needed. yrot is derived
+    // from all source registers; addrYrot only from the ones that feed a
+    // load/store's effective address (excludes a store's data operand).
+    InstSeqNum yrot = InvalidYRoT;
+    InstSeqNum addrYrot = InvalidYRoT;
 
   public:
+    // [STT] sentinel meaning "no access instruction feeds this value" --
+    // real seqNums start at 1 (see CPU::globalSeqNum's initial value), so
+    // 0 can never collide with a real Youngest Root of Taint.
+    static constexpr InstSeqNum InvalidYRoT = 0;
+
     size_t numSrcs() const { return _numSrcs; }
     size_t numDests() const { return _numDests; }
 
@@ -491,59 +473,52 @@ class DynInst : public ExecContext, public RefCounted
         instFlags[IsUnsquashable] = f;
     }
 
-    bool
-    isDestTainted() const
+    // [STT] YRoT accessors (Section 7). yrot/addrYrot are set once at
+    // rename time (Rename::renameSrcRegs()) and never touched again --
+    // there is no per-cycle taint recomputation. Whether they currently
+    // denote "tainted" is a function of time (the visibility-point
+    // threshold only advances), so it's derived on read rather than
+    // cached: an instruction is tainted iff its YRoT names a real access
+    // instruction (!= InvalidYRoT) that has not yet reached its own
+    // visibility point (yrot > current threshold for this thread).
+    InstSeqNum
+    getYRoT() const
     {
-        return instFlags[IsDestTainted];
+        return yrot;
     }
     void
-    isDestTainted(bool f)
+    setYRoT(InstSeqNum r)
     {
-        instFlags[IsDestTainted] = f;
+        yrot = r;
+    }
+    InstSeqNum
+    getAddrYRoT() const
+    {
+        return addrYrot;
+    }
+    void
+    setAddrYRoT(InstSeqNum r)
+    {
+        addrYrot = r;
     }
 
+    // [STT] true if any source register feeding this instruction
+    // (through ordinary data-flow) still carries taint.
     bool
     isArgsTainted() const
     {
-        return instFlags[IsArgsTainted];
-    }
-    void
-    isArgsTainted(bool f)
-    {
-        instFlags[IsArgsTainted] = f;
+        return cpu->STT && yrot != InvalidYRoT &&
+               yrot > cpu->getVisibilityPointSeqNum(threadNumber);
     }
 
+    // [STT] true if a load/store's *effective address* (as opposed to,
+    // for a store, the value being stored) is computed from tainted
+    // data.
     bool
     isAddrTainted() const
     {
-        return instFlags[IsAddrTainted];
-    }
-    void
-    isAddrTainted(bool f)
-    {
-        instFlags[IsAddrTainted] = f;
-    }
-
-    bool
-    hasExplicitFlow() const
-    {
-        return instFlags[HasExplicitFlow];
-    }
-    void
-    hasExplicitFlow(bool f)
-    {
-        instFlags[HasExplicitFlow] = f;
-    }
-
-    bool
-    hasImplicitFlow() const
-    {
-        return instFlags[HasImplicitFlow];
-    }
-    void
-    hasImplicitFlow(bool f)
-    {
-        instFlags[HasImplicitFlow] = f;
+        return cpu->STT && isMemRef() && addrYrot != InvalidYRoT &&
+               addrYrot > cpu->getVisibilityPointSeqNum(threadNumber);
     }
 
     bool
@@ -595,33 +570,16 @@ class DynInst : public ExecContext, public RefCounted
         return status[InStallList];
     }
 
-    /** [STT] the producer of source register idx, or nullptr if that
-     * producer is no longer in flight. */
-    DynInstPtr
-    getArgProducer(int idx) const
-    {
-        return argProducers[idx];
-    }
-    void
-    clearArgProducer(int idx)
-    {
-        argProducers[idx] = DynInstPtr();
-    }
-    void
-    setArgProducer(int idx, const DynInstPtr &inst)
-    {
-        argProducers[idx] = inst;
-    }
-
     // [STT] STT status: an access instruction is the root of taint (it may
     // read a secret from memory); a transmit instruction is one whose
     // resolution can leak tainted data through a microarchitectural
     // covert channel and so must be delayed while tainted.
     // In this port both boil down to "is a load": a load is the only
     // instruction class that both (a) reads memory (so it's the taint
-    // *source*, used in ROB::compute_taint()) and (b) has a
-    // microarchitecturally-observable timing effect from its own address
-    // (cache fill/miss -- so it's also the taint *sink* that
+    // *source*, used to seed yrot/addrYrot on downstream consumers via
+    // Rename) and (b) has a microarchitecturally-observable timing effect
+    // from its own address (cache fill/miss -- so it's also the taint
+    // *sink* that
     // LSQUnit::updateVisibleState() delays via FenceDelay). They're kept
     // as two separate named predicates because conceptually they answer
     // different questions -- a future port that added other transmitter

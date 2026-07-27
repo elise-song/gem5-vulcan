@@ -41,6 +41,7 @@
 #ifndef __CPU_O3_ROB_HH__
 #define __CPU_O3_ROB_HH__
 
+#include <array>
 #include <string>
 #include <utility>
 #include <vector>
@@ -214,20 +215,23 @@ class ROB
 
     /** [STT] Updates isPrevInstsCompleted/isPrevBrsResolved for every
      * in-flight instruction (in program order), from which isUnsquashable
-     * is derived. Called once per cycle from Commit::markCompletedInsts().
+     * is derived. Also advances the per-thread VP seqNum
+     * threshold to the youngest instruction newly marked unsquashable.
      */
     void updateVisibleState();
 
-    /** [STT] (Re)computes taint (hasExplicitFlow/hasImplicitFlow/
-     * isAddrTainted/isArgsTainted/isDestTainted) for every in-flight
-     * instruction, in program order. Called once per cycle when cpu->STT.
-     */
-    void compute_taint();
+    InstSeqNum
+    getVisibilityPointSeqNum(ThreadID tid) const
+    {
+        return visibilityPointSeqNum[tid];
+    }
 
     /** [STT] Returns the oldest instruction in tid's ROB that has a
      * pending squash (an earlier mispredict/violation was deferred while
      * tainted) whose taint has now cleared, or nullptr if none. */
     DynInstPtr getResolvedPendingSquashInst(ThreadID tid);
+
+    void print_robs();
 
     /** Reads the PC of the oldest head instruction. */
 //    uint64_t readHeadPC();
@@ -287,13 +291,11 @@ class ROB
     /** Reset the ROB state */
     void resetState();
 
-    /** [STT] helpers for compute_taint(); called in program order. */
-    void explicit_flow(ThreadID tid, InstIt instIt);
-    void address_flow(ThreadID tid, InstIt instIt);
-    void implicit_flow(ThreadID tid, InstIt instIt);
-
     /** Pointer to the CPU. */
     CPU *cpu;
+
+    // [STT] per-thread visibility-point seqNum threshold
+    std::array<InstSeqNum, MaxThreads> visibilityPointSeqNum = {};
 
     /** Active Threads in CPU */
     std::list<ThreadID> *activeThreads;

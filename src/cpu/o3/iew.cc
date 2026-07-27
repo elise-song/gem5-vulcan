@@ -1323,9 +1323,9 @@ IEW::executeInsts()
         //  - mispredicted(): if the prediction was correct there's no
         //    squash to defer in the first place.
         //  - isArgsTainted(): the branch's own condition was computed from
-        //    tainted data (refreshed this same cycle by
-        //    ROB::compute_taint(), which runs in Commit before IEW's
-        //    execute stage) -- if untainted, squashing now is safe and
+        //    tainted data (derived on read from the branch's yrot -- set
+        //    once at rename time -- against the current visibility-point
+        //    threshold) -- if untainted, squashing now is safe and
         //    reveals nothing.
         //  - !isUnsquashable(): if this branch itself can no longer be
         //    squashed by something even older, there's nothing left to

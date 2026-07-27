@@ -41,6 +41,7 @@
 
 #include "cpu/o3/rename.hh"
 
+#include <algorithm>
 #include <list>
 
 #include "cpu/o3/cpu.hh"
@@ -242,6 +243,22 @@ void
 Rename::startupStage()
 {
     resetStage();
+
+    // [STT] size the YRoT/AccessInstrIdx table
+    yrotTable.assign(cpu->numPhysRegs(), DynInst::InvalidYRoT);
+    accessInstrIdxTable.assign(cpu->numPhysRegs(), DynInst::InvalidYRoT);
+}
+
+InstSeqNum
+Rename::effectiveYRoT(PhysRegIdPtr reg) const
+{
+    if (reg->isAlwaysReady()) {
+        return DynInst::InvalidYRoT;
+    }
+
+    InstSeqNum accessIdx = accessInstrIdxTable[reg->flatIndex()];
+    return accessIdx != DynInst::InvalidYRoT ? accessIdx
+                                             : yrotTable[reg->flatIndex()];
 }
 
 void
@@ -1051,6 +1068,13 @@ Rename::renameSrcRegs(const DynInstPtr &inst, ThreadID tid)
     unsigned num_src_regs = inst->numSrcRegs();
     auto *isa = tc->getIsaPtr();
 
+    // [STT] yrot is the max, over all source registers, of each one's
+    // effectiveYRoT(); addrYrot is the same max but restricted to the
+    // sources that feed a load/store's effective address
+    InstSeqNum yrot = DynInst::InvalidYRoT;
+    InstSeqNum addrYrot = DynInst::InvalidYRoT;
+    int addrStartIdx = inst->isStore() ? 1 : 0;
+
     // Get the architectual register numbers from the source and
     // operands, and redirect them to the right physical register.
     for (int src_idx = 0; src_idx < num_src_regs; src_idx++) {
@@ -1095,6 +1119,17 @@ Rename::renameSrcRegs(const DynInstPtr &inst, ThreadID tid)
 
         inst->renameSrcReg(src_idx, renamed_reg);
 
+        // [STT] fold this source's taint contribution into yrot/addrYrot.
+        // Sources with no real backing register (InvalidRegClass) can't
+        // carry taint.
+        if (!renamed_reg->is(InvalidRegClass)) {
+            InstSeqNum contribution = effectiveYRoT(renamed_reg);
+            yrot = std::max(yrot, contribution);
+            if (src_idx >= addrStartIdx) {
+                addrYrot = std::max(addrYrot, contribution);
+            }
+        }
+
         // See if the register is ready or not.
         if (scoreboard->getReg(renamed_reg)) {
             DPRINTF(Rename,
@@ -1114,6 +1149,10 @@ Rename::renameSrcRegs(const DynInstPtr &inst, ThreadID tid)
 
         ++stats.lookups;
     }
+
+    // [STT] record this instruction's own YRoT
+    inst->setYRoT(yrot);
+    inst->setAddrYRoT(addrYrot);
 }
 
 void
@@ -1137,6 +1176,15 @@ Rename::renameDestRegs(const DynInstPtr &inst, ThreadID tid)
         inst->flattenedDestIdx(dest_idx, flat_dest_regid);
 
         scoreboard->unsetReg(rename_result.first);
+
+        // [STT] Record this destination's (YRoT, AccessInstrIdx) so that
+        // later instructions reading it as a source can compute their own
+        // yrot via effectiveYRoT()
+        if (!rename_result.first->isAlwaysReady()) {
+            yrotTable[rename_result.first->flatIndex()] = inst->getYRoT();
+            accessInstrIdxTable[rename_result.first->flatIndex()] =
+                inst->isAccess() ? inst->seqNum : DynInst::InvalidYRoT;
+        }
 
         DPRINTF(Rename,
                 "[tid:%i] "

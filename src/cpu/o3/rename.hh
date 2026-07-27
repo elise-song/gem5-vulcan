@@ -44,8 +44,10 @@
 
 #include <list>
 #include <utility>
+#include <vector>
 
 #include "base/statistics.hh"
+#include "cpu/inst_seq.hh"
 #include "cpu/o3/comm.hh"
 #include "cpu/o3/commit.hh"
 #include "cpu/o3/dyn_inst_ptr.hh"
@@ -371,6 +373,17 @@ class Rename
 
     /** Pointer to the scoreboard. */
     Scoreboard *scoreboard;
+
+    /** [STT] one entry per physical register,
+     * tracking the (YRoT, AccessInstrIdx) pair for whichever
+     * in-flight instruction last renamed that physical register as a
+     * destination. */
+    std::vector<InstSeqNum> yrotTable;
+    std::vector<InstSeqNum> accessInstrIdxTable;
+
+    /** [STT] the YRoT contribution a source register makes toward a
+     * consumer's own yrot */
+    InstSeqNum effectiveYRoT(PhysRegIdPtr reg) const;
 
     /** Count of instructions in progress that have been sent off to the IQ
      * and ROB, but are not yet included in their occupancy counts.

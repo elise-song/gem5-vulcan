@@ -70,11 +70,6 @@ DynInst::DynInst(const Arrays &arrays, const StaticInstPtr &static_inst,
     instFlags[Predicate] = true;
     instFlags[MemAccPredicate] = true;
 
-    // [STT] Allocate one producer slot per source register, all initially
-    // null (no in-flight producer known yet -- ROB::insertInst() fills
-    // these in once the instruction is actually placed in the ROB).
-    argProducers.assign(_numSrcs, DynInstPtr());
-
 #ifndef NDEBUG
     ++cpu->instcount;
 
@@ -349,14 +344,14 @@ DynInst::readyToIssue_UT() const
             // If tainted, force not-ready regardless of operand
             // availability -- this is what causes addIfReady() to park it
             // on the taint-stall list instead of the ready list.
-            ret = ret && !instFlags[IsArgsTainted];
+            ret = ret && !isArgsTainted();
         }
     } else if (cpu->moreTransmitInsts == 2) {
         // Mode 2: broader -- integer divide plus *every* floating-point
         // op (isFloating()), since FP execution latency can vary with
         // operand value in more subtle ways than just div/sqrt.
         if (opClass() == IntDivOp || isFloating()) {
-            ret = ret && !instFlags[IsArgsTainted];
+            ret = ret && !isArgsTainted();
         }
     } else {
         // moreTransmitInsts is validated to be 0/1/2 in CPU::CPU(), and

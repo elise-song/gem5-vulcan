@@ -595,6 +595,24 @@ class CPU : public BaseCPU
     // transmitters: 0 = off, 1 = int/fp div + sqrt, 2 = int div + all fp.
     int moreTransmitInsts;
 
+    // [STT] An instruction's yrot/addrYrot names
+    // the seqNum of the access instruction that seeded its taint; once
+    // that instruction's own seqNum is <= this threshold, the taint has
+    // cleared.
+    InstSeqNum
+    getVisibilityPointSeqNum(ThreadID tid) const
+    {
+        return rob.getVisibilityPointSeqNum(tid);
+    }
+
+    // [STT] total number of physical registers, used by Rename to size
+    // its per-physical-register YRoT/AccessInstrIdx tables.
+    unsigned
+    numPhysRegs() const
+    {
+        return regFile.totalNumPhysRegs();
+    }
+
     /** CPU pushRequest function, forwards request to LSQ. */
     Fault
     pushRequest(const DynInstPtr& inst, bool isLoad, uint8_t *data,

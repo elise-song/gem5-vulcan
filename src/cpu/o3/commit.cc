@@ -1532,14 +1532,12 @@ Commit::markCompletedInsts()
     // being kept current.
     rob->updateVisibleState();
 
-    // [STT] (re)compute taint for every in-flight instruction
-    // Only meaningful (and only run) when STT itself is enabled -- taint
-    // tracking is what STT specifically adds on top of the coarser
-    // "block everything speculative" baseline. Must run after
-    // updateVisibleState() above, since compute_taint()'s
-    // access-instruction-is-a-taint-root rule reads isUnsquashable().
-    if (cpu->STT) {
-        rob->compute_taint();
+    // [STT] Taint is no longer recomputed per cycle here -- yrot/addrYrot
+    // were fixed at rename time
+
+    // [STT] debug: dump the ROB's taint state every cycle.
+    if (cpu->ifPrintROB) {
+        rob->print_robs();
     }
 }
 
