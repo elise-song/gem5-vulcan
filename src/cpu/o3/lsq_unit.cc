@@ -1112,6 +1112,15 @@ LSQUnit::writeback(const DynInstPtr &inst, PacketPtr pkt)
         inst->setExecuted();
 
         if (inst->fault == NoFault) {
+            // [STT] This load already got its value from a tainted-store
+            // forward; the just-completed access was only a dummy load
+            // for timing uniformity, so overwrite its result with the
+            // forwarded value before completing the access.
+            if (inst->alreadyForwarded) {
+                ++stats.forwLoads;
+                assert(cpu->STT && cpu->impChannel);
+                memcpy(inst->memData, inst->stFwdData, inst->stFwdDataSize);
+            }
             // Complete access to copy data to proper place.
             inst->completeAcc(pkt);
         } else {
@@ -1524,6 +1533,38 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
                 int shift_amt = request->mainReq()->getVaddr() -
                     store_it->instruction()->effAddr;
 
+                // [STT] Use the forwarded value for correctness, but fall
+                // through to also issue a real memory access below, so a
+                // real access always happens regardless of whether
+                // forwarding occurred.
+                if (cpu->STT && cpu->impChannel &&
+                    store_it->instruction()->isAddrTainted() &&
+                    !load_inst->isAddrTainted()) {
+                    if (!load_inst->stFwdData) {
+                        load_inst->stFwdData =
+                            new uint8_t[request->mainReq()->getSize()];
+                        load_inst->stFwdDataSize =
+                            request->mainReq()->getSize();
+                    }
+                    if (store_it->isAllZeros()) {
+                        memset(load_inst->stFwdData, 0,
+                               request->mainReq()->getSize());
+                    } else {
+                        memcpy(load_inst->stFwdData,
+                               store_it->data() + shift_amt,
+                               request->mainReq()->getSize());
+                    }
+
+                    DPRINTF(LSQUnit,
+                            "[STT] Forwarding from store idx %i "
+                            "to load to addr %#x (tainted store addr, "
+                            "issuing dummy load too)\n",
+                            store_it._idx, request->mainReq()->getVaddr());
+
+                    load_inst->alreadyForwarded = true;
+                    break;
+                }
+
                 // Allocate memory if this is the first time a load is issued.
                 if (!load_inst->memData) {
                     load_inst->memData =
@@ -1672,7 +1713,9 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
         if (!lsq->cacheBlocked()) {
             iewStage->retryMemInst(load_inst);
        } else {
-            iewStage->blockMemInst(load_inst);
+           // [STT] if the dummy load didn't go out
+           load_inst->alreadyForwarded = false;
+           iewStage->blockMemInst(load_inst);
        }
     }
 

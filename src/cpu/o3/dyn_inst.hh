@@ -413,6 +413,14 @@ class DynInst : public ExecContext, public RefCounted
     /** Pointer to the data for the memory access. */
     uint8_t *memData = nullptr;
 
+    /** [STT] Store to load forwarding optimization.
+     * When forwarding from a store with a tainted address, the load still
+     * performs a real memory access to avoid leaking whether forwarding
+     * occurred, then restores the forwarded value for correctness. */
+    uint8_t *stFwdData = nullptr;
+    int stFwdDataSize = 0;
+    bool alreadyForwarded = false;
+
     /** Load queue index. */
     ssize_t lqIdx = -1;
     typename LSQUnit::LQIterator lqIt;

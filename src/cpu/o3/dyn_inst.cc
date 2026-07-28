@@ -252,6 +252,7 @@ DynInst::~DynInst()
 #endif
 
     delete [] memData;
+    delete[] stFwdData;
     delete traceData;
     fault = NoFault;
 
