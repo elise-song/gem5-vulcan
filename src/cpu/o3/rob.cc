@@ -725,6 +725,14 @@ ROB::squash(InstSeqNum squash_num, ThreadID tid)
 
     squashedSeqNum[tid] = squash_num;
 
+    // [STT] A squash means every instruction younger than squash_num just
+    // got thrown out, so everything up to squash_num survived the recovery
+    // and is architecturally stable
+    if (cpu->protectionEnabled) {
+        visibilityPointSeqNum[tid] =
+            std::max(visibilityPointSeqNum[tid], squash_num);
+    }
+
     if (!instList[tid].empty()) {
         InstIt tail_thread = instList[tid].end();
         tail_thread--;
