@@ -234,6 +234,7 @@ LSQUnit::resetState()
 
     retryPkt = NULL;
     memDepViolator = NULL;
+    memDepViolatingStore = NULL;
 
     stalled = false;
 
@@ -422,6 +423,16 @@ LSQUnit::getMemDepViolator()
     return temp;
 }
 
+DynInstPtr
+LSQUnit::getMemDepViolatingStore()
+{
+    DynInstPtr temp = memDepViolatingStore;
+
+    memDepViolatingStore = NULL;
+
+    return temp;
+}
+
 unsigned
 LSQUnit::numFreeLoadEntries()
 {
@@ -584,6 +595,10 @@ LSQUnit::checkViolations(typename LoadQueue::iterator& loadIt,
                         "[sn:%lli] at address %#x\n",
                         inst->seqNum, ld_inst->seqNum, ld_eff_addr1);
                 memDepViolator = ld_inst;
+                // [STT] GLIFT: record the specific store (inst) causing
+                // this violation, so the squash can be deferred until
+                // *its* address untaints too, not just the load's.
+                memDepViolatingStore = inst;
 
                 ++stats.memOrderViolation;
 
@@ -1021,6 +1036,7 @@ LSQUnit::squash(const InstSeqNum &squashed_num)
 
     if (memDepViolator && squashed_num < memDepViolator->seqNum) {
         memDepViolator = NULL;
+        memDepViolatingStore = NULL;
     }
 
     while (storeQueue.size() != 0 &&

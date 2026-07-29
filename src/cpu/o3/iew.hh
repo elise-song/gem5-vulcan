@@ -247,9 +247,11 @@ class IEW
     void squashDueToBranch(const DynInstPtr &inst, ThreadID tid);
 
     /** Sends commit proper information for a squash due to a memory order
-     * violation.
+     * violation. [STT] violating_store is the specific older store whose
+     * address caused the violation
      */
-    void squashDueToMemOrder(const DynInstPtr &inst, ThreadID tid);
+    void squashDueToMemOrder(const DynInstPtr &inst,
+                             const DynInstPtr &violating_store, ThreadID tid);
 
     /** Sets Dispatch to blocked, and signals back to other stages to block. */
     void block(ThreadID tid);

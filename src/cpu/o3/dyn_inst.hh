@@ -298,6 +298,14 @@ class DynInst : public ExecContext, public RefCounted
     InstSeqNum yrot = InvalidYRoT;
     InstSeqNum addrYrot = InvalidYRoT;
 
+    // [STT] GLIFT early-untaint: Set (on the
+    // violating load) by Commit::commit() when deferring such a squash,
+    // to the specific older store whose still-tainted address caused the
+    // violation (see IEW::squashDueToMemOrder()); read by
+    // stillTaintedForPendingSquash() below and by
+    // ROB::getResolvedPendingSquashInst() to decide when to release it.
+    DynInstPtr memOrderViolatingStore;
+
   public:
     // [STT] sentinel meaning "no access instruction feeds this value" --
     // real seqNums start at 1 (see CPU::globalSeqNum's initial value), so
@@ -527,6 +535,31 @@ class DynInst : public ExecContext, public RefCounted
     {
         return cpu->STT && isMemRef() && addrYrot != InvalidYRoT &&
                addrYrot > cpu->getVisibilityPointSeqNum(threadNumber);
+    }
+
+    // [STT] GLIFT early-untaint (Sec 6.4.2): records the specific older
+    // store whose still-tainted address caused a memory-order-violation
+    // squash on this (the violating load's) instruction, if any. Set by
+    // Commit::commit() from the value IEW::squashDueToMemOrder() forwarded
+    // (see comm.hh's memOrderViolatingStore); read by
+    // stillTaintedForPendingSquash() below.
+    void
+    setMemOrderViolatingStore(const DynInstPtr &store)
+    {
+        memOrderViolatingStore = store;
+    }
+
+    // [STT] GLIFT early-untaint (Sec 6.4.2): whether it's still unsafe to
+    // act on a deferred memory-order-violation squash caused by this
+    // (the violating load's) instruction -- true if either the load's
+    // own args are still tainted, or the specific older store that
+    // caused the violation still has a tainted address. See
+    // memOrderViolatingStore above.
+    bool
+    stillTaintedForPendingSquash() const
+    {
+        return isArgsTainted() || (memOrderViolatingStore &&
+                                   memOrderViolatingStore->isAddrTainted());
     }
 
     bool

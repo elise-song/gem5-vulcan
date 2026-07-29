@@ -97,6 +97,11 @@ struct IEWStruct
     // violator for a load-ordering violation (where mispredictInst is
     // null). Used to check taint before acting on the squash.
     DynInstPtr instCausingSquash[MaxThreads];
+    // [STT] GLIFT (Sec 6.4.2): for a memory-order-violation squash, the
+    // specific older store whose still-tainted address caused it (null
+    // for a branch mispredict, or a violation not caused by a store --
+    // see IEW::squashDueToMemOrder()/squashDueToBranch()).
+    DynInstPtr memOrderViolatingStore[MaxThreads];
     Addr mispredPC[MaxThreads];
     InstSeqNum squashedSeqNum[MaxThreads];
     std::unique_ptr<PCStateBase> pc[MaxThreads];

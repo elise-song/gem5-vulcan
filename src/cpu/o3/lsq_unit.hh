@@ -296,6 +296,12 @@ class LSQUnit
     /** Returns the memory ordering violator. */
     DynInstPtr getMemDepViolator();
 
+    /** [STT] Returns the specific older store whose address caused the
+     * violation returned by the last getMemDepViolator() call (see
+     * DynInst::memOrderViolatingStore), or nullptr if the violation
+     * wasn't store-caused (e.g. an external-snoop load violation). */
+    DynInstPtr getMemDepViolatingStore();
+
     /** Returns the number of free LQ entries. */
     unsigned numFreeLoadEntries();
 
@@ -522,6 +528,11 @@ class LSQUnit
 
     /** The oldest load that caused a memory ordering violation. */
     DynInstPtr memDepViolator;
+
+    /** [STT] The specific older store whose address caused memDepViolator
+     * (see checkViolations()), or nullptr if the violation was caused by
+     * an external snoop rather than a store. */
+    DynInstPtr memDepViolatingStore;
 
     /** Flag for memory model. */
     bool needsTSO;

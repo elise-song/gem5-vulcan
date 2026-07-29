@@ -490,6 +490,9 @@ IEW::squashDueToBranch(const DynInstPtr& inst, ThreadID tid)
         // mispredicted branch itself.
         toCommit->instCausingSquash[tid] = inst;
         toCommit->includeSquashInst[tid] = false;
+        // [STT] not a memory-order-violation squash, so there's no
+        // violating store for the GLIFT check to consider.
+        toCommit->memOrderViolatingStore[tid] = NULL;
 
         wroteToTimeBuffer = true;
     }
@@ -497,7 +500,8 @@ IEW::squashDueToBranch(const DynInstPtr& inst, ThreadID tid)
 }
 
 void
-IEW::squashDueToMemOrder(const DynInstPtr& inst, ThreadID tid)
+IEW::squashDueToMemOrder(const DynInstPtr &inst,
+                         const DynInstPtr &violating_store, ThreadID tid)
 {
     DPRINTF(IEW, "[tid:%i] Memory violation, squashing violator and younger "
             "insts, PC: %s [sn:%llu].\n", tid, inst->pcState(), inst->seqNum);
@@ -519,6 +523,10 @@ IEW::squashDueToMemOrder(const DynInstPtr& inst, ThreadID tid)
         // so Commit::commit() checks *its* taint before acting on the
         // squash.
         toCommit->instCausingSquash[tid] = inst;
+        // [STT] GLIFT (Sec 6.4.2): the specific older store whose address
+        // caused this violation, so the squash can also be deferred on
+        // *its* taint, not just the violating load's.
+        toCommit->memOrderViolatingStore[tid] = violating_store;
 
         // Must include the memory violator in the squash.
         toCommit->includeSquashInst[tid] = true;
@@ -1385,6 +1393,11 @@ IEW::executeInsts()
                 // clears the violation signal.
                 DynInstPtr violator;
                 violator = ldstQueue.getMemDepViolator(tid);
+                // [STT] GLIFT (Sec 6.4.2): also consume the specific
+                // older store whose address caused this violation, if
+                // any (see LSQUnit::checkViolations()).
+                DynInstPtr violatingStore =
+                    ldstQueue.getMemDepViolatingStore(tid);
 
                 DPRINTF(IEW, "LDSTQ detected a violation. Violator PC: %s "
                         "[sn:%lli], inst PC: %s [sn:%lli]. Addr is: %#x.\n",
@@ -1397,7 +1410,7 @@ IEW::executeInsts()
                 instQueue.violation(inst, violator);
 
                 // Squash.
-                squashDueToMemOrder(violator, tid);
+                squashDueToMemOrder(violator, violatingStore, tid);
 
                 ++iewStats.memOrderViolationEvents;
             }
@@ -1408,6 +1421,11 @@ IEW::executeInsts()
                 assert(inst->isMemRef());
 
                 DynInstPtr violator = ldstQueue.getMemDepViolator(tid);
+                // [STT] consume in lockstep with violator above, even
+                // though this violation isn't being acted on (already
+                // squashing) -- otherwise it would stick around and be
+                // wrongly attributed to a later, unrelated violation.
+                ldstQueue.getMemDepViolatingStore(tid);
 
                 DPRINTF(IEW, "LDSTQ detected a violation.  Violator PC: "
                         "%s, inst PC: %s.  Addr is: %#x.\n",

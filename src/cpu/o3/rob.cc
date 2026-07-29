@@ -614,15 +614,18 @@ ROB::getResolvedPendingSquashInst(ThreadID tid)
         // A pending squash is safe to act on once:
         //  - it's still marked pending (hasPendingSquash()) -- not already
         //    resolved/cleared elsewhere, and
-        //  - it's no longer tainted (!isArgsTainted()) -- the condition
-        //    that made deferring it necessary has cleared, so squashing on
-        //    it now no longer correlates observably with the secret, and
+        //  - it's no longer tainted (!stillTaintedForPendingSquash()) --
+        //    both the condition that made deferring it necessary (its own
+        //    args) AND, for a memory-order-violation squash, the specific
+        //    older store whose address caused it (GLIFT, Sec 6.4.2) have
+        //    cleared, so squashing on it now no longer correlates
+        //    observably with the secret, and
         //  - it hasn't already been squashed by something else in the
         //    meantime (!isSquashed()) -- e.g. an older squash already
         //    swept it away (see ROB::doSquash() clearing hasPendingSquash
         //    in that case), in which case there's nothing left to act on.
-        if (inst->hasPendingSquash() && !inst->isArgsTainted() &&
-            !inst->isSquashed()) {
+        if (inst->hasPendingSquash() &&
+            !inst->stillTaintedForPendingSquash() && !inst->isSquashed()) {
             return inst;
         }
     }

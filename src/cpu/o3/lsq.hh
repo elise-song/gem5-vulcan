@@ -758,6 +758,11 @@ class LSQ
     /** Gets the instruction that caused the memory ordering violation. */
     DynInstPtr getMemDepViolator(ThreadID tid);
 
+    /** [STT] Gets the specific older store whose address caused the
+     * violation returned by the last getMemDepViolator(tid) call, or
+     * nullptr if not store-caused (see LSQUnit::getMemDepViolatingStore()). */
+    DynInstPtr getMemDepViolatingStore(ThreadID tid);
+
     /** Returns the head index of the load queue for a specific thread. */
     int getLoadHead(ThreadID tid);
 

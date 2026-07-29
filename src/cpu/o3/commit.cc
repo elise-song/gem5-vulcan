@@ -979,8 +979,17 @@ Commit::commit()
             // IEW::squashDueToBranch()/squashDueToMemOrder() (see
             // comm.hh) -- checking *its* taint is what decides whether
             // squashing on it right now would leak the tainted condition.
+            // [STT] GLIFT (Sec 6.4.2): for a memory-order-violation
+            // squash, also attach the specific older store whose address
+            // caused it (null otherwise), so
+            // stillTaintedForPendingSquash() below -- and later,
+            // ROB::getResolvedPendingSquashInst() -- also wait on *that*
+            // store's own address untainting, not just the violator's.
+            fromIEW->instCausingSquash[tid]->setMemOrderViolatingStore(
+                fromIEW->memOrderViolatingStore[tid]);
             if (cpu->STT && cpu->impChannel &&
-                fromIEW->instCausingSquash[tid]->isArgsTainted()) {
+                fromIEW->instCausingSquash[tid]
+                    ->stillTaintedForPendingSquash()) {
                 DPRINTF(Commit,
                         "[tid:%i] [STT] squash-causing inst "
                         "[sn:%llu] PC %s is tainted, marking pending.\n",
