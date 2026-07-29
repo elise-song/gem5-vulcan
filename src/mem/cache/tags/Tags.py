@@ -124,6 +124,21 @@ class BaseSetAssoc(BaseTags):
     )
 
 
+class PartitionLockedTags(BaseSetAssoc):
+    type = "PartitionLockedTags"
+    cxx_header = "mem/cache/tags/partition_locked.hh"
+    cxx_class = "gem5::PartitionLockedTags"
+
+    # Address ranges holding security-critical data. Lines that map to one
+    # of these ranges are locked, on insertion, to the context that
+    # brought them in, implementing the Partition-Locked (PL) cache
+    # defense described in Deng, Xiong and Szefer, "Analysis of Secure
+    # Caches".
+    protected_ranges = VectorParam.AddrRange(
+        [], "Address ranges to preload and lock against eviction"
+    )
+
+
 class SectorTags(BaseTags):
     type = "SectorTags"
     cxx_header = "mem/cache/tags/sector_tags.hh"

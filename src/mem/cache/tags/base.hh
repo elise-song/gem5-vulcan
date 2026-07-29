@@ -267,6 +267,18 @@ class BaseTags : public ClockedObject
     }
 
     /**
+     * Notify the tag store that a cache-maintenance or coherence
+     * invalidation targeting blk was suppressed instead of being
+     * performed, because blk is protected by a secure-cache defense
+     * (e.g. a PL-locked block). The block itself is left untouched by
+     * the caller. Default implementation does nothing; only meaningful
+     * for tag stores that track such events.
+     *
+     * @param blk The block whose invalidation was suppressed.
+     */
+    virtual void notifyFlushSuppressed(CacheBlk *blk) {}
+
+    /**
      * Find replacement victim based on address. If the address requires
      * blocks to be evicted, their locations are listed for eviction. If a
      * conventional cache is being used, the list only contains the victim.
@@ -280,12 +292,18 @@ class BaseTags : public ClockedObject
      * @param size Size, in bits, of new block to allocate.
      * @param evict_blks Cache blocks to be evicted.
      * @param partition_id Partition ID for resource management.
+     * @param context_id Context ID of the requestor bringing in the new
+     *        line. Used by defenses (e.g. PartitionLockedTags) that need
+     *        to know who is asking in order to decide whether a
+     *        candidate victim may be evicted.
      * @return Cache block to be replaced.
      */
     virtual CacheBlk* findVictim(const CacheBlk::KeyType &key,
                                  const std::size_t size,
                                  std::vector<CacheBlk*>& evict_blks,
-                                 const uint64_t partition_id=0) = 0;
+                                 const uint64_t partition_id=0,
+                                 const ContextID context_id=InvalidContextID)
+                                 = 0;
 
     /**
      * Access block and update replacement data. May not succeed, in which case

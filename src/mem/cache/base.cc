@@ -1232,9 +1232,18 @@ BaseCache::satisfyRequest(PacketPtr pkt, CacheBlk *blk, bool, bool)
         blk->clearCoherenceBits(CacheBlk::DirtyBit);
     } else {
         assert(pkt->isInvalidate());
-        invalidateBlock(blk);
-        DPRINTF(CacheVerbose, "%s for %s (invalidation)\n", __func__,
-                pkt->print());
+        if (blk->isPlLocked()) {
+            // Secure-cache defense: this block is locked and may not be
+            // evicted by a cache-maintenance or coherence invalidation
+            // (e.g. clflush). Leave the block, and its data, untouched.
+            tags->notifyFlushSuppressed(blk);
+            DPRINTF(CacheVerbose, "%s for %s (invalidation suppressed, "
+                    "block is PL-locked)\n", __func__, pkt->print());
+        } else {
+            invalidateBlock(blk);
+            DPRINTF(CacheVerbose, "%s for %s (invalidation)\n", __func__,
+                    pkt->print());
+        }
     }
 }
 
@@ -1696,7 +1705,8 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
     // Find replacement victim
     std::vector<CacheBlk*> evict_blks;
     CacheBlk *victim = tags->findVictim({addr, is_secure}, blk_size_bits,
-                                        evict_blks, partition_id);
+                                        evict_blks, partition_id,
+                                        pkt->req->contextId());
 
     // It is valid to return nullptr if there is no victim
     if (!victim)

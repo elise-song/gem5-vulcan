@@ -33,6 +33,7 @@ SimObject(
     sim_objects=[
         "BaseTags",
         "BaseSetAssoc",
+        "PartitionLockedTags",
         "SectorTags",
         "CompressedTags",
         "FALRU",
@@ -46,8 +47,11 @@ Source("base_set_assoc.cc")
 Source("compressed_tags.cc")
 Source("dueling.cc")
 Source("fa_lru.cc")
+Source("partition_locked.cc")
 Source("sector_blk.cc")
 Source("sector_tags.cc")
 Source("super_blk.cc")
 
 GTest("dueling.test", "dueling.test.cc", "dueling.cc")
+GTest("partition_locked.test", "partition_locked.test.cc",
+    with_tag("gem5 simobject"))

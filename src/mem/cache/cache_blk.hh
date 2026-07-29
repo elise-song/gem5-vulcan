@@ -152,6 +152,18 @@ class CacheBlk : public TaggedEntry
      * on the block since the last store. */
     std::list<Lock> lockList;
 
+    /**
+     * Whether this block is locked by the Partition-Locked (PL) cache
+     * defense. A PL-locked block holds security-critical data and may
+     * only be evicted by an incoming line that is itself PL-locked and
+     * owned by the same context (see _plOwner).
+     */
+    bool _plLocked = false;
+
+    /** Owning context of a PL-locked block. Only meaningful if
+     * _plLocked is true. */
+    ContextID _plOwner = InvalidContextID;
+
   public:
     CacheBlk() : TaggedEntry()
     {
@@ -185,6 +197,9 @@ class CacheBlk : public TaggedEntry
         setCoherenceBits(other.coherence);
         setTaskId(other.getTaskId());
         setPartitionId(other.getPartitionId());
+        if (other.isPlLocked()) {
+            setPlLocked(other.getPlOwner());
+        }
         setWhenReady(curTick());
         setRefCount(other.getRefCount());
         setSrcRequestorId(other.getSrcRequestorId());
@@ -212,6 +227,8 @@ class CacheBlk : public TaggedEntry
         setRefCount(0);
         setSrcRequestorId(Request::invldRequestorId);
         lockList.clear();
+        _plLocked = false;
+        _plOwner = InvalidContextID;
     }
 
     /**
@@ -292,6 +309,24 @@ class CacheBlk : public TaggedEntry
 
     /** Getter for _partitionId */
     uint64_t getPartitionId() const { return _partitionId; }
+
+    /** Whether this block is locked by the PL cache defense. */
+    bool isPlLocked() const { return _plLocked; }
+
+    /** Owning context of a PL-locked block. */
+    ContextID getPlOwner() const { return _plOwner; }
+
+    /**
+     * Mark this block as locked by the PL cache defense, owned by the
+     * given context. Used by PartitionLockedTags on insertion of
+     * security-critical data.
+     */
+    void
+    setPlLocked(ContextID owner)
+    {
+        _plLocked = true;
+        _plOwner = owner;
+    }
 
     /** Get the number of references to this block since insertion. */
     unsigned getRefCount() const { return _refCount; }
