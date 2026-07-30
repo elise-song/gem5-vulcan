@@ -987,7 +987,12 @@ Commit::commit()
             // store's own address untainting, not just the violator's.
             fromIEW->instCausingSquash[tid]->setMemOrderViolatingStore(
                 fromIEW->memOrderViolatingStore[tid]);
-            if (cpu->STT && cpu->impChannel &&
+            // [STT] The expanded transmitter classification
+            // (moreTransmitInsts) already handles taint-based stalling via
+            // the IQ's taint-stall list, so the implicit-channel squash
+            // deferral below is redundant duplicate protection in that
+            // configuration -- restrict it to the base configuration.
+            if (cpu->STT && cpu->impChannel && cpu->moreTransmitInsts == 0 &&
                 fromIEW->instCausingSquash[tid]
                     ->stillTaintedForPendingSquash()) {
                 DPRINTF(Commit,
