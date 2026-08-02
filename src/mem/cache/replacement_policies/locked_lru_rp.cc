@@ -75,17 +75,23 @@ LockedLRU::getVictim(const ReplacementCandidates& candidates) const
     // There must be at least one replacement candidate
     assert(candidates.size() > 0);
     ReplaceableEntry* victim = nullptr;
-    Tick victimTick = 0;
     // Visit all candidates to find victim
     for (const auto& candidate : candidates) {
-        const auto *data =
-            static_cast<PartitionData *>(candidate->replacementData.get());
+        auto data = std::static_pointer_cast<PartitionData>(
+            candidate->replacementData);
         if (data->locked) {
             continue;
         }
-        if (victim == nullptr || data->lastTouchTick < victimTick) {
+        if (victim == nullptr) {
             victim = candidate;
-            victimTick = data->lastTouchTick;
+            continue;
+        }
+        // Update victim entry if necessary
+        if (std::static_pointer_cast<PartitionData>(
+                    candidate->replacementData)->lastTouchTick <
+                std::static_pointer_cast<PartitionData>(
+                    victim->replacementData)->lastTouchTick) {
+            victim = candidate;
         }
     }
 
@@ -112,7 +118,8 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
             count++;
     }
     if (count < 2){
-        warn("not enough unlocked ways did not lock");
+        // TEMP: bypass lock to isolate pre-lock baseline timing; remove later
+        warn("DEBUG: count < 2, skipping lock");
         return;
     }
     data->locked = true;
