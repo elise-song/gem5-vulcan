@@ -117,11 +117,6 @@ LockedLRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
         if(!candidateData ->locked)
             count++;
     }
-    if (count < 2){
-        // TEMP: bypass lock to isolate pre-lock baseline timing; remove later
-        warn("DEBUG: count < 2, skipping lock");
-        return;
-    }
     data->locked = true;
 }
 
