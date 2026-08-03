@@ -64,6 +64,33 @@ class TaggedSetAssociative(TaggedIndexingPolicy):
     entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
 
 
+class ScatterAssociative(TaggedIndexingPolicy):
+    type = "ScatterAssociative"
+    cxx_class = "gem5::ScatterAssociative"
+    cxx_header = "mem/cache/tags/indexing_policies/scatter_associative.hh"
+
+    # Get the size from the parent (cache)
+    size = Param.MemorySize(Parent.size, "capacity in bytes")
+
+    # Get the entry size from the parent (tags)
+    entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
+
+    # RNG seed used to generate per-domain keys. -1 uses gem5's global seed.
+    # Fix this (together with a fixed set of domains) to make an experiment
+    # reproducible across runs.
+    seed = Param.Int(
+        -1, "RNG seed for per-domain key generation; -1 = global seed"
+    )
+
+    # Optional fixed per-domain keys, indexed by security domain (contextId).
+    # A domain with no entry here (or a zero entry) is assigned a fresh random
+    # key on first use. Providing DISTINCT non-zero keys per domain is what
+    # gives each domain an independent address->set mapping.
+    keys = VectorParam.UInt64(
+        [], "Fixed per-domain secret keys, indexed by security domain"
+    )
+
+
 class BaseTags(ClockedObject):
     type = "BaseTags"
     abstract = True

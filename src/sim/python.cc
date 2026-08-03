@@ -26,6 +26,7 @@
  */
 
 #include "pybind11/pybind11.h"
+#include "mem/cache/tags/indexing_policies/scatter_associative.hh"
 #include "sim/init.hh"
 #include "sim/port.hh"
 
@@ -34,6 +35,25 @@ namespace gem5
 
 namespace
 {
+
+// Experiment hook for the ScatterCache defense: force the active security
+// domain for every ScatterAssociative-indexed cache. Called from a config
+// between attack phases (e.g. prime/probe run as the attacker domain, the
+// victim access as a different domain) so that a traffic-generator workload,
+// whose requests carry no contextId, can still drive DISTINCT per-domain
+// address->set mappings. Mirrors the reference PL defense's cacheLock hook.
+void
+scatterSetDomain(int64_t domain)
+{
+    ScatterAssociative::setActiveDomainAll((ContextID)domain);
+}
+
+// Drop the override and fall back to per-request contextId as the domain.
+void
+scatterClearDomain()
+{
+    ScatterAssociative::clearActiveDomainAll();
+}
 
 void
 sim_pybind(pybind11::module_ &m_internal)
@@ -44,6 +64,10 @@ sim_pybind(pybind11::module_ &m_internal)
         .def("bind", &Port::bind)
         .def("name", &Port::name)
         ;
+    m.def("scatterSetDomain", &scatterSetDomain,
+          "Force the active ScatterCache security domain (experiment hook)");
+    m.def("scatterClearDomain", &scatterClearDomain,
+          "Clear the ScatterCache active-domain override");
 }
 EmbeddedPyBind embed_("sim", &sim_pybind);
 

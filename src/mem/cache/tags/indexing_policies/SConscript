@@ -32,3 +32,6 @@ SimObject('IndexingPolicies.py', sim_objects=[
 
 Source('set_associative.cc')
 Source('skewed_associative.cc')
+Source('scatter_associative.cc')
+
+GTest('scatter_hash.test', 'scatter_hash.test.cc')

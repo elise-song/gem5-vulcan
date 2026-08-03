@@ -60,6 +60,15 @@ class TaggedTypes
     {
         Addr address;
         bool secure;
+        /**
+         * Security domain of the request, used by domain-keyed indexing
+         * policies (e.g. the ScatterCache defense) to select a per-domain
+         * address->set mapping. Defaults to InvalidContextID so that the many
+         * existing two-field brace initialisers ({address, secure}) keep
+         * compiling unchanged; indexing policies that do not care about the
+         * domain simply ignore this field.
+         */
+        ContextID domain = InvalidContextID;
     };
     using Params = TaggedIndexingPolicyParams;
 };
