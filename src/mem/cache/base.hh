@@ -48,10 +48,13 @@
 
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <string>
+#include <vector>
 
 #include "base/addr_range.hh"
 #include "base/compiler.hh"
+#include "base/random.hh"
 #include "base/statistics.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
@@ -364,6 +367,64 @@ class BaseCache : public ClockedObject
 
     /** Prefetcher */
     prefetch::Base *prefetcher;
+
+    /**
+     * Random Fill secure cache (Liu & Lee, MICRO 2014) state.
+     *
+     * When at least one protected range is configured, a protected demand
+     * read miss delivers its data to the core but does not cache the demanded
+     * line; instead exactly one random neighbour line (within
+     * randomFillWindow lines, clamped to the containing protected range) is
+     * fetched and cached normally, de-correlating cache state from the
+     * victim's access.
+     */
+    /** A protected demand miss awaiting one random-fill injection. */
+    struct RandomFillRequest
+    {
+        Addr blkAddr;              //!< block-aligned demand address
+        bool secure;               //!< demand's secure-space flag
+        RequestorID requestorId;   //!< demand's requestor
+    };
+
+    /** Protected address ranges; empty disables Random Fill entirely. */
+    std::vector<AddrRange> randomFillRanges;
+    /** Random-fill neighbourhood radius, in cache lines. */
+    unsigned randomFillWindow;
+    /** True iff at least one protected range is configured. */
+    bool randomFillEnabled;
+    /** RNG used to pick the random-fill neighbour line. */
+    Random::RandomPtr randomFillRng;
+    /**
+     * Protected demand misses awaiting random-fill injection. Each protected
+     * demand read miss enqueues exactly one entry; entries are drained one per
+     * free prefetch MSHR slot through getNextQueueEntry() -- the same clean,
+     * non-reentrant injection point the hardware prefetcher uses.
+     */
+    std::deque<RandomFillRequest> randomFillQueue;
+
+    /** True iff the (block-aligned) address is in a protected range. */
+    bool isRandomFillProtected(Addr blk_addr) const;
+
+    /**
+     * If @p pkt is a fresh protected demand-read miss, enqueue exactly one
+     * random-fill request for it. The demanded line itself is left uncached by
+     * the no-allocate guard in recvTimingResp().
+     */
+    void enqueueRandomFill(PacketPtr pkt);
+
+    /**
+     * Pop and build the next drainable random-fill packet, or nullptr if the
+     * queue is empty or the next neighbour is already resident / in flight.
+     */
+    PacketPtr getNextRandomFillPacket();
+
+    /**
+     * Build the memory packet for the random fill of a protected demand at
+     * block-aligned @p demand_blk_addr, or nullptr if the chosen neighbour is
+     * already resident / in flight and should be dropped.
+     */
+    PacketPtr getRandomFillPacket(Addr demand_blk_addr, bool secure,
+                                  RequestorID requestor_id);
 
     /** To probe when a cache hit occurs */
     ProbePointArg<CacheAccessProbeArg> *ppHit;
@@ -1134,6 +1195,13 @@ class BaseCache : public ClockedObject
 
         /** Number of replacements of valid blocks. */
         statistics::Scalar replacements;
+
+        /** Random Fill: protected demand-read misses observed. */
+        statistics::Scalar rfProtectedMisses;
+        /** Random Fill: random neighbour fills injected. */
+        statistics::Scalar rfRandomFillsInjected;
+        /** Random Fill: protected demand fills forced to no-allocate. */
+        statistics::Scalar rfDemandNoAllocate;
 
         /** Number of data expansions. */
         statistics::Scalar dataExpansions;

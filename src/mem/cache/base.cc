@@ -46,9 +46,11 @@
 #include "mem/cache/base.hh"
 
 #include "base/compiler.hh"
+#include "base/intmath.hh"
 #include "base/logging.hh"
 #include "debug/Cache.hh"
 #include "debug/CacheComp.hh"
+#include "debug/RandomFill.hh"
 #include "debug/CachePort.hh"
 #include "debug/CacheRepl.hh"
 #include "debug/CacheVerbose.hh"
@@ -58,6 +60,7 @@
 #include "mem/cache/mshr_queue.hh"
 #include "mem/cache/prefetch/base.hh"
 #include "mem/cache/queue_entry.hh"
+#include "mem/cache/random_fill.hh"
 #include "mem/cache/tags/compressed_tags.hh"
 #include "mem/cache/tags/partitioning_policies/partition_manager.hh"
 #include "mem/cache/tags/super_blk.hh"
@@ -90,6 +93,11 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       compressor(p.compressor),
       partitionManager(p.partitioning_manager),
       prefetcher(p.prefetcher),
+      randomFillRanges(p.random_fill_ranges.begin(),
+                       p.random_fill_ranges.end()),
+      randomFillWindow(std::max<unsigned>(1, p.random_fill_window)),
+      randomFillEnabled(!p.random_fill_ranges.empty()),
+      randomFillRng(Random::genRandom()),
       writeAllocator(p.write_allocator),
       writebackClean(p.writeback_clean),
       tempBlockWriteback(nullptr),
@@ -446,6 +454,12 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
             // a miss (outbound) just as forwardLatency, neglecting the
             // lookupLatency component.
             allocateMissBuffer(pkt, forward_time);
+
+            // Random Fill: a fresh protected demand-read miss enqueues exactly
+            // one random neighbour fill, injected later from
+            // getNextQueueEntry(). The demanded line itself is left uncached by
+            // the no-allocate guard in recvTimingResp().
+            enqueueRandomFill(pkt);
         }
     }
 }
@@ -603,8 +617,22 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         DPRINTF(Cache, "Block for addr %#llx being updated in Cache\n",
                 pkt->getAddr());
 
-        const bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
+        bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
             writeAllocator->allocate() : mshr->allocOnFill();
+
+        // Random Fill: a protected demand read delivers its data to the core
+        // but is never cached, so a subsequent access to the demanded line
+        // cannot be distinguished by timing from an unaccessed line. The
+        // injected random fill is a prefetch (isPrefetch()), so it is
+        // excluded here and allocates normally.
+        if (allocate && randomFillEnabled &&
+            initial_tgt->pkt->isRead() &&
+            !initial_tgt->pkt->req->isPrefetch() &&
+            isRandomFillProtected(pkt->getAddr())) {
+            allocate = false;
+            stats.rfDemandNoAllocate++;
+        }
+
         blk = handleFill(pkt, blk, writebacks, allocate);
         assert(blk != nullptr);
         ppFill->notify(CacheAccessProbeArg(pkt, accessor));
@@ -663,6 +691,12 @@ BaseCache::recvTimingResp(PacketPtr pkt)
                     prefetcher->nextPrefetchReadyTime(), clockEdge());
                 if (next_pf_time != MaxTick)
                     schedMemSideSendEvent(next_pf_time);
+            }
+
+            // Likewise, this freed slot may let a pending random fill drain.
+            if (randomFillEnabled && !randomFillQueue.empty() &&
+                mshrQueue.canPrefetch() && !isBlocked()) {
+                schedMemSideSendEvent(clockEdge());
             }
         }
 
@@ -950,8 +984,26 @@ BaseCache::getNextQueueEntry()
         return miss_mshr;
     }
 
-    // fall through... no pending requests.  Try a prefetch.
+    // fall through... no pending requests.
     assert(!miss_mshr && !wq_entry);
+
+    // Random Fill: inject one pending random-fill into a free prefetch MSHR
+    // slot, using the same (non-reentrant) injection point and drop checks as
+    // the hardware prefetcher below -- but targeting a random neighbour of a
+    // protected demand rather than the demanded line itself.
+    if (randomFillEnabled && !randomFillQueue.empty() &&
+        mshrQueue.canPrefetch() && !isBlocked()) {
+        PacketPtr pkt = getNextRandomFillPacket();
+        if (pkt) {
+            assert(pkt->req->requestorId() < system->maxRequestors());
+            stats.cmdStats(pkt).mshrMisses[pkt->req->requestorId()]++;
+            stats.rfRandomFillsInjected++;
+            // Send straight away, so do not schedule the send.
+            return allocateMissBuffer(pkt, curTick(), false);
+        }
+    }
+
+    // Try a prefetch.
     if (prefetcher && mshrQueue.canPrefetch() && !isBlocked()) {
         // If we have a miss queue slot, we can try a prefetch
         PacketPtr pkt = prefetcher->getPacket();
@@ -990,6 +1042,118 @@ BaseCache::getNextQueueEntry()
     }
 
     return nullptr;
+}
+
+bool
+BaseCache::isRandomFillProtected(Addr blk_addr) const
+{
+    return randomFillEnabled &&
+        random_fill::isProtected(randomFillRanges, blk_addr);
+}
+
+void
+BaseCache::enqueueRandomFill(PacketPtr pkt)
+{
+    // Only genuine protected demand *reads* trigger a random fill. Writes,
+    // writebacks, hardware/software prefetches, and the injected random fill
+    // itself (a prefetch) are all excluded, so the mechanism cannot recurse.
+    if (!randomFillEnabled || !pkt->isRead() || !pkt->isDemand() ||
+        pkt->req->isPrefetch()) {
+        return;
+    }
+
+    const Addr blk_addr = pkt->getBlockAddr(blkSize);
+    if (!isRandomFillProtected(blk_addr)) {
+        return;
+    }
+
+    stats.rfProtectedMisses++;
+    randomFillQueue.push_back(
+        {blk_addr, pkt->isSecure(), pkt->req->requestorId()});
+    DPRINTF(RandomFill, "enqueue random fill for protected demand %#llx "
+            "(queue=%d)\n", blk_addr, randomFillQueue.size());
+
+    // Kick the memory-side send machinery so getNextQueueEntry() drains the
+    // injection from its own (non-reentrant) context, rather than allocating a
+    // miss buffer here in the middle of demand-miss handling.
+    schedMemSideSendEvent(clockEdge(forwardLatency));
+}
+
+PacketPtr
+BaseCache::getNextRandomFillPacket()
+{
+    while (!randomFillQueue.empty()) {
+        const RandomFillRequest rf = randomFillQueue.front();
+        randomFillQueue.pop_front();
+
+        PacketPtr pkt = getRandomFillPacket(rf.blkAddr, rf.secure,
+                                            rf.requestorId);
+        if (!pkt) {
+            // Neighbour already resident / in flight; drop and try the next.
+            DPRINTF(RandomFill, "random fill for %#llx dropped (resident/"
+                    "in-flight)\n", rf.blkAddr);
+            continue;
+        }
+        DPRINTF(RandomFill, "injecting random fill %#llx for protected "
+                "demand %#llx\n", pkt->getAddr(), rf.blkAddr);
+        return pkt;
+    }
+    return nullptr;
+}
+
+PacketPtr
+BaseCache::getRandomFillPacket(Addr demand_blk_addr, bool secure,
+                               RequestorID requestor_id)
+{
+    // Find the protected range that contains the demand; the random fill is
+    // drawn from within it, so it is always a legal, cacheable address.
+    const AddrRange *region = nullptr;
+    for (const auto &range : randomFillRanges) {
+        if (range.contains(demand_blk_addr)) {
+            region = &range;
+            break;
+        }
+    }
+    if (!region) {
+        return nullptr;
+    }
+
+    // Block-aligned half-open bounds of the safe region.
+    const Addr region_lo = roundUp(region->start(), blkSize);
+    const Addr region_hi = roundDown(region->end(), blkSize);
+    if (region_hi < region_lo + 2 * blkSize ||
+        demand_blk_addr < region_lo || demand_blk_addr >= region_hi) {
+        // Region too small (or oddly aligned) to hold a distinct neighbour.
+        return nullptr;
+    }
+
+    // Pick a random block-aligned neighbour of the demanded line within the
+    // configured window, clamped to the region.
+    const Addr fill_addr = random_fill::pickNeighbor(
+        demand_blk_addr, blkSize, region_lo, region_hi, randomFillWindow,
+        *randomFillRng);
+
+    // Drop the injection if the neighbour is already resident or in flight;
+    // there is nothing to hide in that case and re-fetching would be wasteful.
+    if (tags->findBlock({fill_addr, secure}) ||
+        mshrQueue.findMatch(fill_addr, secure) ||
+        writeBuffer.findMatch(fill_addr, secure)) {
+        return nullptr;
+    }
+
+    // Build an ordinary prefetch-style read for the random neighbour. It is
+    // flagged as a prefetch so it is never itself treated as protected (no
+    // recursion) and allocates on fill like any other prefetch.
+    RequestPtr req = std::make_shared<Request>(
+        fill_addr, blkSize, Request::PREFETCH, requestor_id);
+    if (secure) {
+        req->setFlags(Request::SECURE);
+    }
+    req->taskId(context_switch_task_id::Prefetcher);
+
+    PacketPtr pkt = new Packet(req, MemCmd::HardPFReq);
+    pkt->allocate();
+    return pkt;
 }
 
 bool
@@ -1726,8 +1890,11 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
 void
 BaseCache::invalidateBlock(CacheBlk *blk)
 {
-    // If block is still marked as prefetched, then it hasn't been used
-    if (blk->wasPrefetched()) {
+    // If block is still marked as prefetched, then it hasn't been used.
+    // A block can be marked prefetched even when this cache has no hardware
+    // prefetcher -- e.g. the Random Fill defense injects prefetch-style fills
+    // -- so guard the prefetcher access as everywhere else in this file.
+    if (blk->wasPrefetched() && prefetcher) {
         prefetcher->prefetchUnused();
     }
 
@@ -2332,6 +2499,12 @@ BaseCache::CacheStats::CacheStats(BaseCache &c)
              "average overall mshr uncacheable latency"),
     ADD_STAT(replacements, statistics::units::Count::get(),
              "number of replacements"),
+    ADD_STAT(rfProtectedMisses, statistics::units::Count::get(),
+             "Random Fill: protected demand-read misses observed"),
+    ADD_STAT(rfRandomFillsInjected, statistics::units::Count::get(),
+             "Random Fill: random neighbour fills injected"),
+    ADD_STAT(rfDemandNoAllocate, statistics::units::Count::get(),
+             "Random Fill: protected demand fills forced to no-allocate"),
     ADD_STAT(dataExpansions, statistics::units::Count::get(),
              "number of data expansions"),
     ADD_STAT(dataContractions, statistics::units::Count::get(),

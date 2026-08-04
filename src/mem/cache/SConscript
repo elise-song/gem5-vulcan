@@ -52,7 +52,10 @@ Source('noncoherent_cache.cc')
 Source('write_queue.cc')
 Source('write_queue_entry.cc')
 
+GTest('random_fill.test', 'random_fill.test.cc', '../../base/random.cc')
+
 DebugFlag('Cache')
+DebugFlag('RandomFill')
 DebugFlag('CacheComp')
 DebugFlag('CachePort')
 DebugFlag('CacheRepl')

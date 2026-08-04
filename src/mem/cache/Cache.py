@@ -169,6 +169,23 @@ class BaseCache(ClockedObject):
     # data cache.
     write_allocator = Param.WriteAllocator(NULL, "Write allocator")
 
+    # --- Random Fill secure cache (Liu & Lee, MICRO 2014) ---
+    # Address ranges whose demand *loads* are "protected". For a protected
+    # demand-read miss the demanded line is delivered to the core but NOT
+    # cached (no-allocate); instead exactly one random line within
+    # +/- random_fill_window lines of the demanded address (clamped to the
+    # same page so it is always legal/cacheable) is fetched and allocated
+    # normally. This de-correlates cache state from the victim's actual
+    # access, defeating reuse-based timing attacks. An empty list disables
+    # the defense (the default), giving zero behaviour change.
+    random_fill_ranges = VectorParam.AddrRange(
+        [], "Address ranges whose demand loads use Random Fill (empty = off)"
+    )
+    # Spatial neighbourhood radius, in cache lines, for the random fill.
+    random_fill_window = Param.Unsigned(
+        8, "Random-fill neighbourhood radius in cache lines (+/-)"
+    )
+
 
 class Cache(BaseCache):
     type = "Cache"
