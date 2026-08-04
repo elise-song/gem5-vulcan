@@ -52,6 +52,7 @@
 
 #include "base/addr_range.hh"
 #include "base/compiler.hh"
+#include "base/random.hh"
 #include "base/statistics.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
@@ -364,6 +365,48 @@ class BaseCache : public ClockedObject
 
     /** Prefetcher */
     prefetch::Base *prefetcher;
+
+    /**
+     * Non-deterministic cache via Cache Decay (Keramidas et al., 2008).
+     *
+     * When enabled, every inserted line is given a randomized decay lifetime;
+     * when that lifetime elapses the line self-invalidates (written back first
+     * if dirty). A single event (decayEvent) drives all decays: it is always
+     * scheduled for the earliest live deadline, and on firing it invalidates
+     * every block whose deadline has elapsed, then reschedules itself for the
+     * next earliest deadline. Scanning the live tag array by address (rather
+     * than holding a raw block pointer in the event) means a reused block is
+     * never mistaken for a decayed one -- no generation/seq guard is needed.
+     */
+    /** True iff decay is enabled on this cache. */
+    bool decayEnabled;
+    /** Base/mean per-line decay lifetime, in ticks. */
+    Tick decayInterval;
+    /** Randomization half-width of the decay lifetime, in ticks. */
+    Tick decayRange;
+    /** RNG used to draw per-line decay lifetimes. */
+    Random::RandomPtr decayRng;
+    /** Single event driving all per-line decays (see above). */
+    EventFunctionWrapper decayEvent;
+
+    /** Draw a fresh randomized decay lifetime (ticks) from decayRng. */
+    Tick drawDecayLifetime();
+    /**
+     * Arm decay on a freshly filled block: draw a randomized deadline and
+     * ensure decayEvent will fire in time to catch it. No-op if decay is
+     * disabled or blk is the temp block (temp blocks live outside the tags
+     * and are evicted immediately).
+     */
+    void armDecay(CacheBlk *blk);
+    /**
+     * Re-draw a block's decay deadline on a hit/touch (Cache Decay extends a
+     * line's lifetime when it is used) and count the reschedule.
+     */
+    void touchDecay(CacheBlk *blk);
+    /** (Re)schedule decayEvent to fire no later than @p when. */
+    void scheduleDecay(Tick when);
+    /** decayEvent handler: self-invalidate every block past its deadline. */
+    void processDecay();
 
     /** To probe when a cache hit occurs */
     ProbePointArg<CacheAccessProbeArg> *ppHit;
@@ -1134,6 +1177,13 @@ class BaseCache : public ClockedObject
 
         /** Number of replacements of valid blocks. */
         statistics::Scalar replacements;
+
+        /** Cache Decay: lines self-invalidated by decay. */
+        statistics::Scalar ndDecayInvalidations;
+        /** Cache Decay: dirty lines written back before decay invalidation. */
+        statistics::Scalar ndDirtyDecayWritebacks;
+        /** Cache Decay: decay deadlines re-drawn on a hit/touch. */
+        statistics::Scalar ndDecayReschedules;
 
         /** Number of data expansions. */
         statistics::Scalar dataExpansions;

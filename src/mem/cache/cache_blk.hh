@@ -109,6 +109,16 @@ class CacheBlk : public TaggedEntry
      */
     Tick whenReady = 0;
 
+    /**
+     * Non-deterministic Cache Decay (Keramidas et al., 2008): the tick at
+     * which this line's randomized decay lifetime elapses and the line
+     * self-invalidates. MaxTick means "no decay armed" (decay disabled, or
+     * this block is not currently subject to decay). Its value is only
+     * meaningful while the block is valid; it is reset to MaxTick on
+     * invalidate().
+     */
+    Tick decayDeadline = MaxTick;
+
   protected:
     /**
      * Represents that the indicated thread context has a "lock" on
@@ -186,6 +196,10 @@ class CacheBlk : public TaggedEntry
         setTaskId(other.getTaskId());
         setPartitionId(other.getPartitionId());
         setWhenReady(curTick());
+        // Carry the decay deadline with the metadata so the moved line keeps
+        // decaying at its originally randomized time (the decay sweep scans
+        // by address, so the physical slot it lives in is irrelevant).
+        decayDeadline = other.decayDeadline;
         setRefCount(other.getRefCount());
         setSrcRequestorId(other.getSrcRequestorId());
         std::swap(lockList, other.lockList);
@@ -209,6 +223,7 @@ class CacheBlk : public TaggedEntry
         setTaskId(context_switch_task_id::Unknown);
         setPartitionId(std::numeric_limits<uint64_t>::max());
         setWhenReady(MaxTick);
+        decayDeadline = MaxTick;
         setRefCount(0);
         setSrcRequestorId(Request::invldRequestorId);
         lockList.clear();

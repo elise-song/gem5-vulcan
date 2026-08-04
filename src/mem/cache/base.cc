@@ -53,6 +53,8 @@
 #include "debug/CacheRepl.hh"
 #include "debug/CacheVerbose.hh"
 #include "debug/HWPrefetch.hh"
+#include "debug/NDCacheDecay.hh"
+#include "mem/cache/cache_decay.hh"
 #include "mem/cache/compressors/base.hh"
 #include "mem/cache/mshr.hh"
 #include "mem/cache/mshr_queue.hh"
@@ -90,6 +92,11 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       compressor(p.compressor),
       partitionManager(p.partitioning_manager),
       prefetcher(p.prefetcher),
+      decayEnabled(p.decay_enabled),
+      decayInterval(p.decay_interval),
+      decayRange(p.decay_range),
+      decayRng(Random::genRandom()),
+      decayEvent([this]{ processDecay(); }, name()),
       writeAllocator(p.write_allocator),
       writebackClean(p.writeback_clean),
       tempBlockWriteback(nullptr),
@@ -1536,6 +1543,12 @@ BaseCache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
         satisfyRequest(pkt, blk);
         maintainClusivity(pkt->fromCache(), blk);
 
+        // Non-deterministic Cache Decay: a genuine hit uses the line, so
+        // extend its randomized lifetime (re-drawing the decay deadline). The
+        // satisfyRequest() above may have invalidated the block (a cache
+        // invalidate hit); touchDecay guards against a now-invalid block.
+        touchDecay(blk);
+
         return true;
     }
 
@@ -1660,6 +1673,10 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
     blk->setWhenReady(clockEdge(fillLatency) + pkt->headerDelay +
                       pkt->payloadDelay);
 
+    // Non-deterministic Cache Decay: arm a randomized self-invalidation
+    // deadline on the freshly filled (real, cached) line.
+    armDecay(blk);
+
     return blk;
 }
 
@@ -1749,6 +1766,138 @@ BaseCache::evictBlock(CacheBlk *blk, PacketList &writebacks)
     PacketPtr pkt = evictBlock(blk);
     if (pkt) {
         writebacks.push_back(pkt);
+    }
+}
+
+// -----------------------------------------------------------------------
+// Non-deterministic cache via Cache Decay (Keramidas et al., 2008).
+// -----------------------------------------------------------------------
+
+Tick
+BaseCache::drawDecayLifetime()
+{
+    return cache_decay::decayLifetime(*decayRng, decayInterval, decayRange);
+}
+
+void
+BaseCache::scheduleDecay(Tick when)
+{
+    if (!decayEnabled) {
+        return;
+    }
+    // A deadline in the past/now is served on the next tick.
+    if (when <= curTick()) {
+        when = curTick() + 1;
+    }
+    if (!decayEvent.scheduled()) {
+        schedule(decayEvent, when);
+    } else if (when < decayEvent.when()) {
+        // A newly armed line decays sooner than the currently scheduled
+        // sweep; pull the sweep earlier so it is not missed.
+        reschedule(decayEvent, when);
+    }
+    // Otherwise the existing sweep already fires no later than needed; when it
+    // fires it rescans and reschedules for the true next-earliest deadline.
+}
+
+void
+BaseCache::armDecay(CacheBlk *blk)
+{
+    if (!decayEnabled || blk == tempBlock || !blk->isValid()) {
+        return;
+    }
+    const Tick life = drawDecayLifetime();
+    blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
+    DPRINTF(NDCacheDecay, "arm decay on %#llx: lifetime %llu, deadline %llu\n",
+            regenerateBlkAddr(blk), life, blk->decayDeadline);
+    scheduleDecay(blk->decayDeadline);
+}
+
+void
+BaseCache::touchDecay(CacheBlk *blk)
+{
+    // Only re-draw for a real, armed, still-valid line. satisfyRequest() may
+    // have invalidated the block on an invalidate-hit, which clears the
+    // deadline; skip those.
+    if (!decayEnabled || blk == tempBlock || !blk->isValid() ||
+        blk->decayDeadline == MaxTick) {
+        return;
+    }
+    const Tick life = drawDecayLifetime();
+    blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
+    stats.ndDecayReschedules++;
+    DPRINTF(NDCacheDecay, "touch decay on %#llx: lifetime %llu, deadline "
+            "%llu\n", regenerateBlkAddr(blk), life, blk->decayDeadline);
+    scheduleDecay(blk->decayDeadline);
+}
+
+void
+BaseCache::processDecay()
+{
+    assert(decayEnabled);
+    const Tick now = curTick();
+
+    // Scan the live tag array (by address, never a stale block pointer):
+    // collect every valid armed block whose deadline has elapsed, and track
+    // the earliest still-future deadline so we can reschedule the sweep.
+    std::vector<CacheBlk *> expired;
+    Tick next = MaxTick;
+    tags->forEachBlk([&](CacheBlk &blk) {
+        if (!blk.isValid() || blk.decayDeadline == MaxTick) {
+            return;
+        }
+        if (blk.decayDeadline <= now) {
+            expired.push_back(&blk);
+        } else if (blk.decayDeadline < next) {
+            next = blk.decayDeadline;
+        }
+    });
+
+    // Retry quantum for blocks that are due but temporarily busy (see below).
+    const Tick retry = std::max<Tick>(1, decayInterval / 8);
+
+    PacketList writebacks;
+    for (CacheBlk *blk : expired) {
+        const Addr blk_addr = regenerateBlkAddr(blk);
+        const bool is_secure = blk->isSecure();
+
+        // Correctness: never decay a line that has outstanding MSHR or write
+        // buffer activity (an in-flight miss/upgrade/writeback), or whose fill
+        // data has not yet landed. Dropping it now could race the in-flight
+        // operation or lose data. Leave its (past) deadline in place and retry
+        // the sweep shortly, once the activity is expected to have settled.
+        const bool busy =
+            mshrQueue.findMatch(blk_addr, is_secure) ||
+            writeBuffer.findMatch(blk_addr, is_secure) ||
+            (blk->whenReady > now);
+        if (busy) {
+            DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n", blk_addr);
+            next = std::min(next, now + retry);
+            continue;
+        }
+
+        // Faithful decay: a dirty line MUST be written back before it is
+        // dropped (no silent data loss); a clean line is simply invalidated.
+        // evictBlock() runs the cache's normal eviction path -- writeback (or
+        // coherence CleanEvict) as appropriate, then invalidateBlock() --
+        // which keeps coherence correct and clears the block's decay state.
+        const bool dirty = blk->isSet(CacheBlk::DirtyBit);
+        DPRINTF(NDCacheDecay, "decay-invalidate %#llx (%s)\n", blk_addr,
+                dirty ? "dirty, writeback" : "clean");
+        evictBlock(blk, writebacks);
+        stats.ndDecayInvalidations++;
+        if (dirty) {
+            stats.ndDirtyDecayWritebacks++;
+        }
+    }
+
+    if (!writebacks.empty()) {
+        doWritebacks(writebacks, clockEdge(forwardLatency));
+    }
+
+    // Reschedule the sweep for the next-earliest deadline (or busy retry).
+    if (next != MaxTick) {
+        scheduleDecay(next);
     }
 }
 
@@ -2332,6 +2481,12 @@ BaseCache::CacheStats::CacheStats(BaseCache &c)
              "average overall mshr uncacheable latency"),
     ADD_STAT(replacements, statistics::units::Count::get(),
              "number of replacements"),
+    ADD_STAT(ndDecayInvalidations, statistics::units::Count::get(),
+             "Cache Decay: lines self-invalidated by randomized decay"),
+    ADD_STAT(ndDirtyDecayWritebacks, statistics::units::Count::get(),
+             "Cache Decay: dirty lines written back before decay invalidation"),
+    ADD_STAT(ndDecayReschedules, statistics::units::Count::get(),
+             "Cache Decay: decay deadlines re-drawn on a hit/touch"),
     ADD_STAT(dataExpansions, statistics::units::Count::get(),
              "number of data expansions"),
     ADD_STAT(dataContractions, statistics::units::Count::get(),

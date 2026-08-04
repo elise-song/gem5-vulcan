@@ -169,6 +169,32 @@ class BaseCache(ClockedObject):
     # data cache.
     write_allocator = Param.WriteAllocator(NULL, "Write allocator")
 
+    # --- Non-deterministic cache via Cache Decay (Keramidas et al., 2008) ---
+    # When enabled, every cache line is given a RANDOMIZED decay lifetime when
+    # it is inserted (and re-drawn when it is touched on a hit). When a line's
+    # lifetime elapses the line self-invalidates (is written back if dirty,
+    # then dropped). Randomizing per-line lifetimes makes cache occupancy
+    # non-deterministic, so a contention/reuse attacker probing the cache sees
+    # noisy state (primed or victim lines may have randomly decayed away),
+    # degrading Prime+Probe / Evict+Time / reuse channels. Disabled by default
+    # (decay_enabled = False), giving zero behaviour change.
+    decay_enabled = Param.Bool(
+        False, "Enable non-deterministic cache decay (randomized per-line "
+        "self-invalidation)"
+    )
+    # Base/mean per-line decay lifetime. The actual lifetime for each line is
+    # drawn uniformly from [decay_interval - decay_range, decay_interval +
+    # decay_range] (clamped so it is always >= 1 tick).
+    decay_interval = Param.Latency(
+        "500ns", "Base/mean per-line decay lifetime"
+    )
+    # Half-width of the uniform randomization window around decay_interval.
+    # Must be > 0 for the decay to be genuinely non-deterministic; a value of
+    # 0 makes every line decay at exactly decay_interval (deterministic).
+    decay_range = Param.Latency(
+        "250ns", "Randomization half-width of the per-line decay lifetime"
+    )
+
 
 class Cache(BaseCache):
     type = "Cache"
