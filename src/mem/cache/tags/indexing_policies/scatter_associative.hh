@@ -31,19 +31,13 @@
  * Declaration of the ScatterCache randomized skewed-associative indexing
  * policy (Werner et al., "ScatterCache: Thwarting Cache Attacks via Cache Set
  * Randomization", USENIX Security 2019).
- *
- * This revision replaces the original per-domain key bookkeeping (an
- * unbounded software map keyed by ContextID) with a small resident key
- * table, modeling the fact that a real key-derivation unit only keeps a
- * bounded amount of key state on-chip rather than growing without limit as
- * new security domains are observed.
  */
 
 #ifndef __MEM_CACHE_INDEXING_POLICIES_SCATTER_ASSOCIATIVE_HH__
 #define __MEM_CACHE_INDEXING_POLICIES_SCATTER_ASSOCIATIVE_HH__
 
-#include <cstddef>
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 #include "base/random.hh"
@@ -62,13 +56,13 @@ class ReplaceableEntry;
  * index for each way is produced by a KEYED index-derivation function whose
  * key depends on the requesting SECURITY DOMAIN (req->contextId()).
  *
- * Because every domain is (in principle) assigned a different, high-entropy
- * key, the same address maps to a different, unpredictable set in every way
- * for every domain. Two domains therefore almost never share a full set of
- * congruent lines, which makes cross-domain eviction-set construction
- * infeasible and defeats eviction-based attacks (Prime+Probe, Evict+Time,
- * ...). No line is ever locked or made non-evictable; the protection comes
- * entirely from the randomized mapping.
+ * Because every domain is assigned a different, high-entropy key, the same
+ * address maps to a different, unpredictable set in every way for every
+ * domain. Two domains therefore almost never share a full set of congruent
+ * lines, which makes cross-domain eviction-set construction infeasible and
+ * defeats eviction-based attacks (Prime+Probe, Evict+Time, ...). No line is
+ * ever locked or made non-evictable; the protection comes entirely from the
+ * randomized mapping.
  *
  * Unlike the conventional gem5 indexing policies, the full line address is
  * kept as the tag (extractTag() drops only the block offset). This is what
@@ -84,39 +78,20 @@ class ScatterAssociative : public TaggedIndexingPolicy
     using KeyType = TaggedTypes::KeyType;
 
     /**
-     * The key-derivation unit keeps one resident key per active hardware
-     * thread context sharing this cache level, not one per software-visible
-     * security domain -- domains can vastly outnumber the physical thread
-     * contexts that actually drive requests into a given cache instance, so
-     * sizing key storage off the domain count would leave it unbounded.
-     *
-     * kThreadContextsPerCache is the number of hardware thread contexts this
-     * cache instance serves; kKeysPerThreadContext is the number of resident
-     * keys kept per context (a single key per context keeps the unit's local
-     * key storage trivially small). A domain is mapped onto a resident slot
-     * via (domain % kKeyTableSlots), direct-mapped-cache style.
+     * Per-domain secret keys, generated lazily the first time a domain is
+     * seen. Mutable because it is populated from the const lookup path.
      */
-    static constexpr std::size_t kThreadContextsPerCache = 1;
-    static constexpr std::size_t kKeysPerThreadContext = 1;
-    static constexpr std::size_t kKeyTableSlots =
-        kThreadContextsPerCache * kKeysPerThreadContext;
+    mutable std::unordered_map<ContextID, uint64_t> domainKeys;
 
     /**
-     * Resident key table. keyTable_[slot] == 0 means "unpopulated"; a
-     * populated slot holds whichever domain's key last resolved into it.
-     * Mutable because it is populated from the const lookup path.
+     * Optional fixed keys (from the Python param) indexed by security domain,
+     * used to make experiments reproducible. Domains beyond this vector, or
+     * with a zero entry, get a fresh random key instead.
      */
-    mutable std::vector<uint64_t> keyTable_;
-
-    /**
-     * Optional fixed keys (from the Python `keys` param), indexed by security
-     * domain, used to make experiments reproducible. A domain beyond this
-     * vector, or with a zero entry, is assigned a fresh random key instead.
-     */
-    const std::vector<uint64_t> fixedKeys_;
+    const std::vector<uint64_t> fixedKeys;
 
     /** RNG used to generate per-domain keys with adequate entropy. */
-    Random::RandomPtr rng_;
+    Random::RandomPtr rng;
 
     /**
      * Experiment-only override of the active security domain. When set (via
@@ -125,18 +100,11 @@ class ScatterAssociative : public TaggedIndexingPolicy
      * traffic-generator workload can drive distinct domains. Defaults to
      * "not set", in which case the domain is taken from req->contextId().
      */
-    bool overrideActive_ = false;
-    ContextID overrideDomain_ = 0;
+    bool activeDomainSet = false;
+    ContextID activeDomain = 0;
 
     /** Registry of live instances, so the override can be applied globally. */
-    static std::vector<ScatterAssociative *> liveInstances_;
-
-    /** Map a security domain onto its resident key-table slot. */
-    std::size_t
-    slotFor(ContextID domain) const
-    {
-        return static_cast<std::size_t>(domain) % kKeyTableSlots;
-    }
+    static std::vector<ScatterAssociative *> allPolicies;
 
     /**
      * Resolve the effective security domain for a lookup: the experiment
@@ -144,18 +112,18 @@ class ScatterAssociative : public TaggedIndexingPolicy
      * back to domain 0 for requests that carry no context).
      */
     ContextID
-    normalizeDomain(ContextID raw) const
+    resolveDomain(ContextID raw) const
     {
-        if (overrideActive_) {
-            return overrideDomain_;
+        if (activeDomainSet) {
+            return activeDomain;
         }
         return (raw != InvalidContextID) ? raw : 0;
     }
 
     /**
-     * Get (populating on first use) the resident key for a security domain.
+     * Get (generating on first use) the secret key for a security domain.
      */
-    uint64_t keyForDomain(ContextID domain) const;
+    uint64_t getDomainKey(ContextID domain) const;
 
     /**
      * Apply the keyed index-derivation function to obtain the set for a given
@@ -163,10 +131,10 @@ class ScatterAssociative : public TaggedIndexingPolicy
      * together, so the mapping is address-, way- and domain-specific.
      */
     uint32_t
-    computeWaySet(const KeyType &key, const uint32_t way) const
+    extractSet(const KeyType &key, const uint32_t way) const
     {
         const uint64_t line_addr = key.address >> setShift;
-        const uint64_t dkey = keyForDomain(normalizeDomain(key.domain));
+        const uint64_t dkey = getDomainKey(resolveDomain(key.domain));
         return scatterIndexHash(line_addr, way, dkey) & setMask;
     }
 
@@ -190,16 +158,15 @@ class ScatterAssociative : public TaggedIndexingPolicy
      * Find all possible entries for insertion and replacement of an address:
      * one candidate per way, at the keyed set index for that way.
      */
-    std::vector<ReplaceableEntry*>
+    std::vector<ReplaceableEntry *>
     getPossibleEntries(const KeyType &key) const override;
 
     /**
      * Regenerate an entry's block address from its (full) tag. Independent of
      * the keyed mapping: the address is simply the tag shifted back up.
      */
-    Addr
-    regenerateAddr(const KeyType &key,
-                   const ReplaceableEntry *entry) const override;
+    Addr regenerateAddr(const KeyType &key,
+                        const ReplaceableEntry *entry) const override;
 
     /**
      * Set the experiment override domain on every live ScatterAssociative

@@ -1,1 +1,12 @@
 data/
+data_*/
+box/
+*.txt
+*.csv
+*.png
+spectre
+spectre_implicit
+spectre_memorder
+test_lock*
+flush_reload
+flush_reload_stats

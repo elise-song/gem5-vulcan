@@ -38,3 +38,24 @@ configs/dram/lowp_sweep.cfg
 .vscode
 typings
 .DS_Store
+
+# Vulcan experiment outputs (generated data, not source)
+m5out_*
+/configs/test_output.txt
+/.debug.txt
+/cache_trace.txt
+/full_cache_trace.txt
+/output.txt
+/paired_events.txt
+/program_out.txt
+/results.txt
+/stats_0x*.txt
+/stdout.txt
+/test_output.txt
+/tlb_trace.txt
+/test_locked_lru
+/flush_reload
+/flush_reload_stats
+/spectre
+/spectre_stt_out/
+/sweep_out/

@@ -43,60 +43,58 @@
 namespace gem5
 {
 
-std::vector<ScatterAssociative *> ScatterAssociative::liveInstances_;
+std::vector<ScatterAssociative *> ScatterAssociative::allPolicies;
 
 ScatterAssociative::ScatterAssociative(const Params &p)
     : TaggedIndexingPolicy(p, p.size / p.entry_size, floorLog2(p.entry_size)),
-      keyTable_(kKeyTableSlots, 0),
-      fixedKeys_(p.keys.begin(), p.keys.end()),
-      rng_(p.seed >= 0 ? Random::genRandom((uint32_t)p.seed)
-                       : Random::genRandom())
+      fixedKeys(p.keys.begin(), p.keys.end()),
+      rng(p.seed >= 0 ? Random::genRandom((uint32_t)p.seed)
+                      : Random::genRandom())
 {
-    liveInstances_.push_back(this);
+    allPolicies.push_back(this);
 }
 
 ScatterAssociative::~ScatterAssociative()
 {
-    liveInstances_.erase(
-        std::remove(liveInstances_.begin(), liveInstances_.end(), this),
-        liveInstances_.end());
+    allPolicies.erase(
+        std::remove(allPolicies.begin(), allPolicies.end(), this),
+        allPolicies.end());
 }
 
 uint64_t
-ScatterAssociative::keyForDomain(ContextID domain) const
+ScatterAssociative::getDomainKey(ContextID domain) const
 {
-    const std::size_t slot = slotFor(domain);
-    if (keyTable_[slot] != 0) {
-        // Already resident: reuse the key currently occupying this slot.
-        return keyTable_[slot];
+    auto it = domainKeys.find(domain);
+    if (it != domainKeys.end()) {
+        return it->second;
     }
 
     uint64_t key;
-    if (domain >= 0 && (std::size_t)domain < fixedKeys_.size() &&
-        fixedKeys_[domain] != 0) {
+    if (domain >= 0 && (std::size_t)domain < fixedKeys.size() &&
+        fixedKeys[domain] != 0) {
         // Reproducible, experiment-supplied key for this domain.
-        key = fixedKeys_[domain];
+        key = fixedKeys[domain];
     } else {
         // Fresh high-entropy key; never zero (a zero key would collapse the
         // keyed mapping into a plain, predictable one).
         do {
-            key = rng_->random<uint64_t>();
+            key = rng->random<uint64_t>();
         } while (key == 0);
     }
 
-    keyTable_[slot] = key;
+    domainKeys[domain] = key;
     return key;
 }
 
-std::vector<ReplaceableEntry*>
+std::vector<ReplaceableEntry *>
 ScatterAssociative::getPossibleEntries(const KeyType &key) const
 {
-    std::vector<ReplaceableEntry*> entries;
+    std::vector<ReplaceableEntry *> entries;
     entries.reserve(assoc);
 
     // One candidate per way, each at that way's keyed set index.
     for (uint32_t way = 0; way < assoc; ++way) {
-        entries.push_back(sets[computeWaySet(key, way)][way]);
+        entries.push_back(sets[extractSet(key, way)][way]);
     }
 
     return entries;
@@ -118,7 +116,7 @@ std::vector<uint32_t>
 ScatterAssociative::setIndexVector(Addr addr, ContextID domain) const
 {
     const uint64_t line_addr = addr >> setShift;
-    const uint64_t dkey = keyForDomain(domain);
+    const uint64_t dkey = getDomainKey(domain);
 
     std::vector<uint32_t> indices;
     indices.reserve(assoc);
@@ -131,17 +129,17 @@ ScatterAssociative::setIndexVector(Addr addr, ContextID domain) const
 void
 ScatterAssociative::setActiveDomainAll(ContextID domain)
 {
-    for (auto *policy : liveInstances_) {
-        policy->overrideActive_ = true;
-        policy->overrideDomain_ = domain;
+    for (auto *policy : allPolicies) {
+        policy->activeDomainSet = true;
+        policy->activeDomain = domain;
     }
 }
 
 void
 ScatterAssociative::clearActiveDomainAll()
 {
-    for (auto *policy : liveInstances_) {
-        policy->overrideActive_ = false;
+    for (auto *policy : allPolicies) {
+        policy->activeDomainSet = false;
     }
 }
 
