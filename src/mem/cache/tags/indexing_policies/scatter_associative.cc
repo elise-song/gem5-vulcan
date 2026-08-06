@@ -92,14 +92,9 @@ ScatterAssociative::getPossibleEntries(const KeyType &key) const
     std::vector<ReplaceableEntry *> entries;
     entries.reserve(assoc);
 
-    // Domain resolution and the key-map lookup are the same for every way of
-    // a single access; do them once instead of once per way.
-    const uint64_t line_addr = key.address >> setShift;
-    const uint64_t dkey = getDomainKey(resolveDomain(key.domain));
-
     // One candidate per way, each at that way's keyed set index.
     for (uint32_t way = 0; way < assoc; ++way) {
-        entries.push_back(sets[extractSet(line_addr, dkey, way)][way]);
+        entries.push_back(sets[extractSet(key, way)][way]);
     }
 
     return entries;

@@ -127,17 +127,14 @@ class ScatterAssociative : public TaggedIndexingPolicy
 
     /**
      * Apply the keyed index-derivation function to obtain the set for a given
-     * line address/way under an already-resolved domain key. The line
-     * address and key are mixed together with the way, so the mapping is
-     * address-, way- and domain-specific. Callers that need the set for
-     * every way of the same access (e.g. getPossibleEntries()) should
-     * resolve the domain key once and call this directly, since domain
-     * resolution and key lookup are invariant across ways.
+     * key/way. The full line address and the resolved domain's key are mixed
+     * together, so the mapping is address-, way- and domain-specific.
      */
     uint32_t
-    extractSet(const uint64_t line_addr, const uint64_t dkey,
-               const uint32_t way) const
+    extractSet(const KeyType &key, const uint32_t way) const
     {
+        const uint64_t line_addr = key.address >> setShift;
+        const uint64_t dkey = getDomainKey(resolveDomain(key.domain));
         return scatterIndexHash(line_addr, way, dkey) & setMask;
     }
 
