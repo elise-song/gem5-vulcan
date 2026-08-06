@@ -64,8 +64,12 @@ ScatterAssociative::~ScatterAssociative()
 uint64_t
 ScatterAssociative::getDomainKey(ContextID domain) const
 {
-    auto it = domainKeys.find(domain);
-    if (it != domainKeys.end()) {
+    // try_emplace() finds-or-inserts in a single hash lookup: on a hit it
+    // just returns the existing entry; on a miss it inserts a placeholder
+    // and hands back an iterator to fill in below. This avoids the separate
+    // find() + operator[] pair (two lookups) the miss path used before.
+    auto [it, inserted] = domainKeys.try_emplace(domain, 0);
+    if (!inserted) {
         return it->second;
     }
 
@@ -82,7 +86,7 @@ ScatterAssociative::getDomainKey(ContextID domain) const
         } while (key == 0);
     }
 
-    domainKeys[domain] = key;
+    it->second = key;
     return key;
 }
 
