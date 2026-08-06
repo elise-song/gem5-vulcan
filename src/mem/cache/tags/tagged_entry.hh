@@ -45,8 +45,10 @@
 
 #include "base/cprintf.hh"
 #include "base/types.hh"
+#include "debug/Cache.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 #include "mem/cache/tags/indexing_policies/base.hh"
+#include "mem/packet.hh"
 #include "params/TaggedIndexingPolicy.hh"
 #include "params/TaggedSetAssociative.hh"
 
@@ -56,10 +58,64 @@ namespace gem5
 class TaggedTypes
 {
   public:
-    struct KeyType
+    class KeyType
     {
+      private:
+        Addr _vaddr;
+        bool _hasVaddr;
+        bool _hasContextId;
+        ContextID _contextid;
+
+      public:
         Addr address;
         bool secure;
+
+        KeyType(Addr addr, bool sec)
+            : _hasVaddr(false), 
+              _hasContextId(false), 
+              address(addr), 
+              secure(sec)
+        {}
+
+        KeyType(PacketPtr pkt)
+            : _hasVaddr(pkt->req->hasVaddr()),
+              _hasContextId(pkt->req->hasContextId()),
+              address(pkt->getAddr()),
+              secure(pkt->isSecure())
+        {
+            if (_hasVaddr) {
+                _vaddr = pkt->req->getVaddr();
+            }
+            if (_hasContextId) {
+                _contextid = pkt->req->contextId();
+            }
+        }
+
+        bool
+        hasVaddr() const
+        {
+            return _hasVaddr;
+        }
+
+        Addr
+        getVaddr() const
+        {
+            assert(_hasVaddr);
+            return _vaddr;
+        }
+
+        bool
+        hasContextId() const
+        {
+            return _hasContextId;
+        }
+
+        ContextID
+        getContextId() const
+        {
+            assert(_hasContextId);
+            return _contextid;
+        }
     };
     using Params = TaggedIndexingPolicyParams;
 };
@@ -79,7 +135,26 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     virtual uint32_t
     extractSet(const KeyType &key) const
     {
-        return (key.address >> setShift) & setMask;
+        Addr address = key.address;
+        if (key.hasContextId()) {
+            address += key.getContextId();
+            DPRINTF(Cache,
+                    "TaggedSetAssociative::extractSet: add context id %d\n",
+                    key.getContextId());
+        }
+        if (key.hasVaddr()) {
+            address = key.getVaddr();
+            DPRINTF(
+                Cache,
+                "TaggedSetAssociative::extractSet addr %#x has vaddr %#x\n",
+                key.address, address);
+        } else {
+            DPRINTF(Cache,
+                    "TaggedSetAssociative::extractSet addr %#x has no vaddr\n",
+                    address);
+        }
+        uint32_t set = (address >> setShift) & setMask;
+        return set;
     }
 
   public:
@@ -94,12 +169,8 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
         return sets[extractSet(key)];
     }
 
-    Addr
-    regenerateAddr(const KeyType &key,
-                   const ReplaceableEntry *entry) const override
-    {
-        return (key.address << tagShift) | (entry->getSet() << setShift);
-    }
+    Addr regenerateAddr(const KeyType &key,
+                        const ReplaceableEntry *entry) const override;
 };
 
 /**
@@ -146,6 +217,12 @@ class TaggedEntry : public ReplaceableEntry
      */
     virtual Addr getTag() const { return _tag; }
 
+    virtual Addr
+    getPaddr() const
+    {
+        return _paddr;
+    }
+
     /**
      * Checks if the given tag information corresponds to this entry's.
      *
@@ -157,8 +234,14 @@ class TaggedEntry : public ReplaceableEntry
     match(const KeyType &key) const
     {
         assert(extractTag);
-        return isValid() && (getTag() == extractTag(key.address)) &&
-            (isSecure() == key.secure);
+        Addr paddr = key.address;
+        if (key.hasContextId()) {
+            paddr += key.getContextId();
+            DPRINTF(Cache, "TaggedEntry::match: adding context id %d\n",
+                    key.getContextId());
+        }
+        Addr tag = extractTag(paddr);
+        return isValid() && (getTag() == tag) && (isSecure() == key.secure);
     }
 
     /**
@@ -172,7 +255,15 @@ class TaggedEntry : public ReplaceableEntry
     {
         assert(extractTag);
         setValid();
-        setTag(extractTag(key.address));
+        Addr paddr = key.address;
+        if (key.hasContextId()) {
+            paddr += key.getContextId();
+            DPRINTF(Cache, "TaggedEntry::insert: add context id %d\n",
+                    key.getContextId());
+        }
+        Addr tag = extractTag(paddr);
+        setTag(tag);
+        setPaddr(key.address);
         if (key.secure) {
             setSecure();
         }
@@ -200,6 +291,12 @@ class TaggedEntry : public ReplaceableEntry
      * @param tag The tag value.
      */
     virtual void setTag(Addr tag) { _tag = tag; }
+
+    virtual void
+    setPaddr(Addr paddr)
+    {
+        _paddr = paddr;
+    }
 
     /** Set secure bit. */
     virtual void setSecure() { _secure = true; }
@@ -234,7 +331,15 @@ class TaggedEntry : public ReplaceableEntry
 
     /** The entry's tag. */
     Addr _tag;
+    Addr _paddr;
 };
+
+inline Addr
+TaggedSetAssociative::regenerateAddr(const KeyType &key,
+                                     const ReplaceableEntry *entry) const
+{
+    return static_cast<const TaggedEntry *>(entry)->getPaddr();
+}
 
 /**
  * This helper generates an a tag extractor function object

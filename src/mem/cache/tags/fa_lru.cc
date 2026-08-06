@@ -143,8 +143,7 @@ FALRU::accessBlock(const PacketPtr pkt, Cycles &lat,
                    CachesMask *in_caches_mask)
 {
     CachesMask mask = 0;
-    FALRUBlk* blk =
-        static_cast<FALRUBlk*>(findBlock({pkt->getAddr(), pkt->isSecure()}));
+    FALRUBlk *blk = static_cast<FALRUBlk *>(findBlock({pkt}));
 
     // If a cache hit
     if (blk && blk->isValid()) {

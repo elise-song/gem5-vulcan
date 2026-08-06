@@ -48,6 +48,7 @@
 #include <cassert>
 
 #include "base/types.hh"
+#include "debug/Cache.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 #include "mem/cache/tags/indexing_policies/base.hh"
 #include "mem/cache/tags/partitioning_policies/partition_manager.hh"
@@ -113,8 +114,7 @@ BaseTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     // Insert block with tag, src requestor id, task id and PartitionId
     const auto partition_id = partitionManager ?
         partitionManager->readPacketPartitionID(pkt) : 0;
-    blk->insert({pkt->getAddr(), pkt->isSecure()}, requestor_id,
-                pkt->req->taskId(), partition_id);
+    blk->insert({pkt}, requestor_id, pkt->req->taskId(), partition_id);
 
     // Check if cache warm up is done
     if (!warmedUp && stats.tagsInUse.value() >= warmupBound) {

@@ -161,7 +161,7 @@ SectorTags::invalidate(CacheBlk *blk)
 CacheBlk*
 SectorTags::accessBlock(const PacketPtr pkt, Cycles &lat)
 {
-    CacheBlk *blk = findBlock({pkt->getAddr(), pkt->isSecure()});
+    CacheBlk *blk = findBlock({pkt});
 
     // Access all tags in parallel, hence one in each way.  The data side
     // either accesses all blocks in parallel, or one block sequentially on
