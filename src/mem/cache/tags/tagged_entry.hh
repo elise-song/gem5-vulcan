@@ -45,8 +45,10 @@
 
 #include "base/cprintf.hh"
 #include "base/types.hh"
+#include "debug/Cache.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 #include "mem/cache/tags/indexing_policies/base.hh"
+#include "mem/packet.hh"
 #include "params/TaggedIndexingPolicy.hh"
 #include "params/TaggedSetAssociative.hh"
 
@@ -56,10 +58,44 @@ namespace gem5
 class TaggedTypes
 {
   public:
-    struct KeyType
+    class KeyType
     {
+      private:
+        bool _hasContextId;
+        ContextID _contextid;
+
+      public:
         Addr address;
         bool secure;
+
+        KeyType(Addr addr, bool sec)
+            : _hasContextId(false),
+              address(addr),
+              secure(sec)
+        {}
+
+        KeyType(PacketPtr pkt)
+            : _hasContextId(pkt->req->hasContextId()),
+              address(pkt->getAddr()),
+              secure(pkt->isSecure())
+        {
+            if (_hasContextId) {
+                _contextid = pkt->req->contextId();
+            }
+        }
+
+        bool
+        hasContextId() const
+        {
+            return _hasContextId;
+        }
+
+        ContextID
+        getContextId() const
+        {
+            assert(_hasContextId);
+            return _contextid;
+        }
     };
     using Params = TaggedIndexingPolicyParams;
 };
@@ -79,7 +115,15 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     virtual uint32_t
     extractSet(const KeyType &key) const
     {
-        return (key.address >> setShift) & setMask;
+        Addr address = key.address;
+        if (key.hasContextId()) {
+            address += key.getContextId() << setShift;
+            DPRINTF(Cache,
+                    "TaggedSetAssociative::extractSet: add context id %d\n",
+                    key.getContextId());
+        }
+        uint32_t set = (address >> setShift) & setMask;
+        return set;
     }
 
   public:
@@ -98,7 +142,11 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     regenerateAddr(const KeyType &key,
                    const ReplaceableEntry *entry) const override
     {
-        return (key.address << tagShift) | (entry->getSet() << setShift);
+        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
+        if (key.hasContextId()) {
+            address -= key.getContextId() << setShift;
+        }
+        return address;
     }
 };
 
