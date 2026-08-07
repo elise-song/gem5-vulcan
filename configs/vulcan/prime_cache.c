@@ -1,7 +1,5 @@
 /*
  * cache_prime.c
- * gcc -O0 -static -o prime_cache prime_cache.c -I../../include
- * -L../../util/m5/build/x86/out -lm5
  *
  * gem5 workload that primes (warms) a 16KB, 1-level cache.
  *
@@ -31,8 +29,61 @@
  *       -c cache_primer
  */
 
-#include <gem5/m5ops.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+/* ------------------------------------------------------------------ */
+/* gem5 pseudo-instructions (m5ops) via magic instruction encoding.   */
+/* These compile to NOPs on real hardware.                             */
+/* ------------------------------------------------------------------ */ 
+
+#if defined(__x86_64__) || defined(__i386__)
+    static inline void
+    m5_reset_stats(void)
+{
+    __asm__ volatile(".byte 0x0f, 0x04; .word 0x40" ::: "memory");
+}
+static inline void
+m5_dump_stats(void)
+{
+    __asm__ volatile(".byte 0x0f, 0x04; .word 0x41" ::: "memory");
+}
+#elif defined(__aarch64__)
+    static inline void
+    m5_reset_stats(void)
+{
+    __asm__ volatile("mov x0, #0; mov x1, #0; .inst 0xff000110" ::
+                         : "memory", "x0", "x1");
+}
+static inline void
+m5_dump_stats(void)
+{
+    __asm__ volatile("mov x0, #0; mov x1, #0; .inst 0xff000111" ::
+                         : "memory", "x0", "x1");
+}
+#elif defined(__arm__)
+    static inline void
+    m5_reset_stats(void)
+{
+    __asm__ volatile("mov r0, #0; mov r1, #0; .word 0xee900110" ::
+                         : "memory", "r0", "r1");
+}
+static inline void
+m5_dump_stats(void)
+{
+    __asm__ volatile("mov r0, #0; mov r1, #0; .word 0xee900111" ::
+                         : "memory", "r0", "r1");
+}
+#else
+    /* Fallback: no-ops so the code still compiles on unknown ISAs */
+    static inline void
+    m5_reset_stats(void)
+{}
+static inline void
+m5_dump_stats(void)
+{}
+#endif
 
 /* ------------------------------------------------------------------ */
 /* Cache geometry — adjust to match your gem5 configuration           */
@@ -52,24 +103,26 @@ volatile uint8_t sink;
 int
 main(void)
 {
-    /* Use a static buffer aligned to the cache size, instead of
-     * aligned_alloc(). gem5 SE mode doesn't fully emulate some syscalls
-     * glibc's malloc/tcache relies on (mprotect, rseq, set_robust_list are
-     * silently ignored), which corrupts heap metadata and makes the final
-     * free() abort with "double free or corruption" even though the access
-     * pattern here is correct. A static buffer sidesteps malloc entirely. */
-    static uint8_t buf[CACHE_SIZE_BYTES]
-        __attribute__((aligned(CACHE_SIZE_BYTES)));
+    /* Allocate a buffer equal to the cache size, aligned to cache size
+     * so it maps to a predictable set of cache sets.                  */
+    uint8_t *buf =
+        (uint8_t *)aligned_alloc(CACHE_SIZE_BYTES, CACHE_SIZE_BYTES);
+    if (!buf) {
+        fprintf(stderr, "aligned_alloc failed\n");
+        return 1;
+    }
 
     /* -------------------------------------------------------------- */
     /* Phase 0: cold initialization (outside ROI).                    */
     /* Write the buffer so pages are faulted in before we measure.    */
     /* -------------------------------------------------------------- */
     for (int i = 0; i < CACHE_SIZE_BYTES; i++) {
-        buf[i] = 0;
+        buf[i] = (uint8_t)i;
     }
 
-    m5_reset_stats(0, 0);
+    /* -------------------------------------------------------------- */
+    /* Begin Region of Interest                                        */
+    /* -------------------------------------------------------------- */
 
     /* -------------------------------------------------------------- */
     /* Phase 1: Prime — touch every cache line once (read + write).   */
@@ -77,10 +130,8 @@ main(void)
     /* -------------------------------------------------------------- */
     for (int line = 0; line < NUM_CACHE_LINES; line++) {
         int offset = line * CACHE_LINE_BYTES;
-        buf[offset] = 1; /* read-modify-write → MODIFIED state */
+        buf[offset] += 1; /* read-modify-write → MODIFIED state */
     }
-    m5_dump_stats(0, 0);
-    m5_reset_stats(0, 0);
 
     /* -------------------------------------------------------------- */
     /* Phase 2: Verify — all lines should now be cache-resident.      */
@@ -91,7 +142,11 @@ main(void)
         checksum += buf[line * CACHE_LINE_BYTES];
     }
     sink = (uint8_t)checksum; /* prevent dead-code elimination   */
-    m5_dump_stats(0, 0);
 
+    /* -------------------------------------------------------------- */
+    /* End Region of Interest                                          */
+    /* -------------------------------------------------------------- */
+
+    free(buf);
     return 0;
 }
