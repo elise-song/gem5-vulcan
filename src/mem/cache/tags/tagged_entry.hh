@@ -61,6 +61,8 @@ class TaggedTypes
     class KeyType
     {
       private:
+        Addr _vaddr;
+        bool _hasVaddr;
         bool _hasContextId;
         ContextID _contextid;
 
@@ -70,18 +72,36 @@ class TaggedTypes
 
         KeyType(Addr addr, bool sec)
             : _hasContextId(false),
+              _hasVaddr(false), 
               address(addr),
               secure(sec)
         {}
 
         KeyType(PacketPtr pkt)
             : _hasContextId(pkt->req->hasContextId()),
+              _hasVaddr(pkt->req->hasVaddr()),
               address(pkt->getAddr()),
               secure(pkt->isSecure())
         {
+            if (_hasVaddr) {
+                _vaddr = pkt->req->getVaddr();
+            }
             if (_hasContextId) {
                 _contextid = pkt->req->contextId();
             }
+        }
+
+        bool
+        hasVaddr() const
+        {
+            return _hasVaddr;
+        }
+
+        Addr
+        getVaddr() const
+        {
+            assert(_hasVaddr);
+            return _vaddr;
         }
 
         bool
@@ -116,6 +136,17 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     extractSet(const KeyType &key) const
     {
         Addr address = key.address;
+        if (key.hasVaddr()) {
+            address = key.getVaddr();
+            DPRINTF(
+                Cache,
+                "TaggedSetAssociative::extractSet addr %#x has vaddr %#x\n",
+                key.address, address);
+        } else {
+            DPRINTF(Cache,
+                    "TaggedSetAssociative::extractSet addr %#x has no vaddr\n",
+                    address);
+        }
         if (key.hasContextId()) {
             address += key.getContextId() << setShift;
             DPRINTF(Cache,
@@ -138,16 +169,8 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
         return sets[extractSet(key)];
     }
 
-    Addr
-    regenerateAddr(const KeyType &key,
-                   const ReplaceableEntry *entry) const override
-    {
-        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
-        if (key.hasContextId()) {
-            address -= key.getContextId() << setShift;
-        }
-        return address;
-    }
+    Addr regenerateAddr(const KeyType &key,
+                        const ReplaceableEntry *entry) const override;
 };
 
 /**
@@ -194,6 +217,12 @@ class TaggedEntry : public ReplaceableEntry
      */
     virtual Addr getTag() const { return _tag; }
 
+    virtual Addr
+    getPaddr() const
+    {
+        return _paddr;
+    }
+
     /**
      * Checks if the given tag information corresponds to this entry's.
      *
@@ -221,6 +250,7 @@ class TaggedEntry : public ReplaceableEntry
         assert(extractTag);
         setValid();
         setTag(extractTag(key.address));
+        setPaddr(key.address);
         if (key.secure) {
             setSecure();
         }
@@ -248,6 +278,12 @@ class TaggedEntry : public ReplaceableEntry
      * @param tag The tag value.
      */
     virtual void setTag(Addr tag) { _tag = tag; }
+
+    virtual void
+    setPaddr(Addr paddr)
+    {
+        _paddr = paddr;
+    }
 
     /** Set secure bit. */
     virtual void setSecure() { _secure = true; }
@@ -282,7 +318,17 @@ class TaggedEntry : public ReplaceableEntry
 
     /** The entry's tag. */
     Addr _tag;
+
+    /** The entry's physical address. */
+    Addr _paddr;
 };
+
+inline Addr
+TaggedSetAssociative::regenerateAddr(const KeyType &key,
+                                     const ReplaceableEntry *entry) const
+{
+    return static_cast<const TaggedEntry *>(entry)->getPaddr();
+}
 
 /**
  * This helper generates an a tag extractor function object
