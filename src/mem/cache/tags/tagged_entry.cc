@@ -172,7 +172,7 @@ TaggedSetAssociative::encrypt(const uint32_t line_addr) const
     // concat left' and right'
     Addr encrypted_addr = (left << halfWidth) | right;
     DPRINTF(KeyedIndex, "encrypt %llx\n", encrypted_addr);
-    return encrypted_addr;
+    return encrypted_addr | line_addr;
 }
 
 uint32_t
