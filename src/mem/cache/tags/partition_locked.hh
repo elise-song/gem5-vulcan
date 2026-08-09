@@ -46,7 +46,6 @@
 #include <vector>
 
 #include "base/addr_range.hh"
-#include "base/random.hh"
 #include "base/types.hh"
 #include "mem/cache/cache_blk.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
@@ -71,10 +70,6 @@ class PartitionLockedTags : public BaseSetAssoc
      * to one of these ranges is locked to its inserting context. */
     const std::vector<AddrRange> protectedRanges;
 
-    const bool randomizeCase3TieBreak;
-
-    gem5::Random::RandomPtr rng = gem5::Random::genRandom();
-
     struct PartitionLockedTagsStats : public statistics::Group
     {
         PartitionLockedTagsStats(BaseTagStats &base_group);
@@ -90,8 +85,6 @@ class PartitionLockedTags : public BaseSetAssoc
         /** Number of invalidation/flush attempts suppressed because the
          * targeted block was PL-locked. */
         statistics::Scalar plFlushSuppressed;
-
-        statistics::Scalar plRandomTieBreak;
     } plStats;
 
   public:
@@ -168,23 +161,6 @@ class PartitionLockedTags : public BaseSetAssoc
                 const CacheBlk *blk = static_cast<const CacheBlk *>(entry);
                 return !canEvict(blk, incoming_locked, incoming_owner);
             }), entries.end());
-    }
-
-    /**
-     * Whether every remaining candidate is currently PL-locked
-     *
-     * @param entries Candidate victims, already filtered by canEvict().
-     * @return True if entries is non empty and every entry is locked.
-     */
-    static bool
-    allLocked(const std::vector<ReplaceableEntry *> &entries)
-    {
-        return !entries.empty() &&
-               std::all_of(entries.begin(), entries.end(),
-                           [](const ReplaceableEntry *entry) {
-                               return static_cast<const CacheBlk *>(entry)
-                                   ->isPlLocked();
-                           });
     }
 
     /**

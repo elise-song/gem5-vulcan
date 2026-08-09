@@ -36,10 +36,7 @@ namespace gem5
 {
 
 PartitionLockedTags::PartitionLockedTags(const Params &p)
-    : BaseSetAssoc(p),
-      protectedRanges(p.protected_ranges),
-      randomizeCase3TieBreak(p.randomize_case3_tiebreak),
-      plStats(stats)
+    : BaseSetAssoc(p), protectedRanges(p.protected_ranges), plStats(stats)
 {
 }
 
@@ -74,16 +71,6 @@ PartitionLockedTags::findVictim(const CacheBlk::KeyType &key,
         plStats.plBypassOnLock++;
         DPRINTF(CacheRepl, "PL cache: no evictable victim for addr %#llx, "
                 "bypassing allocation\n", key.address);
-    } else if (incoming_locked && randomizeCase3TieBreak &&
-               allLocked(entries)) {
-        // In case of implicit eviction, choose the victim uniformly at random
-        victim = static_cast<CacheBlk *>(
-            entries[rng->random<unsigned>(0, entries.size() - 1)]);
-        plStats.plRandomTieBreak++;
-        DPRINTF(CacheRepl,
-                "PL cache: randomly sacrificing one of %d "
-                "same owner locked candidates for addr %#llx\n",
-                entries.size(), key.address);
     } else {
         // Choose replacement victim from the remaining candidates
         victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(entries));
@@ -122,17 +109,14 @@ PartitionLockedTags::notifyFlushSuppressed(CacheBlk *blk)
 PartitionLockedTags::PartitionLockedTagsStats::PartitionLockedTagsStats(
     BaseTagStats &base_group)
     : statistics::Group(&base_group),
-      ADD_STAT(plLockedBlocks, statistics::units::Count::get(),
-               "Number of blocks locked by the PL cache defense"),
-      ADD_STAT(plBypassOnLock, statistics::units::Count::get(),
-               "Number of allocations that bypassed the cache because no "
-               "evictable victim existed among the replacement candidates"),
-      ADD_STAT(plFlushSuppressed, statistics::units::Count::get(),
-               "Number of cache-maintenance/coherence invalidations "
-               "suppressed on PL-locked blocks"),
-      ADD_STAT(plRandomTieBreak, statistics::units::Count::get(),
-               "Number of times findVictim() randomly sacrificed one of "
-               "the owner's own locked lines instead of using LRU order")
+    ADD_STAT(plLockedBlocks, statistics::units::Count::get(),
+             "Number of blocks locked by the PL cache defense"),
+    ADD_STAT(plBypassOnLock, statistics::units::Count::get(),
+             "Number of allocations that bypassed the cache because no "
+             "evictable victim existed among the replacement candidates"),
+    ADD_STAT(plFlushSuppressed, statistics::units::Count::get(),
+             "Number of cache-maintenance/coherence invalidations "
+             "suppressed on PL-locked blocks")
 {
 }
 
