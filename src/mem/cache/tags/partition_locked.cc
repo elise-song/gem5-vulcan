@@ -88,7 +88,9 @@ PartitionLockedTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
     BaseSetAssoc::insertBlock(pkt, blk);
 
     if (isProtectedAddr(pkt->getAddr(), protectedRanges)) {
-        const ContextID owner = pkt->req->contextId();
+        const ContextID owner = pkt->req->hasContextId()
+                                    ? pkt->req->contextId()
+                                    : InvalidContextID;
         blk->setPlLocked(owner);
         plStats.plLockedBlocks++;
         DPRINTF(CacheRepl, "PL cache: locked block %s to owner %d\n",
