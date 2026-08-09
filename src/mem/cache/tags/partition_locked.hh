@@ -70,11 +70,6 @@ class PartitionLockedTags : public BaseSetAssoc
      * to one of these ranges is locked to its inserting context. */
     const std::vector<AddrRange> protectedRanges;
 
-    /** Result of isProtectedAddr() computed by the findVictim() call that
-     * always immediately precedes insertBlock() for the same fill, reused
-     * there instead of rescanning protectedRanges. */
-    bool pendingLock = false;
-
     struct PartitionLockedTagsStats : public statistics::Group
     {
         PartitionLockedTagsStats(BaseTagStats &base_group);

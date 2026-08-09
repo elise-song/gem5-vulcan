@@ -57,14 +57,12 @@ PartitionLockedTags::findVictim(const CacheBlk::KeyType &key,
     }
 
     // Whether the incoming line will itself be locked, had it been
-    // inserted. Stashed for insertBlock(), which is always called right
-    // after findVictim() for the same fill, so it can reuse this instead
-    // of rescanning protectedRanges.
-    pendingLock = isProtectedAddr(key.address, protectedRanges);
+    // inserted (see insertBlock)
+    const bool incoming_locked = isProtectedAddr(key.address, protectedRanges);
 
     // PL enforcement: remove candidates the incoming request is not
     // allowed to evict
-    filterEvictable(entries, pendingLock, context_id);
+    filterEvictable(entries, incoming_locked, context_id);
 
     CacheBlk *victim = nullptr;
     if (entries.empty()) {
@@ -89,7 +87,7 @@ PartitionLockedTags::insertBlock(const PacketPtr pkt, CacheBlk *blk)
 {
     BaseSetAssoc::insertBlock(pkt, blk);
 
-    if (pendingLock) {
+    if (isProtectedAddr(pkt->getAddr(), protectedRanges)) {
         const ContextID owner = pkt->req->contextId();
         blk->setPlLocked(owner);
         plStats.plLockedBlocks++;

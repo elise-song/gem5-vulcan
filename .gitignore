@@ -10,7 +10,7 @@ cscope.out
 *~
 .*.swp
 .*.swo
-m5out
+m5out*
 /src/doxygen/html
 /docs/_build
 /ext/dramsim2/DRAMSim2
@@ -38,3 +38,28 @@ configs/dram/lowp_sweep.cfg
 .vscode
 typings
 .DS_Store
+
+# Experiment logs / traces / dumped text output
+*.log
+/*.txt
+configs/**/*.txt
+
+# Experiment output: plots, data dumps, gem5 SE-mode run directories
+*.png
+*.csv
+__pycache__/
+/spectre_stt_out/
+/sweep_out/
+
+# Compiled experiment test binaries (extensionless build products that
+# sit next to their .c sources - excluded by prefix, sources re-included)
+/flush_reload
+/flush_reload_stats
+/spectre
+/test_locked_lru
+configs/vulcan/spectre*
+configs/vulcan/test_lock*
+configs/vulcan/flush_reload*
+!configs/vulcan/*.c
+!configs/vulcan/*.py
+!configs/vulcan/*.sh
