@@ -138,6 +138,12 @@ class PartitionLockedTags(BaseSetAssoc):
         [], "Address ranges to preload and lock against eviction"
     )
 
+    randomize_case3_tiebreak = Param.Bool(
+        True,
+        "Randomize which same-owner locked line is sacrificed in a "
+        "Case-3 replacement, instead of using LRU order",
+    )
+
 
 class SectorTags(BaseTags):
     type = "SectorTags"
