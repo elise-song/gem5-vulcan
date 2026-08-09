@@ -60,22 +60,20 @@ PartitionLockedTags::findVictim(const CacheBlk::KeyType &key,
     // inserted (see insertBlock)
     const bool incoming_locked = isProtectedAddr(key.address, protectedRanges);
 
+    // PL enforcement: remove candidates the incoming request is not
+    // allowed to evict
+    filterEvictable(entries, incoming_locked, context_id);
+
     CacheBlk *victim = nullptr;
-    if (!entries.empty()) {
-        CacheBlk *candidate =
-            static_cast<CacheBlk *>(replacementPolicy->getVictim(entries));
-        if (canEvict(candidate, incoming_locked, context_id)) {
-            victim = candidate;
-        } else {
-            // Replacement policy's chosen candidate is not allowed to be
-            // replaced
-            plStats.plBypassOnLock++;
-            DPRINTF(CacheRepl,
-                    "PL cache: replacement policy's chosen "
-                    "victim for addr %#llx is locked and ineligible, "
-                    "bypassing allocation\n",
-                    key.address);
-        }
+    if (entries.empty()) {
+        // No eligible victim remains: service this request without
+        // caching it, rather than evicting protected data.
+        plStats.plBypassOnLock++;
+        DPRINTF(CacheRepl, "PL cache: no evictable victim for addr %#llx, "
+                "bypassing allocation\n", key.address);
+    } else {
+        // Choose replacement victim from the remaining candidates
+        victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(entries));
     }
 
     // There is only one eviction for this replacement
