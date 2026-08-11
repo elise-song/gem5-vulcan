@@ -32,15 +32,24 @@
  * exercise the exact production functions used by BaseCache (there is no
  * reimplementation here), verifying the security-critical invariants:
  *   - a protected address is recognised as protected;
- *   - the random-fill draw is always a legal, block-aligned, in-region,
- *     in-window line -- and, per Liu & Lee Eq. 6, may legitimately equal the
- *     demanded line itself, since that is what is required for the draw to
- *     be equally likely to land on the demanded line ("collision") or on any
- *     other in-window line ("no collision"); and
+ *   - the random-fill draw is always a legal, block-aligned, in-window line
+ *     -- and, per Liu & Lee Eq. 6, may legitimately equal the demanded line
+ *     itself, since that is what is required for the draw to be equally
+ *     likely to land on the demanded line ("collision") or on any other
+ *     in-window line ("no collision");
  *   - that equal-likelihood property actually holds: CollisionTimingSignal-
  *     VanishesAtFullWindow empirically measures the gap between those two
  *     probabilities and would fail if the demanded line were ever excluded
- *     from the draw (as an earlier version of this code did).
+ *     from the draw (as an earlier version of this code did);
+ *   - the window's two radii (before/after the demand, matching RR1/RR2 in
+ *     the paper's Fig. 4) are honoured independently even when unequal; and
+ *   - the draw is never clamped to any protected range: real RR1/RR2
+ *     hardware has no notion of where a table ends, so a demand near a
+ *     table edge legally draws outside it (WindowSpillsPastRegionEdge) --
+ *     the paper's own "boundary effect" (Section V-B). There is no
+ *     clamped/unclamped choice here; this is the only behavior, to keep the
+ *     model synthesizable (no software-only step a real range-register pair
+ *     could not implement).
  */
 
 #include <gtest/gtest.h>
@@ -80,11 +89,11 @@ TEST(RandomFillTest, IsProtectedBoundaries)
     EXPECT_FALSE(random_fill::isProtected(none, RegionBase));
 }
 
-// The random fill is always block-aligned, inside the region, and within the
-// window. It may legitimately equal the demanded line (see the file
-// comment and CollisionTimingSignalVanishesAtFullWindow below). Swept across
-// every demand line and many RNG draws so window-edge clamping is exercised
-// too.
+// The random fill is always block-aligned and within the window of the
+// demand line. It may legitimately equal the demand itself (see the file
+// comment and CollisionTimingSignalVanishesAtFullWindow below). Swept
+// across many demand lines, far enough from address 0 that the underflow
+// guard never engages, so the +/- window bound is exercised cleanly.
 TEST(RandomFillTest, NeighborInvariants)
 {
     Random::RandomPtr rng = Random::genRandom(0xC0FFEE);
@@ -95,13 +104,10 @@ TEST(RandomFillTest, NeighborInvariants)
         const Addr demand = RegionBase + (Addr)dl * BlkSize;
         for (int trial = 0; trial < 200; trial++) {
             const Addr fill = random_fill::pickNeighbor(
-                demand, BlkSize, RegionBase, RegionEnd, window, *rng);
+                demand, BlkSize, window, window, *rng);
 
             // block-aligned
             EXPECT_EQ(fill % BlkSize, 0u);
-            // in region
-            EXPECT_GE(fill, RegionBase);
-            EXPECT_LT(fill, RegionEnd);
             // within +/- window lines (0 offset, i.e. the demanded line
             // itself, is an allowed outcome)
             const long long delta =
@@ -118,14 +124,13 @@ TEST(RandomFillTest, NeighborIsRandomised)
 {
     Random::RandomPtr rng = Random::genRandom(0x1234);
     const unsigned window = 8;
-    // Pick a demand line with room on both sides.
     const Addr demand = RegionBase + 20 * BlkSize;
 
     std::set<Addr> seen;
     bool below = false, above = false, self_seen = false;
     for (int trial = 0; trial < 500; trial++) {
         const Addr fill = random_fill::pickNeighbor(
-            demand, BlkSize, RegionBase, RegionEnd, window, *rng);
+            demand, BlkSize, window, window, *rng);
         seen.insert(fill);
         below |= (fill < demand);
         above |= (fill > demand);
@@ -146,7 +151,7 @@ TEST(RandomFillTest, ZeroWindowReturnsDemandLine)
     Random::RandomPtr rng = Random::genRandom(0x99);
     const Addr demand = RegionBase + 5 * BlkSize;
     const Addr fill = random_fill::pickNeighbor(
-        demand, BlkSize, RegionBase, RegionEnd, /*window=*/0, *rng);
+        demand, BlkSize, /*window_before=*/0, /*window_after=*/0, *rng);
     EXPECT_EQ(fill, demand);
 }
 
@@ -163,40 +168,94 @@ TEST(RandomFillTest, ZeroWindowReturnsDemandLine)
 TEST(RandomFillTest, CollisionTimingSignalVanishesAtFullWindow)
 {
     Random::RandomPtr rng = Random::genRandom(0xBADC0FFE);
-    // A 16-line region, matching the paper's own AES-table case study
-    // (Section V.A): a 1 KiB table with 64-byte lines.
-    constexpr unsigned num_lines = 16;
-    const Addr region_lo = RegionBase;
-    const Addr region_hi = RegionBase + (Addr)num_lines * BlkSize;
-    const unsigned window = num_lines; // covers the whole region from any i
+    // A window covering a 16-line span, matching the paper's own AES-table
+    // case study (Section V.A): a 1 KiB table with 64-byte lines. There is
+    // no region to clamp to any more, so the candidate count is always
+    // exactly window*2 + 1, regardless of table size.
+    const unsigned window = 16;
     constexpr int trials = 200000;
 
     const unsigned demand_line = 3; // i
-    const unsigned other_line = 11; // j != i, arbitrary
-    const Addr demand = region_lo + (Addr)demand_line * BlkSize;
-    const Addr other = region_lo + (Addr)other_line * BlkSize;
+    const unsigned other_line = 11; // j != i, arbitrary, within the window
+    const Addr demand = RegionBase + (Addr)demand_line * BlkSize;
+    const Addr other = RegionBase + (Addr)other_line * BlkSize;
     ASSERT_NE(demand, other);
 
     int self_hits = 0, other_hits = 0;
     for (int t = 0; t < trials; t++) {
-        const Addr fill = random_fill::pickNeighbor(demand, BlkSize, region_lo,
-                                                    region_hi, window, *rng);
+        const Addr fill = random_fill::pickNeighbor(
+            demand, BlkSize, window, window, *rng);
         self_hits += (fill == demand);
         other_hits += (fill == other);
     }
 
     const double p1 = (double)self_hits / trials;  // P(collision hit)
     const double p2 = (double)other_hits / trials; // P(no-collision hit)
-    const double expected = 1.0 / num_lines;
+    const double expected = 1.0 / (2 * window + 1);
 
-    // With 200k trials at p~1/16, the binomial standard error is ~0.0005, so
-    // a tolerance of 0.01 (20 SEs) comfortably absorbs sampling noise while
-    // still rejecting the ~0.067 gap the exclusion bug produced.
+    // With 200k trials at p~1/33, the binomial standard error is ~0.0004, so
+    // a tolerance of 0.01 (25 SEs) comfortably absorbs sampling noise while
+    // still rejecting the large, window-independent gap the exclusion bug
+    // produced.
     constexpr double tol = 0.01;
     EXPECT_NEAR(p1, expected, tol) << "P1 (collision) = " << p1;
     EXPECT_NEAR(p2, expected, tol) << "P2 (no collision) = " << p2;
     EXPECT_NEAR(p1, p2, tol)
         << "collision-timing signal P1-P2 = " << (p1 - p2)
-        << " (want ~0 once the window covers the region -- "
-        << "the demanded line must be a valid draw outcome, not excluded)";
+        << " (want ~0 -- the demanded line must be a valid draw outcome, "
+        << "not excluded)";
+}
+
+// RR1/RR2 (Fig. 4) are independently sized, so window_before and
+// window_after must be honoured independently, not silently averaged or
+// symmetrised. Use a deliberately unequal pair, far from address 0 so the
+// underflow guard never engages, and confirm the draw never goes further
+// than window_before lines before or window_after lines after, and that
+// both boundaries of the asymmetric window are actually reachable.
+TEST(RandomFillTest, AsymmetricWindowRespectsIndependentBounds)
+{
+    Random::RandomPtr rng = Random::genRandom(0xABCD);
+    const unsigned window_before = 2;
+    const unsigned window_after = 10;
+    const Addr demand = RegionBase + 20 * BlkSize;
+
+    bool saw_before_edge = false, saw_after_edge = false;
+    for (int trial = 0; trial < 2000; trial++) {
+        const Addr fill = random_fill::pickNeighbor(
+            demand, BlkSize, window_before, window_after, *rng);
+        const long long delta =
+            ((long long)fill - (long long)demand) / (long long)BlkSize;
+        EXPECT_LE(delta, (long long)window_after);
+        EXPECT_GE(delta, -(long long)window_before);
+        saw_before_edge |= (delta == -(long long)window_before);
+        saw_after_edge |= (delta == (long long)window_after);
+    }
+    EXPECT_TRUE(saw_before_edge);
+    EXPECT_TRUE(saw_after_edge);
+}
+
+// The central trade-off this file documents: the draw is bounded only by
+// address-space underflow, never by a protected range. A demand line right
+// at a table's start legally draws candidates *before* RegionBase --
+// reproducing the paper's own "boundary effect" (Section V-B) rather than
+// hiding it, and matching what real, synthesizable RR1/RR2 hardware (which
+// has no register that knows where a table ends) would actually do.
+TEST(RandomFillTest, WindowSpillsPastRegionEdge)
+{
+    Random::RandomPtr rng = Random::genRandom(0x5EED);
+    const unsigned window = 8;
+    // A demand line right at the region's start: the whole "before" side of
+    // its window has nowhere to go but outside the region.
+    const Addr demand = RegionBase;
+
+    bool ever_outside = false;
+    for (int trial = 0; trial < 2000; trial++) {
+        const Addr fill = random_fill::pickNeighbor(
+            demand, BlkSize, window, window, *rng);
+        ever_outside |= (fill < RegionBase || fill >= RegionEnd);
+    }
+
+    EXPECT_TRUE(ever_outside)
+        << "a demand at a table's edge must be able to draw outside the "
+        << "table (that is the paper-faithful boundary effect, not a bug)";
 }

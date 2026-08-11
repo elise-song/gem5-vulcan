@@ -38,3 +38,19 @@ configs/dram/lowp_sweep.cfg
 .vscode
 typings
 .DS_Store
+
+# vulcan experiment outputs and generated data
+/*.txt
+/m5out_*/
+/sweep_out/
+/spectre_stt_out/
+configs/test_output.txt
+configs/vulcan/*.txt
+configs/vulcan/*.csv
+configs/vulcan/*.png
+configs/vulcan/box/
+configs/vulcan/data/
+configs/vulcan/data_random/
+configs/vulcan/data_bug_a984163985/
+configs/vulcan/data_known_good/
+configs/vulcan/data_known_good_baseline/

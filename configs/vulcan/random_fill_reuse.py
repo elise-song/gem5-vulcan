@@ -111,7 +111,8 @@ def build_system(args, prot_lo, prot_hi):
     )
     if args.defense == "on":
         cache_kwargs["random_fill_ranges"] = [AddrRange(prot_lo, prot_hi)]
-        cache_kwargs["random_fill_window"] = args.window
+        cache_kwargs["random_fill_window_before"] = args.window
+        cache_kwargs["random_fill_window_after"] = args.window
 
     system.cache = NoncoherentCache(**cache_kwargs)
     system.cache.mem_side = system.membus.cpu_side_ports

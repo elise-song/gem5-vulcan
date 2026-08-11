@@ -20,13 +20,31 @@
 """Assert the Random Fill core invariant from a --directed stats file.
 
 Runs the checks the task asks for on the single trial produced by
-`random_fill_reuse.py --defense on --directed`:
+`random_fill_reuse.py --defense on --directed`.
 
-  * the victim's protected demand read is a miss that is forced no-allocate
-    (rfDemandNoAllocate == 1) and injects exactly one random fill
-    (rfRandomFillsInjected == 1, rfProtectedMisses == 1); and
-  * the attacker's probe of the demanded line S is a MISS -- S was left
-    non-resident (rf-probe block has overallHits == 0, overallMisses == 1).
+The random-fill draw for the victim's protected demand miss (S) is one of
+(2*window + 1) equally likely lines *including S itself* (Liu & Lee, Eq. 6)
+-- so there are two equally legitimate outcomes, and this script asserts
+whichever one actually happened is internally consistent, rather than
+hard-coding one of them:
+
+  * the draw picked a DIFFERENT line than S (rfDemandNoAllocate == 1): S's
+    own fill is forced no-allocate, exactly one random fill is injected
+    (rfRandomFillsInjected == 1), and the probe of S MISSES; or
+  * the draw picked S itself (rfDemandSelfAllocate == 1): S's own fill is
+    allowed to allocate normally, no separate fill is injected
+    (rfRandomFillsInjected == 0), and the probe of S HITS.
+
+In both cases, rfProtectedMisses == 1 and a scan of the window finds exactly
+one resident line (the draw's target, whichever line that was).
+
+An earlier, less faithful version of this defense excluded S from the draw
+entirely, which made "probe of S misses" a hard invariant -- but only by
+also making S's residency statistically distinguishable from any other
+in-window line's, reopening the collision-timing channel the defense is
+meant to close (see CollisionTimingSignalVanishesAtFullWindow in
+src/mem/cache/random_fill.test.cc, and collision_attack.py). Asserting a
+fixed outcome here would silently reintroduce that regression.
 
 Exit status is non-zero if any assertion fails.
 
@@ -79,19 +97,36 @@ def main(argv):
               "(run random_fill_reuse.py --defense on --directed)")
         return 2
 
+    no_allocate = victim.get("system.cache.rfDemandNoAllocate", 0)
+    self_allocate = victim.get("system.cache.rfDemandSelfAllocate", 0)
+    injected = victim.get("system.cache.rfRandomFillsInjected", 0)
+    probe_hit = (probe.get("system.cache.overallHits::total", 0) == 1
+                 and probe.get("system.cache.overallMisses::total", 0) == 0)
+    probe_miss = (probe.get("system.cache.overallHits::total", 0) == 0
+                  and probe.get("system.cache.overallMisses::total", 0) == 1)
+
     checks = [
         ("victim protected miss observed",
          victim.get("system.cache.rfProtectedMisses", 0) == 1),
-        ("victim demand forced no-allocate",
-         victim.get("system.cache.rfDemandNoAllocate", 0) == 1),
-        ("exactly one random fill injected",
-         victim.get("system.cache.rfRandomFillsInjected", 0) == 1),
-        ("exactly one window line resident (the random fill)",
+        ("exactly one demand-fill outcome recorded "
+         "(no-allocate xor self-allocate)",
+         (no_allocate, self_allocate) in ((1, 0), (0, 1))),
+        ("exactly one window line resident (the draw's target)",
          window.get("system.cache.overallHits::total", 0) == 1),
-        ("demanded line S left NON-resident (probe misses)",
-         probe.get("system.cache.overallHits::total", 0) == 0
-         and probe.get("system.cache.overallMisses::total", 0) == 1),
     ]
+    if no_allocate:
+        checks += [
+            ("draw picked a different line: exactly one random fill "
+             "injected", injected == 1),
+            ("draw picked a different line: probe of S misses",
+             probe_miss),
+        ]
+    else:
+        checks += [
+            ("draw picked S itself: no separate random fill injected",
+             injected == 0),
+            ("draw picked S itself: probe of S hits", probe_hit),
+        ]
 
     ok = True
     for name, passed in checks:
