@@ -49,9 +49,7 @@
 #include <cassert>
 #include <cstdint>
 #include <deque>
-#include <map>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "base/addr_range.hh"
@@ -412,14 +410,28 @@ class BaseCache : public ClockedObject
      * the hardware prefetcher uses.
      */
     std::deque<RandomFillRequest> randomFillQueue;
+
+    /** The draw outcome recorded for one in-flight protected demand miss
+     * (see randomFillPending). */
+    struct RandomFillPendingEntry
+    {
+        Addr blkAddr;  //!< block-aligned demand address (lookup key)
+        bool secure;   //!< demand's secure-space flag (lookup key)
+        Addr fillAddr; //!< the draw's outcome; == blkAddr means self-pick
+    };
     /**
-     * Pending draw outcome for each in-flight protected demand miss, keyed
-     * by (block address, secure), consumed by the no-allocate decision in
-     * recvTimingResp() when that demand's own fill response arrives. A
-     * value equal to its key's address means the draw picked the demand
-     * line itself.
+     * Pending draw outcome for each in-flight protected demand miss,
+     * consumed by the no-allocate decision in recvTimingResp() when that
+     * demand's own fill response arrives. A fillAddr equal to blkAddr means
+     * the draw picked the demand line itself.
+     *
+     * A flat, linearly-scanned vector rather than a std::map: this holds at
+     * most a handful of entries at once (bounded by the number of
+     * outstanding protected demand misses, itself bounded by the cache's
+     * mshrs param), so a contiguous scan beats a node-based tree both in
+     * per-op cost and in allocation churn.
      */
-    std::map<std::pair<Addr, bool>, Addr> randomFillPending;
+    std::vector<RandomFillPendingEntry> randomFillPending;
 
     /** True iff the (block-aligned) address is in a protected range. */
     bool isRandomFillProtected(Addr blk_addr) const;

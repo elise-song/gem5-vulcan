@@ -45,6 +45,8 @@
 
 #include "mem/cache/base.hh"
 
+#include <algorithm>
+
 #include "base/compiler.hh"
 #include "base/intmath.hh"
 #include "base/logging.hh"
@@ -636,12 +638,20 @@ BaseCache::recvTimingResp(PacketPtr pkt)
             initial_tgt->pkt->isRead() &&
             !initial_tgt->pkt->req->isPrefetch() &&
             isRandomFillProtected(pkt->getAddr())) {
-            const auto it =
-                randomFillPending.find({pkt->getAddr(), pkt->isSecure()});
+            const Addr resp_addr = pkt->getAddr();
+            const bool resp_secure = pkt->isSecure();
+            const auto it = std::find_if(
+                randomFillPending.begin(), randomFillPending.end(),
+                [resp_addr, resp_secure](const RandomFillPendingEntry &e) {
+                    return e.blkAddr == resp_addr && e.secure == resp_secure;
+                });
             const bool self_pick =
-                it != randomFillPending.end() && it->second == pkt->getAddr();
+                it != randomFillPending.end() && it->fillAddr == resp_addr;
             if (it != randomFillPending.end()) {
-                randomFillPending.erase(it);
+                // Order doesn't matter here, so swap-and-pop instead of a
+                // shifting erase.
+                *it = randomFillPending.back();
+                randomFillPending.pop_back();
             }
             if (self_pick) {
                 stats.rfDemandSelfAllocate++;
@@ -1121,7 +1131,7 @@ BaseCache::enqueueRandomFill(PacketPtr pkt)
     // arrives; only when it differs from blk_addr is there anything to
     // inject separately.
     const Addr fill_addr = pickRandomFillTarget(blk_addr);
-    randomFillPending[{blk_addr, pkt->isSecure()}] = fill_addr;
+    randomFillPending.push_back({blk_addr, pkt->isSecure(), fill_addr});
 
     if (fill_addr == blk_addr) {
         DPRINTF(RandomFill,
