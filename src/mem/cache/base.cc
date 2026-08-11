@@ -620,17 +620,35 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
             writeAllocator->allocate() : mshr->allocOnFill();
 
-        // Random Fill: a protected demand read delivers its data to the core
-        // but is never cached, so a subsequent access to the demanded line
-        // cannot be distinguished by timing from an unaccessed line. The
-        // injected random fill is a prefetch (isPrefetch()), so it is
-        // excluded here and allocates normally.
+        // Random Fill: consult this demand's random-fill draw (recorded by
+        // enqueueRandomFill() at miss time). Usually the draw picked a
+        // different line, in which case this demand read must not be
+        // cached -- otherwise a subsequent access to it could be
+        // distinguished by timing from an unaccessed line -- so its fill is
+        // forced no-allocate (the differing target is injected separately).
+        // Occasionally the draw coincided with the demand's own address
+        // (Eq. 6 of the paper treats that as an equally likely outcome, not
+        // a special case to exclude): then this fill is simply allowed to
+        // allocate normally, exactly as an ordinary demand fetch would. The
+        // injected random fill itself is a prefetch (isPrefetch()), so it
+        // never re-enters this check.
         if (allocate && randomFillEnabled &&
             initial_tgt->pkt->isRead() &&
             !initial_tgt->pkt->req->isPrefetch() &&
             isRandomFillProtected(pkt->getAddr())) {
-            allocate = false;
-            stats.rfDemandNoAllocate++;
+            const auto it =
+                randomFillPending.find({pkt->getAddr(), pkt->isSecure()});
+            const bool self_pick =
+                it != randomFillPending.end() && it->second == pkt->getAddr();
+            if (it != randomFillPending.end()) {
+                randomFillPending.erase(it);
+            }
+            if (self_pick) {
+                stats.rfDemandSelfAllocate++;
+            } else {
+                allocate = false;
+                stats.rfDemandNoAllocate++;
+            }
         }
 
         blk = handleFill(pkt, blk, writebacks, allocate);
@@ -987,10 +1005,11 @@ BaseCache::getNextQueueEntry()
     // fall through... no pending requests.
     assert(!miss_mshr && !wq_entry);
 
-    // Random Fill: inject one pending random-fill into a free prefetch MSHR
-    // slot, using the same (non-reentrant) injection point and drop checks as
-    // the hardware prefetcher below -- but targeting a random neighbour of a
-    // protected demand rather than the demanded line itself.
+    // Random Fill: inject one pending random-fill target into a free
+    // prefetch MSHR slot, using the same (non-reentrant) injection point and
+    // drop checks as the hardware prefetcher below. Only draws that differ
+    // from their own demand's address reach this queue at all -- see
+    // enqueueRandomFill()/randomFillPending.
     if (randomFillEnabled && !randomFillQueue.empty() &&
         mshrQueue.canPrefetch() && !isBlocked()) {
         PacketPtr pkt = getNextRandomFillPacket();
@@ -1051,6 +1070,32 @@ BaseCache::isRandomFillProtected(Addr blk_addr) const
         random_fill::isProtected(randomFillRanges, blk_addr);
 }
 
+Addr
+BaseCache::pickRandomFillTarget(Addr demand_blk_addr) const
+{
+    // Find the protected range that contains the demand; the random fill is
+    // drawn from within it, so any candidate it returns is always a legal,
+    // cacheable address.
+    for (const auto &range : randomFillRanges) {
+        if (!range.contains(demand_blk_addr)) {
+            continue;
+        }
+        // Block-aligned half-open bounds of the safe region.
+        const Addr region_lo = roundUp(range.start(), blkSize);
+        const Addr region_hi = roundDown(range.end(), blkSize);
+        if (region_hi > region_lo && demand_blk_addr >= region_lo &&
+            demand_blk_addr < region_hi) {
+            return random_fill::pickNeighbor(demand_blk_addr, blkSize,
+                                             region_lo, region_hi,
+                                             randomFillWindow, *randomFillRng);
+        }
+        break;
+    }
+    // No valid containing region (degenerate/misaligned range): nothing to
+    // randomise over, so the demand itself is the only legal choice.
+    return demand_blk_addr;
+}
+
 void
 BaseCache::enqueueRandomFill(PacketPtr pkt)
 {
@@ -1068,10 +1113,30 @@ BaseCache::enqueueRandomFill(PacketPtr pkt)
     }
 
     stats.rfProtectedMisses++;
+
+    // Draw the single random-fill target now, matching the paper's model
+    // where the fill is one of (window size) equally likely candidates
+    // *including* the demanded line itself (Eq. 6). The outcome is recorded
+    // for recvTimingResp() to consult when this demand's own fill response
+    // arrives; only when it differs from blk_addr is there anything to
+    // inject separately.
+    const Addr fill_addr = pickRandomFillTarget(blk_addr);
+    randomFillPending[{blk_addr, pkt->isSecure()}] = fill_addr;
+
+    if (fill_addr == blk_addr) {
+        DPRINTF(RandomFill,
+                "random-fill draw for protected demand %#llx "
+                "picked itself; its own fill will allocate normally\n",
+                blk_addr);
+        return;
+    }
+
     randomFillQueue.push_back(
-        {blk_addr, pkt->isSecure(), pkt->req->requestorId()});
-    DPRINTF(RandomFill, "enqueue random fill for protected demand %#llx "
-            "(queue=%d)\n", blk_addr, randomFillQueue.size());
+        {fill_addr, blk_addr, pkt->isSecure(), pkt->req->requestorId()});
+    DPRINTF(RandomFill,
+            "enqueue random fill %#llx for protected demand "
+            "%#llx (queue=%d)\n",
+            fill_addr, blk_addr, randomFillQueue.size());
 
     // Kick the memory-side send machinery so getNextQueueEntry() drains the
     // injection from its own (non-reentrant) context, rather than allocating a
@@ -1086,64 +1151,41 @@ BaseCache::getNextRandomFillPacket()
         const RandomFillRequest rf = randomFillQueue.front();
         randomFillQueue.pop_front();
 
-        PacketPtr pkt = getRandomFillPacket(rf.blkAddr, rf.secure,
-                                            rf.requestorId);
+        PacketPtr pkt =
+            getRandomFillPacket(rf.fillAddr, rf.secure, rf.requestorId);
         if (!pkt) {
-            // Neighbour already resident / in flight; drop and try the next.
-            DPRINTF(RandomFill, "random fill for %#llx dropped (resident/"
-                    "in-flight)\n", rf.blkAddr);
+            // Target already resident / in flight; drop and try the next.
+            DPRINTF(RandomFill,
+                    "random fill %#llx for protected demand "
+                    "%#llx dropped (resident/in-flight)\n",
+                    rf.fillAddr, rf.demandAddr);
             continue;
         }
-        DPRINTF(RandomFill, "injecting random fill %#llx for protected "
-                "demand %#llx\n", pkt->getAddr(), rf.blkAddr);
+        DPRINTF(RandomFill,
+                "injecting random fill %#llx for protected "
+                "demand %#llx\n",
+                pkt->getAddr(), rf.demandAddr);
         return pkt;
     }
     return nullptr;
 }
 
 PacketPtr
-BaseCache::getRandomFillPacket(Addr demand_blk_addr, bool secure,
+BaseCache::getRandomFillPacket(Addr fill_addr, bool secure,
                                RequestorID requestor_id)
 {
-    // Find the protected range that contains the demand; the random fill is
-    // drawn from within it, so it is always a legal, cacheable address.
-    const AddrRange *region = nullptr;
-    for (const auto &range : randomFillRanges) {
-        if (range.contains(demand_blk_addr)) {
-            region = &range;
-            break;
-        }
-    }
-    if (!region) {
-        return nullptr;
-    }
-
-    // Block-aligned half-open bounds of the safe region.
-    const Addr region_lo = roundUp(region->start(), blkSize);
-    const Addr region_hi = roundDown(region->end(), blkSize);
-    if (region_hi < region_lo + 2 * blkSize ||
-        demand_blk_addr < region_lo || demand_blk_addr >= region_hi) {
-        // Region too small (or oddly aligned) to hold a distinct neighbour.
-        return nullptr;
-    }
-
-    // Pick a random block-aligned neighbour of the demanded line within the
-    // configured window, clamped to the region.
-    const Addr fill_addr = random_fill::pickNeighbor(
-        demand_blk_addr, blkSize, region_lo, region_hi, randomFillWindow,
-        *randomFillRng);
-
-    // Drop the injection if the neighbour is already resident or in flight;
-    // there is nothing to hide in that case and re-fetching would be wasteful.
+    // Drop the injection if the target is already resident or in flight;
+    // there is nothing to hide in that case and re-fetching would be
+    // wasteful.
     if (tags->findBlock({fill_addr, secure}) ||
         mshrQueue.findMatch(fill_addr, secure) ||
         writeBuffer.findMatch(fill_addr, secure)) {
         return nullptr;
     }
 
-    // Build an ordinary prefetch-style read for the random neighbour. It is
-    // flagged as a prefetch so it is never itself treated as protected (no
-    // recursion) and allocates on fill like any other prefetch.
+    // Build an ordinary prefetch-style read for the random-fill target. It
+    // is flagged as a prefetch so it is never itself treated as protected
+    // (no recursion) and allocates on fill like any other prefetch.
     RequestPtr req = std::make_shared<Request>(
         fill_addr, blkSize, Request::PREFETCH, requestor_id);
     if (secure) {
@@ -2427,89 +2469,99 @@ BaseCache::CacheCmdStats::regStatsFromParent()
 }
 
 BaseCache::CacheStats::CacheStats(BaseCache &c)
-    : statistics::Group(&c), cache(c),
+    : statistics::Group(&c),
+      cache(c),
 
-    ADD_STAT(demandHits, statistics::units::Count::get(),
-             "number of demand (read+write) hits"),
-    ADD_STAT(overallHits, statistics::units::Count::get(),
-             "number of overall hits"),
-    ADD_STAT(demandHitLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) hit ticks"),
-    ADD_STAT(overallHitLatency, statistics::units::Tick::get(),
-            "number of overall hit ticks"),
-    ADD_STAT(demandMisses, statistics::units::Count::get(),
-             "number of demand (read+write) misses"),
-    ADD_STAT(overallMisses, statistics::units::Count::get(),
-             "number of overall misses"),
-    ADD_STAT(demandMissLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) miss ticks"),
-    ADD_STAT(overallMissLatency, statistics::units::Tick::get(),
-             "number of overall miss ticks"),
-    ADD_STAT(demandAccesses, statistics::units::Count::get(),
-             "number of demand (read+write) accesses"),
-    ADD_STAT(overallAccesses, statistics::units::Count::get(),
-             "number of overall (read+write) accesses"),
-    ADD_STAT(demandMissRate, statistics::units::Ratio::get(),
-             "miss rate for demand accesses"),
-    ADD_STAT(overallMissRate, statistics::units::Ratio::get(),
-             "miss rate for overall accesses"),
-    ADD_STAT(demandAvgMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall miss latency in ticks"),
-    ADD_STAT(overallAvgMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall miss latency"),
-    ADD_STAT(blockedCycles, statistics::units::Cycle::get(),
-            "number of cycles access was blocked"),
-    ADD_STAT(blockedCauses, statistics::units::Count::get(),
-            "number of times access was blocked"),
-    ADD_STAT(avgBlocked, statistics::units::Rate<
-                statistics::units::Cycle, statistics::units::Count>::get(),
-             "average number of cycles each access was blocked"),
-    ADD_STAT(writebacks, statistics::units::Count::get(),
-             "number of writebacks"),
-    ADD_STAT(demandMshrHits, statistics::units::Count::get(),
-             "number of demand (read+write) MSHR hits"),
-    ADD_STAT(overallMshrHits, statistics::units::Count::get(),
-             "number of overall MSHR hits"),
-    ADD_STAT(demandMshrMisses, statistics::units::Count::get(),
-             "number of demand (read+write) MSHR misses"),
-    ADD_STAT(overallMshrMisses, statistics::units::Count::get(),
-            "number of overall MSHR misses"),
-    ADD_STAT(overallMshrUncacheable, statistics::units::Count::get(),
-             "number of overall MSHR uncacheable misses"),
-    ADD_STAT(demandMshrMissLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) MSHR miss ticks"),
-    ADD_STAT(overallMshrMissLatency, statistics::units::Tick::get(),
-             "number of overall MSHR miss ticks"),
-    ADD_STAT(overallMshrUncacheableLatency, statistics::units::Tick::get(),
-             "number of overall MSHR uncacheable ticks"),
-    ADD_STAT(demandMshrMissRate, statistics::units::Ratio::get(),
-             "mshr miss ratio for demand accesses"),
-    ADD_STAT(overallMshrMissRate, statistics::units::Ratio::get(),
-             "mshr miss ratio for overall accesses"),
-    ADD_STAT(demandAvgMshrMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr miss latency"),
-    ADD_STAT(overallAvgMshrMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr miss latency"),
-    ADD_STAT(overallAvgMshrUncacheableLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr uncacheable latency"),
-    ADD_STAT(replacements, statistics::units::Count::get(),
-             "number of replacements"),
-    ADD_STAT(rfProtectedMisses, statistics::units::Count::get(),
-             "Random Fill: protected demand-read misses observed"),
-    ADD_STAT(rfRandomFillsInjected, statistics::units::Count::get(),
-             "Random Fill: random neighbour fills injected"),
-    ADD_STAT(rfDemandNoAllocate, statistics::units::Count::get(),
-             "Random Fill: protected demand fills forced to no-allocate"),
-    ADD_STAT(dataExpansions, statistics::units::Count::get(),
-             "number of data expansions"),
-    ADD_STAT(dataContractions, statistics::units::Count::get(),
-             "number of data contractions"),
-    cmd(MemCmd::NUM_MEM_CMDS)
+      ADD_STAT(demandHits, statistics::units::Count::get(),
+               "number of demand (read+write) hits"),
+      ADD_STAT(overallHits, statistics::units::Count::get(),
+               "number of overall hits"),
+      ADD_STAT(demandHitLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) hit ticks"),
+      ADD_STAT(overallHitLatency, statistics::units::Tick::get(),
+               "number of overall hit ticks"),
+      ADD_STAT(demandMisses, statistics::units::Count::get(),
+               "number of demand (read+write) misses"),
+      ADD_STAT(overallMisses, statistics::units::Count::get(),
+               "number of overall misses"),
+      ADD_STAT(demandMissLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) miss ticks"),
+      ADD_STAT(overallMissLatency, statistics::units::Tick::get(),
+               "number of overall miss ticks"),
+      ADD_STAT(demandAccesses, statistics::units::Count::get(),
+               "number of demand (read+write) accesses"),
+      ADD_STAT(overallAccesses, statistics::units::Count::get(),
+               "number of overall (read+write) accesses"),
+      ADD_STAT(demandMissRate, statistics::units::Ratio::get(),
+               "miss rate for demand accesses"),
+      ADD_STAT(overallMissRate, statistics::units::Ratio::get(),
+               "miss rate for overall accesses"),
+      ADD_STAT(demandAvgMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall miss latency in ticks"),
+      ADD_STAT(overallAvgMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall miss latency"),
+      ADD_STAT(blockedCycles, statistics::units::Cycle::get(),
+               "number of cycles access was blocked"),
+      ADD_STAT(blockedCauses, statistics::units::Count::get(),
+               "number of times access was blocked"),
+      ADD_STAT(avgBlocked,
+               statistics::units::Rate<statistics::units::Cycle,
+                                       statistics::units::Count>::get(),
+               "average number of cycles each access was blocked"),
+      ADD_STAT(writebacks, statistics::units::Count::get(),
+               "number of writebacks"),
+      ADD_STAT(demandMshrHits, statistics::units::Count::get(),
+               "number of demand (read+write) MSHR hits"),
+      ADD_STAT(overallMshrHits, statistics::units::Count::get(),
+               "number of overall MSHR hits"),
+      ADD_STAT(demandMshrMisses, statistics::units::Count::get(),
+               "number of demand (read+write) MSHR misses"),
+      ADD_STAT(overallMshrMisses, statistics::units::Count::get(),
+               "number of overall MSHR misses"),
+      ADD_STAT(overallMshrUncacheable, statistics::units::Count::get(),
+               "number of overall MSHR uncacheable misses"),
+      ADD_STAT(demandMshrMissLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) MSHR miss ticks"),
+      ADD_STAT(overallMshrMissLatency, statistics::units::Tick::get(),
+               "number of overall MSHR miss ticks"),
+      ADD_STAT(overallMshrUncacheableLatency, statistics::units::Tick::get(),
+               "number of overall MSHR uncacheable ticks"),
+      ADD_STAT(demandMshrMissRate, statistics::units::Ratio::get(),
+               "mshr miss ratio for demand accesses"),
+      ADD_STAT(overallMshrMissRate, statistics::units::Ratio::get(),
+               "mshr miss ratio for overall accesses"),
+      ADD_STAT(demandAvgMshrMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr miss latency"),
+      ADD_STAT(overallAvgMshrMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr miss latency"),
+      ADD_STAT(overallAvgMshrUncacheableLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr uncacheable latency"),
+      ADD_STAT(replacements, statistics::units::Count::get(),
+               "number of replacements"),
+      ADD_STAT(rfProtectedMisses, statistics::units::Count::get(),
+               "Random Fill: protected demand-read misses observed"),
+      ADD_STAT(rfRandomFillsInjected, statistics::units::Count::get(),
+               "Random Fill: random-fill draws injected as a separate fill"),
+      ADD_STAT(rfDemandNoAllocate, statistics::units::Count::get(),
+               "Random Fill: protected demand fills forced to no-allocate"),
+      ADD_STAT(rfDemandSelfAllocate, statistics::units::Count::get(),
+               "Random Fill: protected demand fills where the draw picked "
+               "the demand itself and was allowed to allocate normally"),
+      ADD_STAT(dataExpansions, statistics::units::Count::get(),
+               "number of data expansions"),
+      ADD_STAT(dataContractions, statistics::units::Count::get(),
+               "number of data contractions"),
+      cmd(MemCmd::NUM_MEM_CMDS)
 {
     for (int idx = 0; idx < MemCmd::NUM_MEM_CMDS; ++idx)
         cmd[idx].reset(new CacheCmdStats(c, MemCmd(idx).toString()));

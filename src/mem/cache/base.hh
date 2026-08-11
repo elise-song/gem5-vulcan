@@ -49,7 +49,9 @@
 #include <cassert>
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "base/addr_range.hh"
@@ -372,18 +374,26 @@ class BaseCache : public ClockedObject
      * Random Fill secure cache (Liu & Lee, MICRO 2014) state.
      *
      * When at least one protected range is configured, a protected demand
-     * read miss delivers its data to the core but does not cache the demanded
-     * line; instead exactly one random neighbour line (within
-     * randomFillWindow lines, clamped to the containing protected range) is
-     * fetched and cached normally, de-correlating cache state from the
-     * victim's access.
+     * read miss draws exactly one random-fill target uniformly from a window
+     * around the demanded line (Section IV.B.2, Eq. 6) -- a draw that
+     * *includes* the demanded line itself as one of the equally likely
+     * candidates, which is what makes the fill statistically
+     * indistinguishable between "reused this exact line" and "touched a
+     * different in-window line" (see random_fill.hh). Usually the draw picks
+     * a different line, which is fetched and cached normally while the
+     * demanded line's own fill is forced no-allocate; occasionally the draw
+     * coincides with the demanded line itself, in which case its own fill is
+     * simply allowed to allocate normally and no separate injection occurs.
      */
-    /** A protected demand miss awaiting one random-fill injection. */
+    /** A random-fill target awaiting injection (its pick differed from the
+     * demand that produced it -- see randomFillPending for same-address
+     * picks). */
     struct RandomFillRequest
     {
-        Addr blkAddr;              //!< block-aligned demand address
-        bool secure;               //!< demand's secure-space flag
-        RequestorID requestorId;   //!< demand's requestor
+        Addr fillAddr;           //!< block-aligned fill target
+        Addr demandAddr;         //!< block-aligned demand address (debug)
+        bool secure;             //!< demand's secure-space flag
+        RequestorID requestorId; //!< demand's requestor
     };
 
     /** Protected address ranges; empty disables Random Fill entirely. */
@@ -395,35 +405,55 @@ class BaseCache : public ClockedObject
     /** RNG used to pick the random-fill neighbour line. */
     Random::RandomPtr randomFillRng;
     /**
-     * Protected demand misses awaiting random-fill injection. Each protected
-     * demand read miss enqueues exactly one entry; entries are drained one per
-     * free prefetch MSHR slot through getNextQueueEntry() -- the same clean,
-     * non-reentrant injection point the hardware prefetcher uses.
+     * Random-fill targets awaiting injection. Each protected demand read
+     * miss whose draw differs from its own address enqueues exactly one
+     * entry; entries are drained one per free prefetch MSHR slot through
+     * getNextQueueEntry() -- the same clean, non-reentrant injection point
+     * the hardware prefetcher uses.
      */
     std::deque<RandomFillRequest> randomFillQueue;
+    /**
+     * Pending draw outcome for each in-flight protected demand miss, keyed
+     * by (block address, secure), consumed by the no-allocate decision in
+     * recvTimingResp() when that demand's own fill response arrives. A
+     * value equal to its key's address means the draw picked the demand
+     * line itself.
+     */
+    std::map<std::pair<Addr, bool>, Addr> randomFillPending;
 
     /** True iff the (block-aligned) address is in a protected range. */
     bool isRandomFillProtected(Addr blk_addr) const;
 
     /**
-     * If @p pkt is a fresh protected demand-read miss, enqueue exactly one
-     * random-fill request for it. The demanded line itself is left uncached by
-     * the no-allocate guard in recvTimingResp().
+     * Draw the single random-fill target for a protected demand miss to
+     * @p demand_blk_addr, uniformly over the window clamped to the
+     * containing protected range (see random_fill::pickNeighbor). Returns
+     * demand_blk_addr itself if no valid containing range is found.
+     */
+    Addr pickRandomFillTarget(Addr demand_blk_addr) const;
+
+    /**
+     * If @p pkt is a fresh protected demand-read miss, draw its random-fill
+     * target and record the outcome in randomFillPending. If the draw
+     * differs from the demand's own address, also enqueue it in
+     * randomFillQueue for later injection; the demanded line itself is left
+     * uncached by the no-allocate guard in recvTimingResp() only in that
+     * case.
      */
     void enqueueRandomFill(PacketPtr pkt);
 
     /**
      * Pop and build the next drainable random-fill packet, or nullptr if the
-     * queue is empty or the next neighbour is already resident / in flight.
+     * queue is empty or the next target is already resident / in flight.
      */
     PacketPtr getNextRandomFillPacket();
 
     /**
-     * Build the memory packet for the random fill of a protected demand at
-     * block-aligned @p demand_blk_addr, or nullptr if the chosen neighbour is
-     * already resident / in flight and should be dropped.
+     * Build the memory packet to fetch and cache @p fill_addr as a random
+     * fill, or nullptr if it is already resident / in flight and should be
+     * dropped.
      */
-    PacketPtr getRandomFillPacket(Addr demand_blk_addr, bool secure,
+    PacketPtr getRandomFillPacket(Addr fill_addr, bool secure,
                                   RequestorID requestor_id);
 
     /** To probe when a cache hit occurs */
@@ -1198,10 +1228,15 @@ class BaseCache : public ClockedObject
 
         /** Random Fill: protected demand-read misses observed. */
         statistics::Scalar rfProtectedMisses;
-        /** Random Fill: random neighbour fills injected. */
+        /** Random Fill: random-fill draws that differed from the demand and
+         * were injected as a separate fill. */
         statistics::Scalar rfRandomFillsInjected;
-        /** Random Fill: protected demand fills forced to no-allocate. */
+        /** Random Fill: protected demand fills forced to no-allocate
+         * (i.e. the draw picked a different line than the demand). */
         statistics::Scalar rfDemandNoAllocate;
+        /** Random Fill: protected demand fills where the draw picked the
+         * demanded line itself, so it was allowed to allocate normally. */
+        statistics::Scalar rfDemandSelfAllocate;
 
         /** Number of data expansions. */
         statistics::Scalar dataExpansions;

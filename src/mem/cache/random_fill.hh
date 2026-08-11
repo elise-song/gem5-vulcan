@@ -73,6 +73,21 @@ isProtected(const std::vector<AddrRange> &ranges, Addr blk_addr)
  * Pick the block-aligned address of the random-fill line for a protected
  * demand access to @p demand_blk_addr.
  *
+ * This draws uniformly from the window [demand_blk_addr - window,
+ * demand_blk_addr + window] (clamped to the containing protected range),
+ * matching the random fill engine of Liu & Lee, "Random Fill Cache
+ * Architecture" (MICRO 2014), Section IV.B.2. Per the paper's Eq. 6, the
+ * window's (a+b+1) candidates are equally likely *including* the demanded
+ * line itself: that is what makes the fill statistically indistinguishable
+ * between "the victim reused this exact line" (P1) and "the victim touched a
+ * different, in-window line" (P2) once the window covers the whole
+ * security-critical region, closing the collision-timing channel. Excluding
+ * the demanded line from the draw would make P1 always 0 while P2 stays
+ * positive -- reopening exactly that channel. The caller is responsible for
+ * handling the case where the draw comes back equal to demand_blk_addr: no
+ * separate injection is needed (or possible) then, since the ordinary demand
+ * fill already targets that same address.
+ *
  * The random fill is drawn from the same protected range that contains the
  * demand, given here as the block-aligned half-open bounds
  * [@p region_lo, @p region_hi). Because that range is memory the
@@ -82,19 +97,19 @@ isProtected(const std::vector<AddrRange> &ranges, Addr blk_addr)
  *   - block-aligned,
  *   - inside [region_lo, region_hi),
  *   - within +/- @p window lines of @p demand_blk_addr (clamped to the
- *     region),
- *   - never equal to @p demand_blk_addr itself (caching the demanded line
- *     would defeat the defense).
+ *     region); it may equal @p demand_blk_addr itself.
  *
  * @param demand_blk_addr Block-aligned physical address of the protected
  *                        demand access.
  * @param blk_size        Cache block size in bytes (> 0).
  * @param region_lo       Block-aligned start of the safe region (inclusive).
  * @param region_hi       Block-aligned end of the safe region (exclusive);
- *                        the region must hold at least two lines.
+ *                        must hold at least one line and contain
+ *                        demand_blk_addr.
  * @param window          Neighbourhood radius in lines.
  * @param rng             Random number source.
- * @return The block-aligned address of the line to random-fill.
+ * @return The block-aligned address of the line to random-fill; may equal
+ *         demand_blk_addr.
  */
 inline Addr
 pickNeighbor(Addr demand_blk_addr, unsigned blk_size,
@@ -102,36 +117,20 @@ pickNeighbor(Addr demand_blk_addr, unsigned blk_size,
 {
     assert(blk_size > 0);
     assert(demand_blk_addr % blk_size == 0);
+    assert(region_hi > region_lo);
     assert(demand_blk_addr >= region_lo && demand_blk_addr < region_hi);
 
     const unsigned num_lines = (region_hi - region_lo) / blk_size;
-    assert(num_lines >= 2);
     const unsigned demand_line = (demand_blk_addr - region_lo) / blk_size;
 
     // Clamp the +/- window to the region as an inclusive [lo, hi] range of
-    // line indices.
+    // line indices. The demanded line itself (offset 0) is always one of the
+    // (hi - lo + 1) equally likely candidates.
     const unsigned lo = (demand_line > window) ? (demand_line - window) : 0;
     const unsigned hi = (demand_line + window < num_lines) ?
         (demand_line + window) : (num_lines - 1);
 
-    // Candidate lines are [lo, hi] excluding demand_line; there is always at
-    // least one because the region holds >= 2 lines.
-    const unsigned num_candidates = (hi - lo + 1) - 1;
-
-    if (num_candidates == 0) {
-        // Degenerate window (e.g. window == 0): still return a distinct,
-        // in-region neighbour so the demanded line is never cached.
-        return (demand_line + 1 < num_lines) ?
-            region_lo + (Addr)(demand_line + 1) * blk_size :
-            region_lo + (Addr)(demand_line - 1) * blk_size;
-    }
-
-    // Draw uniformly from the candidates and map the pick to a line index,
-    // skipping the demanded line.
-    unsigned line = lo + rng.random<unsigned>(0, num_candidates - 1);
-    if (line >= demand_line) {
-        line += 1;
-    }
+    const unsigned line = lo + rng.random<unsigned>(0, hi - lo);
     return region_lo + (Addr)line * blk_size;
 }
 
