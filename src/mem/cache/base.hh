@@ -384,8 +384,10 @@ class BaseCache : public ClockedObject
     Tick decayInterval;
     /** Randomization half-width of the decay lifetime, in ticks. */
     Tick decayRange;
-    /** RNG used to draw per-line decay lifetimes. */
+    /** RNG used*/
     Random::RandomPtr decayRng;
+    /**Draws since it was last seeded*/
+    uint64_t decayDrawCount = 0;
     /** Single event driving all per-line decays (see above). */
     EventFunctionWrapper decayEvent;
 

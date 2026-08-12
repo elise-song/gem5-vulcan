@@ -45,6 +45,8 @@
 
 #include "mem/cache/base.hh"
 
+#include <random>
+
 #include "base/compiler.hh"
 #include "base/logging.hh"
 #include "debug/Cache.hh"
@@ -70,6 +72,22 @@
 namespace gem5
 {
 
+namespace
+{
+
+/** Draw a fresh seed for acache's decay RNG */
+uint32_t
+drawDecaySeed()
+{
+    std::random_device rd;
+    return rd();
+}
+
+/** How many decay lifetime draws to make before reseeding*/
+constexpr uint64_t decayReseedPeriod = 64;
+
+} // namespace
+
 BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
                                           BaseCache& _cache,
                                           const std::string &_label)
@@ -83,7 +101,7 @@ BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
 
 BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
     : ClockedObject(p),
-      cpuSidePort (p.name + ".cpu_side_port", *this, "CpuSidePort"),
+      cpuSidePort(p.name + ".cpu_side_port", *this, "CpuSidePort"),
       memSidePort(p.name + ".mem_side_port", this, "MemSidePort"),
       accessor(*this),
       mshrQueue("MSHRs", p.mshrs, 0, p.demand_mshr_reserve, p.name),
@@ -95,12 +113,12 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       decayEnabled(p.decay_enabled),
       decayInterval(p.decay_interval),
       decayRange(p.decay_range),
-      decayRng(Random::genRandom()),
-      decayEvent([this]{ processDecay(); }, name()),
+      decayRng(Random::genRandom(drawDecaySeed())),
+      decayEvent([this] { processDecay(); }, name()),
       writeAllocator(p.write_allocator),
       writebackClean(p.writeback_clean),
       tempBlockWriteback(nullptr),
-      writebackTempBlockAtomicEvent([this]{ writebackTempBlockAtomic(); },
+      writebackTempBlockAtomicEvent([this] { writebackTempBlockAtomic(); },
                                     name(), false,
                                     EventBase::Delayed_Writeback_Pri),
       blkSize(blk_size),
@@ -1776,6 +1794,10 @@ BaseCache::evictBlock(CacheBlk *blk, PacketList &writebacks)
 Tick
 BaseCache::drawDecayLifetime()
 {
+    if (++decayDrawCount >= decayReseedPeriod) {
+        decayDrawCount = 0;
+        decayRng->init(drawDecaySeed());
+    }
     return cache_decay::decayLifetime(*decayRng, decayInterval, decayRange);
 }
 
