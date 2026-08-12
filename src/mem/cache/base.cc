@@ -1830,8 +1830,10 @@ BaseCache::armDecay(CacheBlk *blk)
     }
     const Tick life = drawDecayLifetime();
     blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
+    const Addr blk_addr = regenerateBlkAddr(blk);
     DPRINTF(NDCacheDecay, "arm decay on %#llx: lifetime %llu, deadline %llu\n",
-            regenerateBlkAddr(blk), life, blk->decayDeadline);
+            blk_addr, life, blk->decayDeadline);
+    decayHeap.push({blk->decayDeadline, blk_addr, blk->isSecure()});
     scheduleDecay(blk->decayDeadline);
 }
 
@@ -1848,8 +1850,14 @@ BaseCache::touchDecay(CacheBlk *blk)
     const Tick life = drawDecayLifetime();
     blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
     stats.ndDecayReschedules++;
-    DPRINTF(NDCacheDecay, "touch decay on %#llx: lifetime %llu, deadline "
-            "%llu\n", regenerateBlkAddr(blk), life, blk->decayDeadline);
+    const Addr blk_addr = regenerateBlkAddr(blk);
+    DPRINTF(NDCacheDecay,
+            "touch decay on %#llx: lifetime %llu, deadline "
+            "%llu\n",
+            blk_addr, life, blk->decayDeadline);
+    // The block's former entry, if any, is left on the heap; it will be
+    // pruned as stale (deadline mismatch) if it is ever popped.
+    decayHeap.push({blk->decayDeadline, blk_addr, blk->isSecure()});
     scheduleDecay(blk->decayDeadline);
 }
 
@@ -1859,42 +1867,37 @@ BaseCache::processDecay()
     assert(decayEnabled);
     const Tick now = curTick();
 
-    // Scan the live tag array (by address, never a stale block pointer):
-    // collect every valid armed block whose deadline has elapsed, and track
-    // the earliest still-future deadline so we can reschedule the sweep.
-    std::vector<CacheBlk *> expired;
-    Tick next = MaxTick;
-    tags->forEachBlk([&](CacheBlk &blk) {
-        if (!blk.isValid() || blk.decayDeadline == MaxTick) {
-            return;
-        }
-        if (blk.decayDeadline <= now) {
-            expired.push_back(&blk);
-        } else if (blk.decayDeadline < next) {
-            next = blk.decayDeadline;
-        }
-    });
-
     // Retry quantum for blocks that are due but temporarily busy (see below).
     const Tick retry = std::max<Tick>(1, decayInterval / 8);
 
     PacketList writebacks;
-    for (CacheBlk *blk : expired) {
-        const Addr blk_addr = regenerateBlkAddr(blk);
-        const bool is_secure = blk->isSecure();
+    while (!decayHeap.empty() && decayHeap.top().deadline <= now) {
+        const DecayHeapEntry entry = decayHeap.top();
+        decayHeap.pop();
+
+        // The entry may be stale: the block may have since been re-armed
+        // with a later deadline (a newer entry is elsewhere in the heap), or
+        // evicted/replaced by an unrelated address entirely. Re-derive the
+        // block by address (never trust a raw pointer across time) and
+        // require its live decayDeadline to match this exact entry.
+        CacheBlk *blk = tags->findBlock({entry.blkAddr, entry.secure});
+        if (!blk || !blk->isValid() || blk->decayDeadline != entry.deadline) {
+            continue;
+        }
 
         // Correctness: never decay a line that has outstanding MSHR or write
-        // buffer activity (an in-flight miss/upgrade/writeback), or whose fill
-        // data has not yet landed. Dropping it now could race the in-flight
-        // operation or lose data. Leave its (past) deadline in place and retry
-        // the sweep shortly, once the activity is expected to have settled.
-        const bool busy =
-            mshrQueue.findMatch(blk_addr, is_secure) ||
-            writeBuffer.findMatch(blk_addr, is_secure) ||
-            (blk->whenReady > now);
+        // buffer activity (an in-flight miss/upgrade/writeback), or whose
+        // fill data has not yet landed. Dropping it now could race the
+        // in-flight operation or lose data. Defer its deadline to a short
+        // retry quantum and re-push, rather than decaying now.
+        const bool busy = mshrQueue.findMatch(entry.blkAddr, entry.secure) ||
+                          writeBuffer.findMatch(entry.blkAddr, entry.secure) ||
+                          (blk->whenReady > now);
         if (busy) {
-            DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n", blk_addr);
-            next = std::min(next, now + retry);
+            DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n",
+                    entry.blkAddr);
+            blk->decayDeadline = now + retry;
+            decayHeap.push({blk->decayDeadline, entry.blkAddr, entry.secure});
             continue;
         }
 
@@ -1904,7 +1907,7 @@ BaseCache::processDecay()
         // coherence CleanEvict) as appropriate, then invalidateBlock() --
         // which keeps coherence correct and clears the block's decay state.
         const bool dirty = blk->isSet(CacheBlk::DirtyBit);
-        DPRINTF(NDCacheDecay, "decay-invalidate %#llx (%s)\n", blk_addr,
+        DPRINTF(NDCacheDecay, "decay-invalidate %#llx (%s)\n", entry.blkAddr,
                 dirty ? "dirty, writeback" : "clean");
         evictBlock(blk, writebacks);
         stats.ndDecayInvalidations++;
@@ -1917,9 +1920,11 @@ BaseCache::processDecay()
         doWritebacks(writebacks, clockEdge(forwardLatency));
     }
 
-    // Reschedule the sweep for the next-earliest deadline (or busy retry).
-    if (next != MaxTick) {
-        scheduleDecay(next);
+    // Reschedule the sweep for the next-earliest deadline still on the heap
+    // (which may itself turn out to be stale -- harmless, since a stale pop
+    // just falls through to the reschedule below with nothing to do).
+    if (!decayHeap.empty()) {
+        scheduleDecay(decayHeap.top().deadline);
     }
 }
 

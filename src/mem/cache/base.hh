@@ -48,7 +48,9 @@
 
 #include <cassert>
 #include <cstdint>
+#include <queue>
 #include <string>
+#include <vector>
 
 #include "base/addr_range.hh"
 #include "base/compiler.hh"
@@ -372,11 +374,26 @@ class BaseCache : public ClockedObject
      * When enabled, every inserted line is given a randomized decay lifetime;
      * when that lifetime elapses the line self-invalidates (written back first
      * if dirty). A single event (decayEvent) drives all decays: it is always
-     * scheduled for the earliest live deadline, and on firing it invalidates
-     * every block whose deadline has elapsed, then reschedules itself for the
-     * next earliest deadline. Scanning the live tag array by address (rather
-     * than holding a raw block pointer in the event) means a reused block is
-     * never mistaken for a decayed one -- no generation/seq guard is needed.
+     * scheduled for the earliest live deadline, and on firing it pops every
+     * due entry from decayHeap and invalidates the corresponding block, then
+     * reschedules itself for the next earliest deadline.
+     *
+     * decayHeap holds (deadline, address) entries, never raw block pointers:
+     * a block is always re-derived from the tag array by address when its
+     * entry is popped, so a reused/reallocated block can never be mistaken
+     * for the decayed one -- no generation/seq guard is needed. Because a
+     * touch re-arms a block with a fresh deadline without removing its old
+     * heap entry, an entry popped off the heap may be stale (superseded by a
+     * later touch, or the block may since have been evicted by other means
+     * entirely); processDecay() discards a popped entry unless the block is
+     * still resident at that address with a decayDeadline exactly matching
+     * the popped entry (this is the standard lazy-deletion binary-heap
+     * pattern: stale entries are pruned when they would otherwise be acted
+     * on, not eagerly). This keeps every operation O(log heap size) instead
+     * of the O(cache size) a full tag-array scan would cost on every firing
+     * -- decayEvent can fire once per live block's lifetime, so for a large,
+     * mostly-full cache a full scan per firing would be far more expensive
+     * than the handful of entries actually due.
      */
     /** True iff decay is enabled on this cache. */
     bool decayEnabled;
@@ -391,23 +408,51 @@ class BaseCache : public ClockedObject
     /** Single event driving all per-line decays (see above). */
     EventFunctionWrapper decayEvent;
 
+    /** One pending decay deadline for one block, identified by address (see
+     * the class-level comment above for why address rather than a raw
+     * pointer). */
+    struct DecayHeapEntry
+    {
+        Tick deadline;
+        Addr blkAddr;
+        bool secure;
+    };
+    /** Min-heap comparator: smallest deadline sorts to the top. */
+    struct DecayHeapEntryCompare
+    {
+        bool
+        operator()(const DecayHeapEntry &a, const DecayHeapEntry &b) const
+        {
+            return a.deadline > b.deadline;
+        }
+    };
+    /** Pending decay deadlines, soonest first; may contain stale entries
+     * (see the class-level comment above). */
+    std::priority_queue<DecayHeapEntry, std::vector<DecayHeapEntry>,
+                        DecayHeapEntryCompare>
+        decayHeap;
+
     /** Draw a fresh randomized decay lifetime (ticks) from decayRng. */
     Tick drawDecayLifetime();
     /**
-     * Arm decay on a freshly filled block: draw a randomized deadline and
-     * ensure decayEvent will fire in time to catch it. No-op if decay is
-     * disabled or blk is the temp block (temp blocks live outside the tags
-     * and are evicted immediately).
+     * Arm decay on a freshly filled block: draw a randomized deadline, push
+     * its decayHeap entry, and ensure decayEvent will fire in time to catch
+     * it. No-op if decay is disabled or blk is the temp block (temp blocks
+     * live outside the tags and are evicted immediately).
      */
     void armDecay(CacheBlk *blk);
     /**
      * Re-draw a block's decay deadline on a hit/touch (Cache Decay extends a
-     * line's lifetime when it is used) and count the reschedule.
+     * line's lifetime when it is used), push a fresh decayHeap entry for it,
+     * and count the reschedule. The block's superseded former entry, if any,
+     * is left on the heap to be pruned as stale when it is eventually popped
+     * (see the class-level comment above).
      */
     void touchDecay(CacheBlk *blk);
     /** (Re)schedule decayEvent to fire no later than @p when. */
     void scheduleDecay(Tick when);
-    /** decayEvent handler: self-invalidate every block past its deadline. */
+    /** decayEvent handler: pop and self-invalidate every block whose
+     * decayHeap entry is due and not stale. */
     void processDecay();
 
     /** To probe when a cache hit occurs */
