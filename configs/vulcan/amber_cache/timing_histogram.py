@@ -41,6 +41,7 @@ scons build/ALL/gem5.opt
 """
 
 import os
+import sys
 
 from gem5.coherence_protocol import CoherenceProtocol
 from gem5.components.boards.x86_board import X86Board
@@ -80,7 +81,7 @@ cache_hierarchy = MESIThreeLevelCacheHierarchy(
 # Set up the system memory.
 memory = SingleChannelDDR3_1600(size="3GiB")
 
-# Here we set up the processor. 2-core X86 timing processor. 
+# Here we set up the processor. 1-core X86 timing processor. 
 
 processor = SimpleProcessor(
     cpu_type=CPUTypes.TIMING,
@@ -100,9 +101,9 @@ board = X86Board(
 
 
 thispath = os.path.dirname(os.path.abspath(__file__))
-binary_path = os.path.join(thispath, "timing_histogram")
+binary_path = os.path.join(thispath, "timing_histogram_" + str(sys.argv[1]))
 binary = BinaryResource(local_path=binary_path)
-board.set_se_binary_workload(binary, arguments=["gem5"])
+board.set_se_binary_workload(binary, arguments=[sys.argv[1]])
 
 simulator = Simulator(board=board)
 

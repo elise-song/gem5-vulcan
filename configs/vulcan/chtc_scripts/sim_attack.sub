@@ -1,0 +1,19 @@
+universe = docker
+docker_image = gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1
+
+log = sim_attack.log
+error = sim_attack.err
+output = sim_attack.out
+	      
+executable = sim_attack.sh
+
+request_cpus = 1
+request_memory = 1GB
+request_disk = 1GB
+
+stream_output = True
+
+queue 1
+
+notify_user = elise.song@wisc.edu
+notification = always

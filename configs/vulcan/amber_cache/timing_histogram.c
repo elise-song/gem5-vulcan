@@ -21,6 +21,9 @@
 *
 */
 
+// gcc timing_histogram.c -std=gnu99 -DDO_READ=1 -o timing_histogram_read
+// gcc timing_histogram.c -std=gnu99 -DDO_WRITE=1 -o timing_histogram_write
+// gcc timing_histogram.c -std=gnu99 -DDO_FLUSH=1 -o timing_histogram_flush
 
 
 #define _GNU_SOURCE
@@ -37,6 +40,15 @@
 #include <sched.h>
 #include <time.h>
 
+#ifndef DO_READ
+#define DO_READ 0
+#endif
+#ifndef DO_WRITE
+#define DO_WRITE 0
+#endif
+#ifndef DO_FLUSH
+#define DO_FLUSH 0
+#endif
 
 #ifndef L1_CACHE_SIZE
 #define L1_CACHE_SIZE 0x8000
@@ -608,11 +620,11 @@ int main(int argc, char *argv[]) {
         perror("sched_setaffinity");
     }
 
-  char file_long[50];
-  sprintf(file_long, "configs/vulcan/amber_cache/histogram_output/histogram_%s.out", argv[1]);
+  char file_long[100];
+  sprintf(file_long, "histogram_%s.out", argv[1]);
 
-  char file_name[50];
-  sprintf(file_name, "histogram_output/coarse_histogram_%s.out", argv[1]);
+  char file_name[100];
+  sprintf(file_name, "coarse_histogram_%s.out", argv[1]);
 
 
   FILE *fp = fopen(file_long, "w");
@@ -672,6 +684,7 @@ int main(int argc, char *argv[]) {
   
   //calibration
   // READ
+#if DO_READ
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
   {
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
@@ -696,8 +709,10 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif
 
   // WRITE
+#if DO_WRITE
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
   {
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
@@ -722,8 +737,10 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif 
 
   // FLUSH
+#if DO_FLUSH
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
   {
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
@@ -748,6 +765,7 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif
 
 
   int min_time_diff = MAX_CYCLE;
