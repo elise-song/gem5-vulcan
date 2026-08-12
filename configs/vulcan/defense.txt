@@ -1,0 +1,186 @@
+commit d204be291ae22e979243d3ae510446722a368383
+Author: Elise Song <elise.song@wisc.edu>
+Date:   Thu Aug 6 23:11:33 2026 -0500
+
+    mem-cache: Add cache partitioning by process ID
+    
+    - The context ID (process ID) is added to the address for process isolation in the cache.
+    - This is meant for a cache without prefetching or snooping.
+    - To pass the context ID to the cache, the TaggedTypes::KeyType struct is changed to a class that has two constructors. The original struct design is retained with physical addr and isSecure parameters. Another constructor is added with a packet parameter which contains the virtual address and context ID. When possible, the packet constructor is used instead.
+
+diff --git a/src/mem/cache/base.cc b/src/mem/cache/base.cc
+index 2a3e4a0ae3..c3455bd502 100644
+--- a/src/mem/cache/base.cc
++++ b/src/mem/cache/base.cc
+@@ -482,7 +482,7 @@ BaseCache::recvTimingReq(PacketPtr pkt)
+         // Now that the write is here, mark it accessible again, so the
+         // write will succeed.  LockedRMWReadReq brings the block in in
+         // exclusive mode, so we know it was previously writable.
+-        CacheBlk *blk = tags->findBlock({pkt->getAddr(), pkt->isSecure()});
++        CacheBlk *blk = tags->findBlock({pkt});
+         assert(blk && blk->isValid());
+         assert(!blk->isSet(CacheBlk::WritableBit) &&
+                !blk->isSet(CacheBlk::ReadableBit));
+@@ -617,7 +617,7 @@ BaseCache::recvTimingResp(PacketPtr pkt)
+     // the response is an invalidation
+     assert(!mshr->wasWholeLineWrite || pkt->isInvalidate());
+ 
+-    CacheBlk *blk = tags->findBlock({pkt->getAddr(), pkt->isSecure()});
++    CacheBlk *blk = tags->findBlock({pkt});
+ 
+     if (is_fill && !is_error) {
+         DPRINTF(Cache, "Block for addr %#llx being updated in Cache\n",
+@@ -786,7 +786,7 @@ BaseCache::functionalAccess(PacketPtr pkt, bool from_cpu_side)
+ {
+     Addr blk_addr = pkt->getBlockAddr(blkSize);
+     bool is_secure = pkt->isSecure();
+-    CacheBlk *blk = tags->findBlock({pkt->getAddr(), is_secure});
++    CacheBlk *blk = tags->findBlock({pkt});
+     MSHR *mshr = mshrQueue.findMatch(blk_addr, is_secure);
+ 
+     pkt->pushLabel(name());
+@@ -1614,7 +1614,7 @@ BaseCache::handleFill(PacketPtr pkt, CacheBlk *blk, PacketList &writebacks,
+             // cache... just use temporary storage to complete the
+             // current request and then get rid of it
+             blk = tempBlock;
+-            tempBlock->insert({addr, is_secure});
++            tempBlock->insert({pkt});
+             DPRINTF(Cache, "using temp block for %#llx (%s)\n", addr,
+                     is_secure ? "s" : "ns");
+         }
+@@ -1715,8 +1715,7 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
+         partitionManager->readPacketPartitionID(pkt) : 0;
+     // Find replacement victim
+     std::vector<CacheBlk*> evict_blks;
+-    CacheBlk *victim = tags->findVictim({addr, is_secure}, blk_size_bits,
+-                                        evict_blks, partition_id);
++    CacheBlk *victim = tags->findVictim({pkt}, blk_size_bits, evict_blks, partition_id);
+ 
+     // It is valid to return nullptr if there is no victim
+     if (!victim)
+@@ -1979,7 +1978,7 @@ BaseCache::sendMSHRQueuePacket(MSHR* mshr)
+         }
+     }
+ 
+-    CacheBlk *blk = tags->findBlock({mshr->blkAddr, mshr->isSecure});
++    CacheBlk *blk = tags->findBlock({tgt_pkt});
+ 
+     // either a prefetch that is not present upstream, or a normal
+     // MSHR request, proceed to get the packet to send downstream
+diff --git a/src/mem/cache/cache.cc b/src/mem/cache/cache.cc
+index bcf38daf09..2ab724d69c 100644
+--- a/src/mem/cache/cache.cc
++++ b/src/mem/cache/cache.cc
+@@ -173,7 +173,7 @@ Cache::access(PacketPtr pkt, CacheBlk *&blk, Cycles &lat,
+         DPRINTF(Cache, "%s for %s\n", __func__, pkt->print());
+ 
+         // flush and invalidate any existing block
+-        CacheBlk *old_blk(tags->findBlock({pkt->getAddr(), pkt->isSecure()}));
++        CacheBlk *old_blk(tags->findBlock({pkt}));
+         if (old_blk && old_blk->isValid()) {
+             BaseCache::evictBlock(old_blk, writebacks);
+         }
+diff --git a/src/mem/cache/tags/base_set_assoc.hh b/src/mem/cache/tags/base_set_assoc.hh
+index 8a394d6a99..2a809abaac 100644
+--- a/src/mem/cache/tags/base_set_assoc.hh
++++ b/src/mem/cache/tags/base_set_assoc.hh
+@@ -126,7 +126,7 @@ class BaseSetAssoc : public BaseTags
+      */
+     CacheBlk* accessBlock(const PacketPtr pkt, Cycles &lat) override
+     {
+-        CacheBlk *blk = findBlock({pkt->getAddr(), pkt->isSecure()});
++        CacheBlk *blk = findBlock({pkt});
+ 
+         // Access all tags in parallel, hence one in each way.  The data side
+         // either accesses all blocks in parallel, or one block sequentially on
+diff --git a/src/mem/cache/tags/tagged_entry.hh b/src/mem/cache/tags/tagged_entry.hh
+index cf47d7b6c9..ee1a164a27 100644
+--- a/src/mem/cache/tags/tagged_entry.hh
++++ b/src/mem/cache/tags/tagged_entry.hh
+@@ -45,8 +45,10 @@
+ 
+ #include "base/cprintf.hh"
+ #include "base/types.hh"
++#include "debug/Cache.hh"
+ #include "mem/cache/replacement_policies/replaceable_entry.hh"
+ #include "mem/cache/tags/indexing_policies/base.hh"
++#include "mem/packet.hh"
+ #include "params/TaggedIndexingPolicy.hh"
+ #include "params/TaggedSetAssociative.hh"
+ 
+@@ -56,10 +58,44 @@ namespace gem5
+ class TaggedTypes
+ {
+   public:
+-    struct KeyType
++    class KeyType
+     {
++      private:
++        bool _hasContextId;
++        ContextID _contextid;
++
++      public:
+         Addr address;
+         bool secure;
++
++        KeyType(Addr addr, bool sec)
++            : _hasContextId(false),
++              address(addr),
++              secure(sec)
++        {}
++
++        KeyType(PacketPtr pkt)
++            : _hasContextId(pkt->req->hasContextId()),
++              address(pkt->getAddr()),
++              secure(pkt->isSecure())
++        {
++            if (_hasContextId) {
++                _contextid = pkt->req->contextId();
++            }
++        }
++
++        bool
++        hasContextId() const
++        {
++            return _hasContextId;
++        }
++
++        ContextID
++        getContextId() const
++        {
++            assert(_hasContextId);
++            return _contextid;
++        }
+     };
+     using Params = TaggedIndexingPolicyParams;
+ };
+@@ -79,7 +115,15 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
+     virtual uint32_t
+     extractSet(const KeyType &key) const
+     {
+-        return (key.address >> setShift) & setMask;
++        Addr address = key.address;
++        if (key.hasContextId()) {
++            address += key.getContextId() << setShift;
++            DPRINTF(Cache,
++                    "TaggedSetAssociative::extractSet: add context id %d\n",
++                    key.getContextId());
++        }
++        uint32_t set = (address >> setShift) & setMask;
++        return set;
+     }
+ 
+   public:
+@@ -98,7 +142,11 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
+     regenerateAddr(const KeyType &key,
+                    const ReplaceableEntry *entry) const override
+     {
+-        return (key.address << tagShift) | (entry->getSet() << setShift);
++        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
++        if (key.hasContextId()) {
++            address -= key.getContextId() << setShift;
++        }
++        return address;
+     }
+ };
+ 
