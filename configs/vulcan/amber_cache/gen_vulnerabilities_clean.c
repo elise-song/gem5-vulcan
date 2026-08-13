@@ -1367,21 +1367,21 @@ void print_eviction_set(FILE *fout, int l1_assoc, int probe_size, int l1_cache_l
 	fprintf(fout, "    maintain_arr[i]=%d-i;\n", MUTEX_BOUND);
 	fprintf(fout, "  }\n");
 	  
-	fprintf(fout, "  for(int i =0 ; i< %d*%d*%d; i++) /*probe_arr*/ chain_arr[i]=/*(char)*/ MAX_ARRAY_SIZE-i; //copy on write\n", l1_assoc, l1_cache_line, l1_cache_set);
+	fprintf(fout, "  for(int i =0 ; i< L1_ASSOC*L1_CACHE_LINE*L1_CACHE_SET; i++) /*probe_arr*/ chain_arr[i]=/*(char)*/ MAX_ARRAY_SIZE-i; //copy on write\n"); //, l1_assoc, l1_cache_line, l1_cache_set);
 
-	fprintf(fout, "  char* start[%d*%d*%d];\n", l1_assoc, l1_cache_line, l1_cache_set);
+	fprintf(fout, "  char* start[L1_ASSOC*L1_CACHE_LINE*L1_CACHE_SET];\n"); //, l1_assoc, l1_cache_line, l1_cache_set);
 	fprintf(fout, "  \n");
 
 	fprintf(fout, "  int tar_block;\n");
   	fprintf(fout, "  int untar_block;\n");
 
-	fprintf(fout, "  for(int i=0;i< %d*%d/%d;i++){\n", l1_cache_set, l1_assoc, 4);
+	fprintf(fout, "  for(int i=0;i< L1_CACHE_SET*L1_ASSOC/4;i++){\n"); //, l1_cache_set, l1_assoc, 4);
     fprintf(fout, "  	start[i]=&chain_arr[ i*way_size	];\n");
   	fprintf(fout, "  }\n");
 
 	fprintf(fout, "  // load into L1 L2\n");
 						
-	fprintf(fout, "	  for(int i=0;i<%d*8;i++){  \n", l1_assoc);
+	fprintf(fout, "	  for(int i=0;i<L1_ASSOC*8;i++){  \n"); //, l1_assoc);
 	fprintf(fout, "      asm __volatile__ (\n");
 	fprintf(fout, "      \"mfence              \\n\" \n");
 	fprintf(fout, "      \"movq (%%%%rcx),  %%%%rax     \\n\"\n");
@@ -1405,7 +1405,7 @@ void print_eviction_set(FILE *fout, int l1_assoc, int probe_size, int l1_cache_l
 	fprintf(fout, "      : );\n");
 	fprintf(fout, "	  }  \n");
 
-	fprintf(fout, "	  for(int i=0;i<%d*8;i++){  \n", l1_assoc);
+	fprintf(fout, "	  for(int i=0;i<L1_ASSOC*8;i++){  \n"); //, l1_assoc);
 	fprintf(fout, "      asm __volatile__ (\n");
 	fprintf(fout, "      \"mfence              \\n\" \n");
 	fprintf(fout, "      \"movq 576(%%%%rcx),  %%%%rax     \\n\"\n");
@@ -1475,9 +1475,9 @@ void print_pre(FILE *fout, int l1_cache_size, int l1_assoc, int l1_cache_line, i
 	fprintf(fout, "#define STEP2_RUN 3\n");
 	fprintf(fout, "#define STEP3_RUN 4\n");
 
-	fprintf(fout, "const int line_size=%d;\n", l1_cache_line);
-	fprintf(fout, "const int way_size=%d*%d/%d;\n", l1_cache_line,l1_cache_set, 8);
-	fprintf(fout, "int histogram[%d][%d]={0};\n", probe_size, max_cycle);
+	fprintf(fout, "const int line_size=L1_CACHE_LINE;\n"); //, l1_cache_line);
+	fprintf(fout, "const int way_size=L1_CACHE_LINE*L1_CACHE_SET/8;\n"); //, l1_cache_line,l1_cache_set, 8);
+	fprintf(fout, "int histogram[PROBE_SIZE][MAX_CYCLE]={0};\n"); //, probe_size, max_cycle);
 	fprintf(fout, "int status;\n");
 	fprintf(fout, "int u_last_step = %d;\n", u_last_step);
 	
@@ -1949,13 +1949,13 @@ int main(int argc, char const *argv[])
 						fprintf(fout, "  uint64_t a, b, d, e;\n");
 						fprintf(fout, "\n");
 						fprintf(fout, "  // Map space for shared array\n");
-						fprintf(fout, "  chain_arr = mmap(0, %d*%d*%d*sizeof(char), PROT_READ|PROT_WRITE,\n", l1_cache_line, l1_assoc, l1_cache_set);
+						fprintf(fout, "  chain_arr = mmap(0, L1_CACHE_LINE*L1_ASSOC*L1_CACHE_SET*sizeof(char), PROT_READ|PROT_WRITE,\n"); //, l1_cache_line, l1_assoc, l1_cache_set);
 	              		fprintf(fout, "  MAP_SHARED | MAP_ANONYMOUS, -1, 0);\n");
 	  					fprintf(fout, "  if (!chain_arr) {\n");
 	    				fprintf(fout, "  perror(\"mmap failed for chain_arr\");\n");
 	    				fprintf(fout, "  exit(1);\n");
 	  					fprintf(fout, "  }\n");
-	  					fprintf(fout, "  memset((void *)chain_arr, 0, %d*%d*%d*sizeof(char));\n", l1_cache_line, l1_assoc, l1_cache_set);
+	  					fprintf(fout, "  memset((void *)chain_arr, 0, L1_CACHE_LINE*L1_ASSOC*L1_CACHE_SET*sizeof(char));\n"); //, l1_cache_line, l1_assoc, l1_cache_set);
 						fprintf(fout, "\n");
 						
 

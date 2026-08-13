@@ -20,7 +20,7 @@
 #define L1_ASSOC 8
 #define L1_CACHE_LINE 64
 #define L1_CACHE_SET  L1_CACHE_SIZE/L1_ASSOC/L1_CACHE_LINE
-#define VIC_MACHINE 9
+#define VIC_MACHINE 0
 #define PROBE_SIZE 3
 #define MAX_ARRAY_SIZE 262144
 #define NUM_TEST 10
@@ -36,9 +36,9 @@
 #define STEP1_RUN 2
 #define STEP2_RUN 3
 #define STEP3_RUN 4
-const int line_size=64;
-const int way_size=64*64/8;
-int histogram[3][8000]={0};
+const int line_size=L1_CACHE_LINE;
+const int way_size=L1_CACHE_LINE*L1_CACHE_SET/8;
+int histogram[PROBE_SIZE][MAX_CYCLE]={0};
 int status;
 int u_last_step = 0;
 uint64_t sum[PROBE_SIZE] = {0};
@@ -284,13 +284,13 @@ int main(int argc, char **argv) {
   uint64_t a, b, d, e;
 
   // Map space for shared array
-  chain_arr = mmap(0, 64*8*64*sizeof(char), PROT_READ|PROT_WRITE,
+  chain_arr = mmap(0, L1_CACHE_LINE*L1_ASSOC*L1_CACHE_SET*sizeof(char), PROT_READ|PROT_WRITE,
   MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   if (!chain_arr) {
   perror("mmap failed for chain_arr");
   exit(1);
   }
-  memset((void *)chain_arr, 0, 64*8*64*sizeof(char));
+  memset((void *)chain_arr, 0, L1_CACHE_LINE*L1_ASSOC*L1_CACHE_SET*sizeof(char));
 
 	int rand_chosen=1000;
 //  initiate maintain_arr
@@ -303,16 +303,16 @@ int main(int argc, char **argv) {
   for(int i=0; i < 10000; i++){
     maintain_arr[i]=10000-i;
   }
-  for(int i =0 ; i< 8*64*64; i++) /*probe_arr*/ chain_arr[i]=/*(char)*/ MAX_ARRAY_SIZE-i; //copy on write
-  char* start[8*64*64];
+  for(int i =0 ; i< L1_ASSOC*L1_CACHE_LINE*L1_CACHE_SET; i++) /*probe_arr*/ chain_arr[i]=/*(char)*/ MAX_ARRAY_SIZE-i; //copy on write
+  char* start[L1_ASSOC*L1_CACHE_LINE*L1_CACHE_SET];
   
   int tar_block;
   int untar_block;
-  for(int i=0;i< 64*8/4;i++){
+  for(int i=0;i< L1_CACHE_SET*L1_ASSOC/4;i++){
   	start[i]=&chain_arr[ i*way_size	];
   }
   // load into L1 L2
-	  for(int i=0;i<8*8;i++){  
+	  for(int i=0;i<L1_ASSOC*8;i++){  
       asm __volatile__ (
       "mfence              \n" 
       "movq (%%rcx),  %%rax     \n"
@@ -335,7 +335,7 @@ int main(int argc, char **argv) {
       : "c" (start[i])
       : );
 	  }  
-	  for(int i=0;i<8*8;i++){  
+	  for(int i=0;i<L1_ASSOC*8;i++){  
       asm __volatile__ (
       "mfence              \n" 
       "movq 576(%%rcx),  %%rax     \n"
