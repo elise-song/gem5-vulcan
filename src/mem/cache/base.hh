@@ -409,6 +409,19 @@ class BaseCache : public ClockedObject
     void scheduleDecay(Tick when);
     /** decayEvent handler: self-invalidate every block past its deadline. */
     void processDecay();
+    /**
+     * Blocks found expired but deferred as busy on a prior sweep. Rechecked
+     * directly by pointer on retry instead of paying for a full tag-array
+     * rescan just to rediscover them by address.
+     */
+    std::vector<CacheBlk *> decayPendingBusy;
+    /**
+     * Recheck busy status for @p blk and, if clear, decay-invalidate it
+     * (writeback first if dirty). Returns true if the block was resolved
+     * (decayed or otherwise handled), false if it's still busy and should
+     * stay pending.
+     */
+    bool tryDecayBlock(CacheBlk *blk, Tick now, PacketList &writebacks);
 
     /** To probe when a cache hit occurs */
     ProbePointArg<CacheAccessProbeArg> *ppHit;

@@ -45,6 +45,7 @@
 
 #include "mem/cache/base.hh"
 
+#include <algorithm>
 #include <random>
 
 #include "base/compiler.hh"
@@ -1853,64 +1854,90 @@ BaseCache::touchDecay(CacheBlk *blk)
     scheduleDecay(blk->decayDeadline);
 }
 
+bool
+BaseCache::tryDecayBlock(CacheBlk *blk, Tick now, PacketList &writebacks)
+{
+    const Addr blk_addr = regenerateBlkAddr(blk);
+    const bool is_secure = blk->isSecure();
+
+    // Correctness: never decay a line that has outstanding MSHR or write
+    // buffer activity (an in-flight miss/upgrade/writeback), or whose fill
+    // data has not yet landed. Dropping it now could race the in-flight
+    // operation or lose data. Leave its (past) deadline in place and retry
+    // the sweep shortly, once the activity is expected to have settled.
+    const bool busy = mshrQueue.findMatch(blk_addr, is_secure) ||
+                      writeBuffer.findMatch(blk_addr, is_secure) ||
+                      (blk->whenReady > now);
+    if (busy) {
+        DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n", blk_addr);
+        return false;
+    }
+
+    // Faithful decay: a dirty line MUST be written back before it is
+    // dropped (no silent data loss); a clean line is simply invalidated.
+    // evictBlock() runs the cache's normal eviction path -- writeback (or
+    // coherence CleanEvict) as appropriate, then invalidateBlock() --
+    // which keeps coherence correct and clears the block's decay state.
+    const bool dirty = blk->isSet(CacheBlk::DirtyBit);
+    DPRINTF(NDCacheDecay, "decay-invalidate %#llx (%s)\n", blk_addr,
+            dirty ? "dirty, writeback" : "clean");
+    evictBlock(blk, writebacks);
+    stats.ndDecayInvalidations++;
+    if (dirty) {
+        stats.ndDirtyDecayWritebacks++;
+    }
+    return true;
+}
+
 void
 BaseCache::processDecay()
 {
     assert(decayEnabled);
     const Tick now = curTick();
-
-    // Scan the live tag array (by address, never a stale block pointer):
-    // collect every valid armed block whose deadline has elapsed, and track
-    // the earliest still-future deadline so we can reschedule the sweep.
-    std::vector<CacheBlk *> expired;
+    const Tick retry = std::max<Tick>(1, decayInterval / 8);
     Tick next = MaxTick;
+    PacketList writebacks;
+
+    // Blocks already confirmed expired-but-busy on a prior sweep stay
+    // expired for as long as they remain busy, so there's no need to pay
+    // for a full tag-array rescan just to rediscover them by address --
+    // just recheck busy status directly on the handful of blocks we're
+    // already waiting on.
+    std::vector<CacheBlk *> stillPending;
+    for (CacheBlk *blk : decayPendingBusy) {
+        if (tryDecayBlock(blk, now, writebacks)) {
+            continue;
+        }
+        stillPending.push_back(blk);
+        next = std::min(next, now + retry);
+    }
+    decayPendingBusy.swap(stillPending);
+
+    // Scan the live tag array (by address) for newly-expired blocks, and
+    // track the earliest still-future deadline so we can reschedule.
+    std::vector<CacheBlk *> expired;
     tags->forEachBlk([&](CacheBlk &blk) {
         if (!blk.isValid() || blk.decayDeadline == MaxTick) {
             return;
         }
         if (blk.decayDeadline <= now) {
-            expired.push_back(&blk);
+            // Already tracked as pending from a prior sweep; don't
+            // double-process it this sweep.
+            if (std::find(decayPendingBusy.begin(), decayPendingBusy.end(),
+                          &blk) == decayPendingBusy.end()) {
+                expired.push_back(&blk);
+            }
         } else if (blk.decayDeadline < next) {
             next = blk.decayDeadline;
         }
     });
 
-    // Retry quantum for blocks that are due but temporarily busy (see below).
-    const Tick retry = std::max<Tick>(1, decayInterval / 8);
-
-    PacketList writebacks;
     for (CacheBlk *blk : expired) {
-        const Addr blk_addr = regenerateBlkAddr(blk);
-        const bool is_secure = blk->isSecure();
-
-        // Correctness: never decay a line that has outstanding MSHR or write
-        // buffer activity (an in-flight miss/upgrade/writeback), or whose fill
-        // data has not yet landed. Dropping it now could race the in-flight
-        // operation or lose data. Leave its (past) deadline in place and retry
-        // the sweep shortly, once the activity is expected to have settled.
-        const bool busy =
-            mshrQueue.findMatch(blk_addr, is_secure) ||
-            writeBuffer.findMatch(blk_addr, is_secure) ||
-            (blk->whenReady > now);
-        if (busy) {
-            DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n", blk_addr);
-            next = std::min(next, now + retry);
+        if (tryDecayBlock(blk, now, writebacks)) {
             continue;
         }
-
-        // Faithful decay: a dirty line MUST be written back before it is
-        // dropped (no silent data loss); a clean line is simply invalidated.
-        // evictBlock() runs the cache's normal eviction path -- writeback (or
-        // coherence CleanEvict) as appropriate, then invalidateBlock() --
-        // which keeps coherence correct and clears the block's decay state.
-        const bool dirty = blk->isSet(CacheBlk::DirtyBit);
-        DPRINTF(NDCacheDecay, "decay-invalidate %#llx (%s)\n", blk_addr,
-                dirty ? "dirty, writeback" : "clean");
-        evictBlock(blk, writebacks);
-        stats.ndDecayInvalidations++;
-        if (dirty) {
-            stats.ndDirtyDecayWritebacks++;
-        }
+        decayPendingBusy.push_back(blk);
+        next = std::min(next, now + retry);
     }
 
     if (!writebacks.empty()) {
