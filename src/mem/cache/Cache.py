@@ -179,8 +179,9 @@ class BaseCache(ClockedObject):
     # degrading Prime+Probe / Evict+Time / reuse channels. Disabled by default
     # (decay_enabled = False), giving zero behaviour change.
     decay_enabled = Param.Bool(
-        False, "Enable non-deterministic cache decay (randomized per-line "
-        "self-invalidation)"
+        False,
+        "Enable non-deterministic cache decay (randomized per-line "
+        "self-invalidation)",
     )
     # Base/mean per-line decay lifetime. The actual lifetime for each line is
     # drawn uniformly from [decay_interval - decay_range, decay_interval +
@@ -193,6 +194,18 @@ class BaseCache(ClockedObject):
     # 0 makes every line decay at exactly decay_interval (deterministic).
     decay_range = Param.Latency(
         "250ns", "Randomization half-width of the per-line decay lifetime"
+    )
+    # A line whose randomized deadline elapses very shortly after it was
+    # installed or last touched can decay before it has done useful work,
+    # showing up as an avoidable extra cold miss immediately after fill.
+    # decay_quiescence gives a freshly-touched line a short grace period
+    # (treated the same as the existing MSHR/write-buffer busy checks)
+    # before it becomes eligible for decay, smoothing out this edge case
+    # without materially changing decay's behavior otherwise.
+    decay_quiescence = Param.Latency(
+        "2us",
+        "Grace period after a line's last install/touch during "
+        "which it is not yet eligible for decay",
     )
 
 

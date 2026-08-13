@@ -113,6 +113,7 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       decayEnabled(p.decay_enabled),
       decayInterval(p.decay_interval),
       decayRange(p.decay_range),
+      decayQuiescence(p.decay_quiescence),
       decayRng(Random::genRandom(drawDecaySeed())),
       decayEvent([this] { processDecay(); }, name()),
       writeAllocator(p.write_allocator),
@@ -1830,6 +1831,7 @@ BaseCache::armDecay(CacheBlk *blk)
     }
     const Tick life = drawDecayLifetime();
     blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
+    blk->decayLastTouch = curTick();
     DPRINTF(NDCacheDecay, "arm decay on %#llx: lifetime %llu, deadline %llu\n",
             regenerateBlkAddr(blk), life, blk->decayDeadline);
     scheduleDecay(blk->decayDeadline);
@@ -1847,6 +1849,7 @@ BaseCache::touchDecay(CacheBlk *blk)
     }
     const Tick life = drawDecayLifetime();
     blk->decayDeadline = cache_decay::decayDeadline(curTick(), life);
+    blk->decayLastTouch = curTick();
     stats.ndDecayReschedules++;
     DPRINTF(NDCacheDecay, "touch decay on %#llx: lifetime %llu, deadline "
             "%llu\n", regenerateBlkAddr(blk), life, blk->decayDeadline);
@@ -1888,10 +1891,14 @@ BaseCache::processDecay()
         // data has not yet landed. Dropping it now could race the in-flight
         // operation or lose data. Leave its (past) deadline in place and retry
         // the sweep shortly, once the activity is expected to have settled.
-        const bool busy =
-            mshrQueue.findMatch(blk_addr, is_secure) ||
-            writeBuffer.findMatch(blk_addr, is_secure) ||
-            (blk->whenReady > now);
+        // Also give a line a short quiescence grace period after its last
+        // install/touch (same treatment as the busy checks above), so a
+        // line isn't decayed immediately after it was warmed up.
+        const bool busy = mshrQueue.findMatch(blk_addr, is_secure) ||
+                          writeBuffer.findMatch(blk_addr, is_secure) ||
+                          (blk->whenReady > now) ||
+                          (blk->decayLastTouch != MaxTick &&
+                           now - blk->decayLastTouch < decayQuiescence);
         if (busy) {
             DPRINTF(NDCacheDecay, "defer decay of busy %#llx\n", blk_addr);
             next = std::min(next, now + retry);
