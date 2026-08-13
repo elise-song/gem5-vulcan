@@ -4,7 +4,7 @@ docker_image = gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1
 log = timing.log
 error = timing.err
 output = timing.out
-	      
+
 executable = timing_histogram.sh
 arguments = $(op)
 transfer_output_files = coarse_histogram_$(op).out, histogram_$(op).out
@@ -13,7 +13,7 @@ request_cpus = 1
 request_memory = 1GB
 request_disk = 1GB
 
-queue op from ops.txt
-
 notify_user = elise.song@wisc.edu
 notification = always
+
+queue op from ops.txt
