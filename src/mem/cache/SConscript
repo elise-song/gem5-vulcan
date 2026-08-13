@@ -53,6 +53,7 @@ Source('write_queue.cc')
 Source('write_queue_entry.cc')
 
 GTest('cache_decay.test', 'cache_decay.test.cc', '../../base/random.cc')
+GTest('decay_rng.test', 'decay_rng.test.cc', '../../base/random.cc')
 
 DebugFlag('Cache')
 DebugFlag('NDCacheDecay')
