@@ -384,8 +384,6 @@ class BaseCache : public ClockedObject
     Tick decayInterval;
     /** Randomization half-width of the decay lifetime, in ticks. */
     Tick decayRange;
-    /** Grace period after install/touch before a line is decay-eligible. */
-    Tick decayQuiescence;
     /** RNG used*/
     Random::RandomPtr decayRng;
     /**Draws since it was last seeded*/

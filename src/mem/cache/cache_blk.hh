@@ -119,13 +119,6 @@ class CacheBlk : public TaggedEntry
      */
     Tick decayDeadline = MaxTick;
 
-    /**
-     * Non-deterministic Cache Decay: tick of this line's last install/touch,
-     * used to grant the short decay_quiescence grace period. MaxTick means
-     * "not tracked" (decay disabled). Reset to MaxTick on invalidate().
-     */
-    Tick decayLastTouch = MaxTick;
-
   protected:
     /**
      * Represents that the indicated thread context has a "lock" on
@@ -207,7 +200,6 @@ class CacheBlk : public TaggedEntry
         // decaying at its originally randomized time (the decay sweep scans
         // by address, so the physical slot it lives in is irrelevant).
         decayDeadline = other.decayDeadline;
-        decayLastTouch = other.decayLastTouch;
         setRefCount(other.getRefCount());
         setSrcRequestorId(other.getSrcRequestorId());
         std::swap(lockList, other.lockList);
@@ -232,7 +224,6 @@ class CacheBlk : public TaggedEntry
         setPartitionId(std::numeric_limits<uint64_t>::max());
         setWhenReady(MaxTick);
         decayDeadline = MaxTick;
-        decayLastTouch = MaxTick;
         setRefCount(0);
         setSrcRequestorId(Request::invldRequestorId);
         lockList.clear();
