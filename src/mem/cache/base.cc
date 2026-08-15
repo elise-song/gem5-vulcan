@@ -97,7 +97,7 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       prefetcher(p.prefetcher),
       randomFillRanges(p.random_fill_ranges.begin(),
                        p.random_fill_ranges.end()),
-      randomFillWindow(std::max<unsigned>(1, p.random_fill_window)),
+      randomFillWindow(std::max<unsigned>(0, p.random_fill_window)),
       randomFillEnabled(!p.random_fill_ranges.empty()),
       randomFillRng(Random::genRandom()),
       writeAllocator(p.write_allocator),
