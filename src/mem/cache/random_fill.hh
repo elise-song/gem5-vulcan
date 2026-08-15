@@ -37,6 +37,7 @@
 #ifndef __MEM_CACHE_RANDOM_FILL_HH__
 #define __MEM_CACHE_RANDOM_FILL_HH__
 
+#include <algorithm>
 #include <cassert>
 #include <vector>
 
@@ -61,13 +62,119 @@ namespace random_fill
 inline bool
 isProtected(const std::vector<AddrRange> &ranges, Addr blk_addr)
 {
-    for (const auto &range : ranges) {
-        if (range.contains(blk_addr)) {
-            return true;
-        }
-    }
-    return false;
+    return std::any_of(ranges.begin(), ranges.end(),
+                       [blk_addr](const AddrRange &range) {
+                           return range.contains(blk_addr);
+                       });
 }
+
+namespace detail
+{
+
+/** Convert a block-aligned byte address to its line index within a region
+ * starting at line index 0. Caller guarantees block alignment. */
+inline Addr
+lineIndex(Addr addr, unsigned blk_size)
+{
+    return addr / blk_size;
+}
+
+/** Convert a line index back to its block-aligned byte address, relative to
+ * the same origin used by lineIndex(). */
+inline Addr
+lineAddress(Addr line, unsigned blk_size)
+{
+    return line * (Addr)blk_size;
+}
+
+} // namespace detail
+
+/**
+ * The set of candidate lines a protected demand access at @p demandLine may
+ * random-fill from, clamped to a containing region
+ * [@p regionLoLine, @p regionHiLine).
+ *
+ * pickNeighbor() used to do this clamping and index bookkeeping inline;
+ * pulling it out into its own type means the region-clamping rule (Liu &
+ * Lee, MICRO 2014, Section IV.B.2) and the draw-to-address mapping each have
+ * one clearly named home, and can be reasoned about (and constructed in a
+ * test) independently of drawing an actual random number.
+ */
+class RandomFillWindow
+{
+  public:
+    /**
+     * @param demandLine   Line index of the protected demand access.
+     * @param regionLoLine First line index of the containing region
+     *                     (inclusive).
+     * @param regionHiLine One past the last line index of the containing
+     *                     region (exclusive); must exceed regionLoLine and
+     *                     contain demandLine.
+     * @param radius       Neighbourhood radius, in lines, applied on both
+     *                     sides of demandLine before clamping to the region.
+     */
+    RandomFillWindow(Addr demandLine, Addr regionLoLine, Addr regionHiLine,
+                     unsigned radius)
+        : demandLine_(demandLine),
+          lowLine_(clampLow(demandLine, regionLoLine, radius)),
+          highLine_(clampHigh(demandLine, regionHiLine, radius))
+    {
+        assert(regionHiLine > regionLoLine);
+        assert(demandLine >= regionLoLine && demandLine < regionHiLine);
+    }
+
+    /**
+     * Number of equally likely candidate lines spanned by this window,
+     * inclusive of both endpoints (and of the demanded line itself, which
+     * always falls within [lowLine(), highLine()]).
+     */
+    unsigned
+    candidateCount() const
+    {
+        return (unsigned)(highLine_ - lowLine_) + 1;
+    }
+
+    /** Line index of the demand access this window was built around. */
+    Addr
+    demandLine() const
+    {
+        return demandLine_;
+    }
+
+    /**
+     * Resolve a zero-based candidate index in [0, candidateCount()) to its
+     * absolute line index.
+     */
+    Addr
+    lineAt(unsigned index) const
+    {
+        return lowLine_ + (Addr)index;
+    }
+
+  private:
+    static Addr
+    clampLow(Addr demandLine, Addr regionLoLine, unsigned radius)
+    {
+        const Addr belowRegion = demandLine - regionLoLine;
+        const Addr trimmed =
+            (Addr)radius < belowRegion ? (Addr)radius : belowRegion;
+        return demandLine - trimmed;
+    }
+
+    static Addr
+    clampHigh(Addr demandLine, Addr regionHiLine, unsigned radius)
+    {
+        const Addr lastRegionLine = regionHiLine - 1;
+        const Addr aboveDemand = lastRegionLine - demandLine;
+        const Addr trimmed =
+            (Addr)radius < aboveDemand ? (Addr)radius : aboveDemand;
+        return demandLine + trimmed;
+    }
+
+    Addr demandLine_;
+    Addr lowLine_;
+    Addr highLine_;
+};
 
 /**
  * Pick the block-aligned address of the random-fill line for a protected
@@ -117,21 +224,16 @@ pickNeighbor(Addr demand_blk_addr, unsigned blk_size,
 {
     assert(blk_size > 0);
     assert(demand_blk_addr % blk_size == 0);
-    assert(region_hi > region_lo);
-    assert(demand_blk_addr >= region_lo && demand_blk_addr < region_hi);
 
-    const unsigned num_lines = (region_hi - region_lo) / blk_size;
-    const unsigned demand_line = (demand_blk_addr - region_lo) / blk_size;
+    const Addr demand_line = detail::lineIndex(demand_blk_addr, blk_size);
+    const Addr region_lo_line = detail::lineIndex(region_lo, blk_size);
+    const Addr region_hi_line = detail::lineIndex(region_hi, blk_size);
 
-    // Clamp the +/- window to the region as an inclusive [lo, hi] range of
-    // line indices. The demanded line itself (offset 0) is always one of the
-    // (hi - lo + 1) equally likely candidates.
-    const unsigned lo = (demand_line > window) ? (demand_line - window) : 0;
-    const unsigned hi = (demand_line + window < num_lines) ?
-        (demand_line + window) : (num_lines - 1);
-
-    const unsigned line = lo + rng.random<unsigned>(0, hi - lo);
-    return region_lo + (Addr)line * blk_size;
+    const RandomFillWindow fill_window(demand_line, region_lo_line,
+                                       region_hi_line, window);
+    const unsigned pick =
+        rng.random<unsigned>(0, fill_window.candidateCount() - 1);
+    return detail::lineAddress(fill_window.lineAt(pick), blk_size);
 }
 
 } // namespace random_fill
