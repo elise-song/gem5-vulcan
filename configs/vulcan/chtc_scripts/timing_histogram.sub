@@ -1,17 +1,19 @@
 universe = docker
-docker_image = gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1
-
-log = timing.log
-error = timing.err
-output = timing.out
-
+docker_image = docker://esong216/gem5:v24
+	      
 executable = timing_histogram.sh
 arguments = $(op)
-transfer_output_files = coarse_histogram_$(op).out, histogram_$(op).out
 
-request_cpus = 1
-request_memory = 1GB
-request_disk = 1GB
+should_transfer_files = YES
+transfer_output_files = gem5-vulcan/coarse_histogram_$(op).out, gem5-vulcan/histogram_$(op).out
+
+log = timing_histogram_$(op)_$(Cluster).log
+error = timing_histogram_$(op)_$(Cluster).err
+output = timing_histogram_$(op)_$(Cluster).out
+
+request_cpus = 8
+request_memory = 24GB
+request_disk = 16GB
 
 notify_user = elise.song@wisc.edu
 notification = always
