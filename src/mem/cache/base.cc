@@ -59,6 +59,7 @@
 #include "mem/cache/prefetch/base.hh"
 #include "mem/cache/queue_entry.hh"
 #include "mem/cache/tags/compressed_tags.hh"
+#include "mem/cache/tags/context_key.hh"
 #include "mem/cache/tags/partitioning_policies/partition_manager.hh"
 #include "mem/cache/tags/super_blk.hh"
 #include "params/BaseCache.hh"
@@ -1695,10 +1696,9 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
         partitionManager->readPacketPartitionID(pkt) : 0;
     // Find replacement victim
     std::vector<CacheBlk*> evict_blks;
-    CacheBlk *victim = tags->findVictim(
-        {addr, is_secure,
-         pkt->req->hasContextId() ? pkt->req->contextId() : InvalidContextID},
-        blk_size_bits, evict_blks, partition_id);
+    CacheBlk *victim =
+        tags->findVictim({addr, is_secure, contextIdFor(pkt)}, blk_size_bits,
+                         evict_blks, partition_id);
 
     // It is valid to return nullptr if there is no victim
     if (!victim)

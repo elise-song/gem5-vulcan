@@ -57,6 +57,7 @@
 #include "mem/cache/replacement_policies/base.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 #include "mem/cache/tags/base.hh"
+#include "mem/cache/tags/context_key.hh"
 #include "mem/cache/tags/indexing_policies/base.hh"
 #include "mem/cache/tags/partitioning_policies/partition_manager.hh"
 #include "mem/packet.hh"
@@ -126,9 +127,8 @@ class BaseSetAssoc : public BaseTags
      */
     CacheBlk* accessBlock(const PacketPtr pkt, Cycles &lat) override
     {
-        CacheBlk *blk = findBlock({pkt->getAddr(), pkt->isSecure(),
-            pkt->req->hasContextId() ? pkt->req->contextId()
-                                     : InvalidContextID});
+        CacheBlk *blk =
+            findBlock({pkt->getAddr(), pkt->isSecure(), contextIdFor(pkt)});
 
         // Access all tags in parallel, hence one in each way.  The data side
         // either accesses all blocks in parallel, or one block sequentially on
