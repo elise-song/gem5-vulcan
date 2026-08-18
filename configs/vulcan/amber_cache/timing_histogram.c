@@ -442,7 +442,7 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
       }
 
 
-      for(int i=1;i<9;i++){         
+      for(int i=1;i<65;i++){         
          asm __volatile__ (
            "lfence              \n" 
            "movq (%%rcx),  %%rax     \n"
