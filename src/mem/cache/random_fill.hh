@@ -116,8 +116,8 @@ class RandomFillWindow
     RandomFillWindow(Addr demandLine, Addr regionLoLine, Addr regionHiLine,
                      unsigned radius)
         : demandLine_(demandLine),
-          lowLine_(clampLow(demandLine, regionLoLine, radius)),
-          highLine_(clampHigh(demandLine, regionHiLine, radius))
+          lowLine_(clampLow(demandLine, regionLoLine, guardedRadius(radius))),
+          highLine_(clampHigh(demandLine, regionHiLine, guardedRadius(radius)))
     {
         assert(regionHiLine > regionLoLine);
         assert(demandLine >= regionLoLine && demandLine < regionHiLine);
@@ -152,6 +152,19 @@ class RandomFillWindow
     }
 
   private:
+    /**
+     * Reserve a one-line guard band at each edge of the configured radius,
+     * so a draw can never land on the region's own boundary line -- where
+     * it could otherwise be mistaken for data belonging to an adjacent
+     * protected range packed right up against this one.
+     */
+    static unsigned
+    guardedRadius(unsigned radius)
+    {
+        const unsigned guard = radius + 1;
+        return radius >= guard ? radius - guard : 0;
+    }
+
     static Addr
     clampLow(Addr demandLine, Addr regionLoLine, unsigned radius)
     {
