@@ -57,7 +57,7 @@ def skip_test(reason=""):
     """
 
     if reason:
-        print "Skipping test: %s" % reason
+        print("Skipping test: %s" % reason)
     sys.exit(2)
 
 def has_sim_object(name):
@@ -143,7 +143,7 @@ def run_test(root):
 
     # simulate until program terminates
     exit_event = m5.simulate(maxtick)
-    print 'Exiting @ tick', m5.curTick(), 'because', exit_event.getCause()
+    print('Exiting @ tick', m5.curTick(), 'because', exit_event.getCause())
 
 # Since we're in batch mode, dont allow tcp socket connections
 m5.disableAllListeners()
@@ -181,7 +181,7 @@ test_filename = config
 # for ruby configurations, remove the protocol name from the test filename
 if re.search('-ruby', test_filename):
     test_filename = test_filename.split('-ruby')[0]+'-ruby'
-execfile(joinpath(tests_root, 'configs', test_filename + '.py'))
+exec(compile(open(joinpath(tests_root, 'configs', test_filename + '.py'), "rb").read(), joinpath(tests_root, 'configs', test_filename + '.py'), 'exec'))
 
 # set default maxtick... script can override
 # -1 means run forever
@@ -189,7 +189,7 @@ maxtick = m5.MaxTick
 
 # tweak configuration for specific test
 sys.path.append(joinpath(tests_root, category, mode, name))
-execfile(joinpath(tests_root, category, mode, name, 'test.py'))
+exec(compile(open(joinpath(tests_root, category, mode, name, 'test.py'), "rb").read(), joinpath(tests_root, category, mode, name, 'test.py'), 'exec'))
 
 # Initialize all CPUs in a system
 def initCPUs(sys):

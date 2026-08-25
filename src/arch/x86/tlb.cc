@@ -117,6 +117,30 @@ TLB::insert(Addr vpn, const TlbEntry &entry)
     return newEntry;
 }
 
+void
+TLB::commitSpeculativeFill(RequestPtr req)
+{
+    // [InvisiSpec] Section VI-E3: called once a load that took the
+    // deferred-fill path in translate() reaches its visibility point.
+    // Only now does the mapping actually occupy a TLB slot and perturb
+    // replacement state; if the load never got here (squashed first),
+    // this is simply never called and no D-TLB footprint remains.
+    if (!req->isSpecTLBDeferred())
+        return;
+
+    Addr alignedVaddr = req->getVaddr() & ~(Addr)(PageBytes - 1);
+    auto it = pendingSpecFills.find(alignedVaddr);
+    if (it == pendingSpecFills.end())
+        return;
+
+    const PendingSpecFill &fill = it->second;
+    DPRINTF(TLB, "Committing deferred speculative TLB fill: "
+            "mapping %#x to %#x\n", alignedVaddr, fill.paddr);
+    insert(alignedVaddr, TlbEntry(fill.pid, alignedVaddr, fill.paddr,
+                                  fill.uncacheable, fill.readOnly));
+    pendingSpecFills.erase(it);
+}
+
 TlbEntry *
 TLB::lookup(Addr va, bool update_lru)
 {
@@ -331,24 +355,22 @@ TLB::translate(RequestPtr req, ThreadContext *tc, Translation *translation,
         if (m5Reg.paging) {
             DPRINTF(TLB, "Paging enabled.\n");
             // The vaddr already has the segment base applied.
-            TlbEntry *entry = lookup(vaddr);
+            // [InvisiSpec] Section VI-E3: a D-TLB hit by an unsafe
+            // speculative access must not perturb replacement state --
+            // that update is itself an observable side channel. Defer it
+            // (update_lru=false) until the access is known safe; a safe
+            // lookup still updates LRU as usual.
+            TlbEntry *entry = lookup(vaddr, !req->isSpec());
+            // [InvisiSpec] holds the not-yet-inserted entry for a
+            // deferred speculative TLB fill (Section VI-E3); only
+            // written/read when such a fill occurs below.
+            TlbEntry specEntryStorage;
             if (mode == Read) {
                 rdAccesses++;
             } else {
                 wrAccesses++;
             }
             if (!entry) {
-                if(req->isSpec()){
-                    // [InvisiSpec] do not perform TLB fill for
-                    // speculative load
-                    specMisses++;
-                    DPRINTF(TLB, "Get a TLB miss for a speculative load "
-                            "address %#x at pc %#x.\n",
-                            vaddr, tc->instAddr());
-                    //FIXME: currently reuse the GeneralProtection fault
-                    //instead of creating new faults
-                    return std::make_shared<GeneralProtection>(0);
-                }
                 DPRINTF(TLB, "Handling a TLB miss for "
                         "address %#x at pc %#x.\n",
                         vaddr, tc->instAddr());
@@ -358,6 +380,21 @@ TLB::translate(RequestPtr req, ThreadContext *tc, Translation *translation,
                     wrMisses++;
                 }
                 if (FullSystem) {
+                    if (req->isSpec()) {
+                        // [InvisiSpec] Section VI-E3: the FullSystem walker
+                        // performs the TLB insert as an inseparable part of
+                        // completing the walk, so deferring only the insert
+                        // (as done below for SE mode) isn't available here.
+                        // Conservatively refuse to walk at all until the
+                        // load is safe, same as before this change.
+                        specMisses++;
+                        DPRINTF(TLB, "Get a TLB miss for a speculative load "
+                                "address %#x at pc %#x.\n",
+                                vaddr, tc->instAddr());
+                        //FIXME: currently reuse the GeneralProtection fault
+                        //instead of creating new faults
+                        return std::make_shared<GeneralProtection>(0);
+                    }
                     Fault fault = walker->start(tc, translation, req, mode);
                     if (timing || fault != NoFault) {
                         // This gets ignored in atomic mode.
@@ -382,12 +419,42 @@ TLB::translate(RequestPtr req, ThreadContext *tc, Translation *translation,
                                                            true, false);
                     } else {
                         Addr alignedVaddr = p->pTable->pageAlign(vaddr);
-                        DPRINTF(TLB, "Mapping %#x to %#x\n", alignedVaddr,
-                                pte->paddr);
-                        entry = insert(alignedVaddr, TlbEntry(
+                        TlbEntry newEntry(
                                 p->pTable->pid(), alignedVaddr, pte->paddr,
                                 pte->flags & EmulationPageTable::Uncacheable,
-                                pte->flags & EmulationPageTable::ReadOnly));
+                                pte->flags & EmulationPageTable::ReadOnly);
+                        if (req->isSpec()) {
+                            // [InvisiSpec] Section VI-E3: the mapping is
+                            // safe to compute speculatively (it is a
+                            // functional lookup in the emulated page
+                            // table, not a walk through the real cache
+                            // hierarchy), but publishing it into the TLB
+                            // -- i.e. calling insert(), which changes
+                            // occupancy/replacement state observable by a
+                            // co-resident SameThread/SMT attacker -- is
+                            // withheld until the load's visibility point
+                            // calls commitSpeculativeFill(). The load
+                            // still runs the normal protection checks
+                            // below against a stack-local copy of the
+                            // entry and gets its correct paddr
+                            // immediately, so there is no artificial
+                            // squash-and-retry.
+                            specMisses++;
+                            DPRINTF(TLB, "Deferring TLB fill for speculative "
+                                    "load: mapping %#x to %#x\n",
+                                    alignedVaddr, pte->paddr);
+                            pendingSpecFills[alignedVaddr] = PendingSpecFill{
+                                pte->paddr, p->pTable->pid(),
+                                bool(pte->flags & EmulationPageTable::Uncacheable),
+                                bool(pte->flags & EmulationPageTable::ReadOnly)};
+                            req->setFlags(Request::SPEC_TLB_DEFERRED);
+                            specEntryStorage = newEntry;
+                            entry = &specEntryStorage;
+                        } else {
+                            DPRINTF(TLB, "Mapping %#x to %#x\n", alignedVaddr,
+                                    pte->paddr);
+                            entry = insert(alignedVaddr, newEntry);
+                        }
                     }
                     DPRINTF(TLB, "Miss was serviced.\n");
                 }

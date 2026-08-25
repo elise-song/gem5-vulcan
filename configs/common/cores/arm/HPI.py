@@ -71,7 +71,7 @@ def make_implicant(implicant_string):
         elif char == 'x':
             pass
         else:
-            print "Can't parse implicant character", char
+            print("Can't parse implicant character", char)
 
     return (ret_mask, ret_match)
 
@@ -133,7 +133,7 @@ def ref(name):
             ret = TimingExprRef()
             ret.index = env[name]
         else:
-            print "Invalid expression name", name
+            print("Invalid expression name", name)
             ret = TimingExprNull()
         return ret
     return body
@@ -175,7 +175,7 @@ def let(bindings, expr):
 
         defns = []
         # Then apply them to the produced new env
-        for i in xrange(0, len(bindings)):
+        for i in range(0, len(bindings)):
             name, binding_expr = bindings[i]
             defns.append(binding_expr(new_env))
 

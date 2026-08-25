@@ -68,7 +68,7 @@ except:
     pydot = False
 
 def simnode_children(simNode):
-    for child in simNode._children.itervalues():
+    for child in list(simNode._children.values()):
         if isNullPointer(child):
             continue
         if isSimObjectVector(child):
@@ -92,7 +92,7 @@ def dot_create_nodes(simNode, callgraph):
     cluster = dot_create_cluster(simNode, full_path, label)
 
     # create nodes per port
-    for port_name in simNode._ports.keys():
+    for port_name in list(simNode._ports.keys()):
         port = simNode._port_refs.get(port_name, None)
         if port != None:
             full_port_name = full_path + "_" + port_name
@@ -107,7 +107,7 @@ def dot_create_nodes(simNode, callgraph):
 
 # create all edges according to memory hierarchy
 def dot_create_edges(simNode, callgraph):
-    for port_name in simNode._ports.keys():
+    for port_name in list(simNode._ports.keys()):
         port = simNode._port_refs.get(port_name, None)
         if port != None:
             full_path = re.sub('\.', '_', simNode.path())
@@ -242,7 +242,7 @@ def dot_gen_colour(simNode, isPort = False):
         node_colour = get_type_colour(parent_type)
         # slightly arbitrary, but assume that the depth is less than
         # five levels
-        r, g, b = map(lambda x: x * max(1 - depth / 7.0, 0.3), node_colour)
+        r, g, b = [x * max(1 - depth / 7.0, 0.3) for x in node_colour]
     else:
         node_colour = get_type_colour(node_type)
         r, g, b = node_colour
@@ -250,12 +250,12 @@ def dot_gen_colour(simNode, isPort = False):
     # if we are colouring a port, then make it a slightly darker shade
     # than the node that encapsulates it, once again use a magic constant
     if isPort:
-        r, g, b = map(lambda x: 0.8 * x, (r, g, b))
+        r, g, b = [0.8 * x for x in (r, g, b)]
 
     return dot_rgb_to_html(r, g, b)
 
 def dot_rgb_to_html(r, g, b):
-    return "#%.2x%.2x%.2x" % (r, g, b)
+    return "#%.2x%.2x%.2x" % (int(r), int(g), int(b))
 
 # We need to create all of the clock domains. We abuse the alpha channel to get
 # the correct domain colouring.
@@ -288,7 +288,7 @@ def dot_create_dvfs_nodes(simNode, callgraph, domain=None):
     cluster = dot_create_cluster(simNode, full_path, label)
 
     # create nodes per port
-    for port_name in simNode._ports.keys():
+    for port_name in list(simNode._ports.keys()):
         port = simNode._port_refs.get(port_name, None)
         if port != None:
             full_port_name = full_path + "_" + port_name

@@ -89,6 +89,9 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     M_I, AccessPermission:Busy, desc="L1 replacing, waiting for ACK";
     SINK_WB_ACK, AccessPermission:Busy, desc="This is to sink WB_Acks from L2";
 
+    // [InvisiSpec] clflush/clflushopt support
+    F_I, AccessPermission:Busy, desc="Sent Flush to L2 (line may or may not have been present), waiting for Flush_Ack";
+
     // Transient States in which block is being prefetched
     PF_IS, AccessPermission:Busy, desc="Issued GETS, have not seen response yet";
     PF_IM, AccessPermission:Busy, desc="Issued GETX, have not seen response yet";
@@ -130,6 +133,10 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     PF_Load,    desc="load request from prefetcher";
     PF_Ifetch,  desc="instruction fetch request from prefetcher";
     PF_Store,   desc="exclusive load request from prefetcher";
+
+    // [InvisiSpec] clflush/clflushopt support
+    Flush,      desc="Flush (clflush) request from the home processor";
+    Flush_Ack,  desc="Flush ack from L2, eviction is complete";
   }
 
   // TYPES
@@ -419,6 +426,9 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
           }
         } else if (in_msg.Type == CoherenceResponseType:WB_ACK) {
           trigger(Event:WB_Ack, in_msg.addr, cache_entry, tbe);
+        } else if (in_msg.Type == CoherenceResponseType:FLUSH_ACK) {
+          // [InvisiSpec] clflush/clflushopt support
+          trigger(Event:Flush_Ack, in_msg.addr, cache_entry, tbe);
         } else {
           error("Invalid L1 response type");
         }
@@ -463,7 +473,14 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
 
         // Check for data access to blocks in I-cache and ifetchs to blocks in D-cache
 
-        if (in_msg.Type == RubyRequestType:IFETCH) {
+        // [InvisiSpec] clflush/clflushopt support. A Flush operates on
+        // whichever of L1D/L1I currently holds the line (or neither, if
+        // it isn't cached locally at all -- L2 may still need to drop it).
+        if (in_msg.Type == RubyRequestType:FLUSH) {
+          trigger(Event:Flush, in_msg.LineAddress,
+                  getCacheEntry(in_msg.LineAddress),
+                  TBEs[in_msg.LineAddress]);
+        } else if (in_msg.Type == RubyRequestType:IFETCH) {
           // ** INSTRUCTION ACCESS ***
 
           Entry L1Icache_entry := getL1ICacheEntry(in_msg.LineAddress);
@@ -570,6 +587,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
         out_msg.Prefetch := in_msg.Prefetch;
         out_msg.AccessMode := in_msg.AccessMode;
         out_msg.idx := in_msg.idx;
+        out_msg.epoch := in_msg.epoch;
       }
     }
   }
@@ -588,6 +606,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
         out_msg.Prefetch := in_msg.Prefetch;
         out_msg.AccessMode := in_msg.AccessMode;
         out_msg.idx := in_msg.idx;
+        out_msg.epoch := in_msg.epoch;
       }
     }
   }
@@ -956,6 +975,30 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     }
   }
 
+  // [InvisiSpec] clflush/clflushopt support. Tell L2 to fully evict this
+  // line (not just relinquish our own copy): L2 must drop it too, writing
+  // back to memory if dirty, so a subsequent access is a genuine miss.
+  action(fl_issueFLUSH, "fl", desc="Issue Flush (clflush) request to L2") {
+    peek(mandatoryQueue_in, RubyRequest) {
+      enqueue(requestL1Network_out, RequestMsg, l1_request_latency) {
+        out_msg.addr := address;
+        out_msg.Type := CoherenceRequestType:FLUSH;
+        out_msg.Requestor := machineID;
+        out_msg.Destination.add(mapAddressToRange(address, MachineType:L2Cache,
+                          l2_select_low_bit, l2_select_num_bits, intToID(0)));
+        if (is_valid(cache_entry) && cache_entry.Dirty) {
+          out_msg.DataBlk := cache_entry.DataBlk;
+          out_msg.Dirty := true;
+          out_msg.MessageSize := MessageSizeType:Writeback_Data;
+        } else {
+          out_msg.Dirty := false;
+          out_msg.MessageSize := MessageSizeType:Writeback_Control;
+        }
+        out_msg.AccessMode := in_msg.AccessMode;
+      }
+    }
+  }
+
   action(j_sendUnblock, "j", desc="send unblock to the L2 cache") {
     enqueue(unblockNetwork_out, ResponseMsg, to_l2_latency) {
       out_msg.addr := address;
@@ -1064,6 +1107,20 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     TBEs.allocate(address);
     set_tbe(TBEs[address]);
     tbe.isPrefetch := false;
+  }
+
+  // [InvisiSpec] clflush/clflushopt support
+  action(if_allocateTBEForFlush, "if", desc="Allocate TBE for Flush, works whether or not the line is present") {
+    check_allocate(TBEs);
+    TBEs.allocate(address);
+    set_tbe(TBEs[address]);
+    tbe.isPrefetch := false;
+    if (is_valid(cache_entry)) {
+      tbe.Dirty := cache_entry.Dirty;
+      tbe.DataBlk := cache_entry.DataBlk;
+    } else {
+      tbe.Dirty := false;
+    }
   }
 
   action(k_popMandatoryQueue, "k", desc="Pop mandatory queue.") {
@@ -1180,21 +1237,30 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     sequencer.readCallback(address, cache_entry.DataBlk);
   }
 
+  // [InvisiSpec] clflush/clflushopt support
+  action(fc_flush_complete, "fc",
+         desc="Notify sequencer the flush completed.")
+  {
+    assert(is_valid(tbe));
+    sequencer.writeCallback(address, tbe.DataBlk);
+  }
+
 
   //*****************************************************
   // TRANSITIONS
   //*****************************************************
 
   // Transitions for Load/Store/Replacement/WriteBack from transient states
-  transition({IS, IM, IX, IS_I, M_I, SM, SINK_WB_ACK}, {Load, Expose, SpecLoad, Ifetch, Store, L1_Replacement}) {
+  transition({IS, IM, IX, IS_I, M_I, SM, SINK_WB_ACK, F_I},
+             {Load, Expose, SpecLoad, Ifetch, Store, L1_Replacement, Flush}) {
     z_stallAndWaitMandatoryQueue;
   }
 
-  transition({PF_IS, PF_IS_I}, {Store, L1_Replacement}) {
+  transition({PF_IS, PF_IS_I}, {Store, L1_Replacement, Flush}) {
     z_stallAndWaitMandatoryQueue;
   }
 
-  transition({PF_IM, PF_SM}, {Load, Expose, SpecLoad, Ifetch, L1_Replacement}) {
+  transition({PF_IM, PF_SM}, {Load, Expose, SpecLoad, Ifetch, L1_Replacement, Flush}) {
     z_stallAndWaitMandatoryQueue;
   }
 
@@ -1307,7 +1373,7 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
     k_popMandatoryQueue;
   }
 
-  transition({NP, I, IX}, Inv) {
+  transition({NP, I, IX, F_I}, Inv) {
     fi_sendInvAck;
     l_popRequestQueue;
   }
@@ -1655,6 +1721,30 @@ machine(MachineType:L1Cache, "MESI Directory L1 Cache CMP")
   }
 
   transition(SINK_WB_ACK, WB_Ack, I){
+    s_deallocateTBE;
+    o_popIncomingResponseQueue;
+    kd_wakeUpDependents;
+  }
+
+  // [InvisiSpec] clflush/clflushopt support. Give up any permission we
+  // have on the line and ask L2 to fully evict it (down to memory if
+  // dirty). Two variants of the same target state, differing only in
+  // whether there's a local cache block to actually deallocate.
+  transition({NP, I}, Flush, F_I) {
+    if_allocateTBEForFlush;
+    fl_issueFLUSH;
+    k_popMandatoryQueue;
+  }
+
+  transition({S, E, M}, Flush, F_I) {
+    if_allocateTBEForFlush;
+    fl_issueFLUSH;
+    ff_deallocateL1CacheBlock;
+    k_popMandatoryQueue;
+  }
+
+  transition(F_I, Flush_Ack, I) {
+    fc_flush_complete;
     s_deallocateTBE;
     o_popIncomingResponseQueue;
     kd_wakeUpDependents;

@@ -145,7 +145,7 @@ def get_processes(cmd):
 
         process = Process(pid=100 + idx, cwd=cwd, cmd=argv, executable=argv[0])
 
-        print "info: %d. command and arguments: %s" % (idx + 1, process.cmd)
+        print("info: %d. command and arguments: %s" % (idx + 1, process.cmd))
         multiprocesses.append(process)
 
     return multiprocesses
@@ -168,8 +168,8 @@ def create(args):
     # that we can pass to gem5.
     processes = get_processes(args.commands_to_run)
     if len(processes) != args.num_cores:
-        print "Error: Cannot map %d command(s) onto %d " \
-            "CPU(s)" % (len(processes), args.num_cores)
+        print("Error: Cannot map %d command(s) onto %d " \
+            "CPU(s)" % (len(processes), args.num_cores))
         sys.exit(1)
 
     # Assign one workload to each CPU
@@ -184,7 +184,7 @@ def main():
 
     parser.add_argument("commands_to_run", metavar="command(s)", nargs='*',
                         help="Command(s) to run")
-    parser.add_argument("--cpu", type=str, choices=cpu_types.keys(),
+    parser.add_argument("--cpu", type=str, choices=list(cpu_types.keys()),
                         default="atomic",
                         help="CPU model to use")
     parser.add_argument("--cpu-freq", type=str, default="4GHz")
@@ -225,7 +225,7 @@ def main():
     # Print the reason for the simulation exit. Some exit codes are
     # requests for service (e.g., checkpoints) from the simulation
     # script. We'll just ignore them here and exit.
-    print event.getCause(), " @ ", m5.curTick()
+    print(event.getCause(), " @ ", m5.curTick())
     sys.exit(event.getCode())
 
 

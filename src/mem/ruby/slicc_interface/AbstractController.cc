@@ -64,6 +64,18 @@ AbstractController::AbstractController(const Params *p)
         // of this particular type.
         Stats::registerDumpCallback(new StatsCallback(this));
     }
+
+    // [InvisiSpec] m_specBuf entries start invalid; without this, the
+    // struct's POD fields (address, epoch) are left with indeterminate
+    // values by default-initialization, which could spuriously "hit"
+    // against a real request before any core has filled the entry.
+    for (int c = 0; c < 8; ++c) {
+        for (int i = 0; i < 8194; ++i) {
+            m_specBuf[c][i].address = 0;
+            m_specBuf[c][i].epoch = 0;
+            m_specBuf[c][i].valid = false;
+        }
+    }
 }
 
 void
@@ -247,7 +259,8 @@ AbstractController::getMasterPort(const std::string &if_name,
 
 void
 AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
-                                    Cycles latency, MachineID origin, int idx, int type)
+                                    Cycles latency, MachineID origin, int idx, int type,
+                                    int epoch)
 {
     int coreId = origin.num;
     int sbeId = idx;
@@ -255,23 +268,53 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
     // DPRINTFR(MemSpecBuffer, "%10s MemRead (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(addr));
     // if idx == -1, it is a write request which cannot be spec or expose.
     assert(!(type != 0 && sbeId == -1));
-    assert(sbeId >= -1 && sbeId <= 65);
-    assert(coreId < 8);
+    // [InvisiSpec] m_specBuf is a fixed-size array indexed directly by
+    // coreId/sbeId. Out-of-range indices are latent memory corruption in
+    // opt/fast builds, where assert() compiles away under NDEBUG -- use
+    // panic_if (never stripped) so a config with more cores or a larger
+    // load queue than m_specBuf supports fails loudly instead of silently
+    // corrupting memory.
+    panic_if(sbeId < -1 || sbeId > 8193,
+             "InvisiSpec LLC-SB index %d out of range for m_specBuf "
+             "(configured load queue is larger than the LLC-SB supports)",
+             sbeId);
+    panic_if(coreId < 0 || coreId >= 8,
+             "InvisiSpec LLC-SB core id %d out of range for m_specBuf "
+             "(configured core count exceeds the LLC-SB's per-core arrays)",
+             coreId);
     assert(type >=0 && type <= 2);
     if (type == 0) {
+        // [InvisiSpec] A safe (non-speculative) access misses in the LLC:
+        // per Section VI-C, purge this line from every core's LLC-SB so a
+        // later Spec-GetS/Expose/Validate cannot read data made stale by
+        // this access.
         for (int c = 0; c < 8; ++c) {
-            for (int i = 0; i < 66; ++i) {
-                if (m_specBuf[c][i].address == addr) {
-                    DPRINTFR(MemSpecBuffer, "%10s Cleared by Read (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
+            for (int i = 0; i < 8194; ++i) {
+                if (m_specBuf[c][i].valid &&
+                        m_specBuf[c][i].address == addr) {
+                    DPRINTFR(MemSpecBuffer, "%10s Cleared by Read "
+                             "(core=%d, type=%d, idx=%d, addr=%#x)\n",
+                             curTick(), c, type, i, printAddress(addr));
                     m_specBuf[c][i].address = 0;
                     m_specBuf[c][i].data.clear();
+                    m_specBuf[c][i].valid = false;
                 }
             }
         }
     } else if (type == 1) {
+        // [InvisiSpec] A USL's initial Spec-GetS request always bypasses
+        // the LLC-SB and goes to memory (Section VI-C: "InvisiSpec forbids
+        // a USL from obtaining data from the LLC-SB"); the epoch-staleness
+        // check happens when its response arrives, in recvTimingResp().
 
     } else if (type == 2) {
-        if (m_specBuf[coreId][sbeId].address == addr) {
+        // [InvisiSpec] A Validate/Expose request checks its indexed
+        // LLC-SB entry; per Section VI-C, it counts as a hit only if both
+        // the address *and* the Epoch ID match the entry that is there,
+        // so a stale entry left behind by an old (squashed) epoch cannot
+        // be mistaken for this request's own data.
+        SBE &sbe = m_specBuf[coreId][sbeId];
+        if (sbe.valid && sbe.address == addr && sbe.epoch == epoch) {
             DPRINTFR(MemSpecBuffer, "%10s Expose Hit (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(addr));
             ++m_expose_hits;
             assert(getMemoryQueue());
@@ -281,14 +324,18 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
             (*msg).m_OriginalRequestorMachId = id;
             (*msg).m_Type = MemoryRequestType_MEMORY_READ;
             (*msg).m_MessageSize = MessageSizeType_Response_Data;
-            (*msg).m_DataBlk = m_specBuf[coreId][sbeId].data;
+            (*msg).m_DataBlk = sbe.data;
             getMemoryQueue()->enqueue(msg, clockEdge(), cyclesToTicks(Cycles(1)));
             for (int c = 0; c < 8; ++c) {
-                for (int i = 0; i < 66; ++i) {
-                    if (m_specBuf[c][i].address == addr) {
-                        DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Hit (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
+                for (int i = 0; i < 8194; ++i) {
+                    if (m_specBuf[c][i].valid &&
+                            m_specBuf[c][i].address == addr) {
+                        DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Hit "
+                                 "(core=%d, type=%d, idx=%d, addr=%#x)\n",
+                                 curTick(), c, type, i, printAddress(addr));
                         m_specBuf[c][i].address = 0;
                         m_specBuf[c][i].data.clear();
+                        m_specBuf[c][i].valid = false;
                     }
                 }
             }
@@ -297,17 +344,21 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
             DPRINTFR(MemSpecBuffer, "%10s Expose Miss (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(addr));
             ++m_expose_misses;
             for (int c = 0; c < 8; ++c) {
-                for (int i = 0; i < 66; ++i) {
-                    if (m_specBuf[c][i].address == addr) {
-                        DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Miss (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), c, type, i, printAddress(addr));
+                for (int i = 0; i < 8194; ++i) {
+                    if (m_specBuf[c][i].valid &&
+                            m_specBuf[c][i].address == addr) {
+                        DPRINTFR(MemSpecBuffer, "%10s Cleared by Expose Miss "
+                                 "(core=%d, type=%d, idx=%d, addr=%#x)\n",
+                                 curTick(), c, type, i, printAddress(addr));
                         m_specBuf[c][i].address = 0;
                         m_specBuf[c][i].data.clear();
+                        m_specBuf[c][i].valid = false;
                     }
                 }
             }
         }
     }
-    
+
     RequestPtr req = new Request(addr, RubySystem::getBlockSizeBytes(), 0,
                                  m_masterId);
 
@@ -319,6 +370,7 @@ AbstractController::queueMemoryRead(const MachineID &id, Addr addr,
     s->type = type;
     s->coreId = coreId;
     s->sbeId = sbeId;
+    s->epoch = epoch;
     pkt->pushSenderState(s);
 
     // Use functional rather than timing accesses during warmup
@@ -413,6 +465,7 @@ AbstractController::recvTimingResp(PacketPtr pkt)
     int type = s->type;
     int coreId = s->coreId;
     int sbeId = s->sbeId;
+    int epoch = s->epoch;
     delete s;
 
     if (pkt->isRead()) {
@@ -423,10 +476,25 @@ AbstractController::recvTimingResp(PacketPtr pkt)
         (*msg).m_DataBlk.setData(pkt->getPtr<uint8_t>(), 0,
                                  RubySystem::getBlockSizeBytes());
         if (type == 1) {
-            DPRINTFR(MemSpecBuffer, "%10s Updated by ReadSpec (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(pkt->getAddr()));
-            m_specBuf[coreId][sbeId].address = pkt->getAddr();
-            m_specBuf[coreId][sbeId].data.setData(pkt->getPtr<uint8_t>(), 0,
-                                                  RubySystem::getBlockSizeBytes());
+            // [InvisiSpec] Section VI-C: before saving into the indexed
+            // LLC-SB entry, check whether a fresher (higher-epoch) fill
+            // is already sitting there. This can happen if this core
+            // squashed and reissued a Spec-GetS for the same LQ slot
+            // while the old request was still in flight to memory, and
+            // the two responses arrive out of order -- the stale,
+            // lower-epoch response must be dropped rather than clobber
+            // the newer entry.
+            SBE &sbe = m_specBuf[coreId][sbeId];
+            if (sbe.valid && sbe.epoch > epoch) {
+                DPRINTFR(MemSpecBuffer, "%10s Stale ReadSpec dropped (core=%d, type=%d, idx=%d, addr=%#x, reqEpoch=%d, entryEpoch=%d)\n", curTick(), coreId, type, sbeId, printAddress(pkt->getAddr()), epoch, sbe.epoch);
+            } else {
+                DPRINTFR(MemSpecBuffer, "%10s Updated by ReadSpec (core=%d, type=%d, idx=%d, addr=%#x)\n", curTick(), coreId, type, sbeId, printAddress(pkt->getAddr()));
+                sbe.address = pkt->getAddr();
+                sbe.data.setData(pkt->getPtr<uint8_t>(), 0,
+                                 RubySystem::getBlockSizeBytes());
+                sbe.epoch = epoch;
+                sbe.valid = true;
+            }
         }
     } else if (pkt->isWrite()) {
         (*msg).m_Type = MemoryRequestType_MEMORY_WB;

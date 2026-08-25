@@ -115,7 +115,7 @@ let {{
             self.message = message
             if flags:
                 if not isinstance(flags, (list, tuple)):
-                    raise Exception, "flags must be a list or tuple of flags"
+                    raise Exception("flags must be a list or tuple of flags")
                 self.cond = " | ".join(flags)
                 self.className += "Flags"
             else:

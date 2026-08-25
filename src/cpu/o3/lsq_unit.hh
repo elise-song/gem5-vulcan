@@ -321,7 +321,7 @@ class LSQUnit {
         /** A second packet from a split store that needs sending. */
         PacketPtr pendingPacket;
         /** The LQ/SQ index of the instruction. */
-        uint8_t idx;
+        uint32_t idx;
         /** Number of outstanding packets to complete. */
         uint8_t outstanding;
         /** Whether or not it is a load. */
@@ -455,6 +455,14 @@ class LSQUnit {
     /** The index of the tail instruction in the LQ. */
     int loadTail;
 
+    /** [InvisiSpec] Epoch ID for this core (Section VI-C of the paper):
+     * incremented every time the core squashes instructions, and stamped
+     * onto every Spec-GetS/Validate/Expose request so the LLC-side
+     * speculative buffer can tell a stale (pre-squash) request apart from
+     * a fresher (post-squash, reissued) one even if they arrive
+     * out-of-order. */
+    int curEpoch;
+
     /** The index of the head instruction in the SQ. */
     int storeHead;
     /** The index of the first instruction that may be ready to be
@@ -520,8 +528,6 @@ class LSQUnit {
     /** Flag for memory model. */
     bool needsTSO;
 
-    // Flag for whether defending against spectre attack or future attacks
-    bool isFuturistic;
     bool allowSpecBuffHit;
     /* [mengjia] different schemes determine values of 4 variables. */
 
@@ -900,6 +906,7 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
             }
         }
         fst_data_pkt->reqIdx = load_idx;
+        fst_data_pkt->reqEpoch = curEpoch;
     } else {
         // Create the split packets.
         if(sendSpecRead){
@@ -940,6 +947,8 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
         snd_data_pkt->senderState = state;
         fst_data_pkt->reqIdx = load_idx;
         snd_data_pkt->reqIdx = load_idx;
+        fst_data_pkt->reqEpoch = curEpoch;
+        snd_data_pkt->reqEpoch = curEpoch;
 
         fst_data_pkt->isSplit = true;
         snd_data_pkt->isSplit = true;
@@ -1042,10 +1051,20 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
                         load_inst->pcState(), load_inst->seqNum);
                 }
             }else{
-                //if RC, always only need expose
-                load_inst->needExposeOnly(true);
-                DPRINTF(LSQUnit, "Set load PC %s, [sn:%lli] as needExposeOnly\n",
-                    load_inst->pcState(), load_inst->seqNum);
+                // [InvisiSpec] Sec V-C (RC): only a load with an earlier,
+                // not-yet-retired memory barrier in the ROB can be
+                // squashed by an invalidation under RC, so only those
+                // need validation; otherwise exposure suffices.
+                if (load_inst->isPrevFenceCommitted()) {
+                    load_inst->needExposeOnly(true);
+                    DPRINTF(LSQUnit, "Set load PC %s, [sn:%lli] as "
+                            "needExposeOnly (RC)\n",
+                        load_inst->pcState(), load_inst->seqNum);
+                } else {
+                    DPRINTF(LSQUnit, "Set load PC %s, [sn:%lli] as "
+                            "needValidation (RC, earlier uncommitted fence)\n",
+                        load_inst->pcState(), load_inst->seqNum);
+                }
             }
 
             load_inst->needPostFetch(true);

@@ -39,7 +39,7 @@
 
 from m5.params import *
 from m5.proxy import *
-from MemObject import MemObject
+from m5.objects.MemObject import MemObject
 
 # The traffic generator is a master module that generates stimuli for
 # the memory system, based on a collection of simple behaviours that

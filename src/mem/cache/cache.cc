@@ -188,9 +188,21 @@ Cache::satisfyRequest(PacketPtr pkt, CacheBlk *blk,
             blk->trackLoadLocked(pkt);
         }
 
-        // all read responses have a data payload
-        assert(pkt->hasRespData());
-        pkt->setDataFromBlock(blk->data, blkSize);
+        // [InvisiSpec] Expose (Sec. V-B/VI-A) intentionally carries no
+        // response data: the CPU already has the bytes from its earlier
+        // speculative read, and Expose only needs to make the line
+        // visible in the cache hierarchy, not return anything. Its
+        // response command (ExposeResp) deliberately omits HasData,
+        // unlike every other read response, so the "all read responses
+        // have a data payload" assumption below doesn't hold for it --
+        // the rest of this block (sharer/writable-state handling) still
+        // applies, since Expose does bring the line into the cache like
+        // a regular transaction.
+        if (!pkt->isExpose()) {
+            // all other read responses have a data payload
+            assert(pkt->hasRespData());
+            pkt->setDataFromBlock(blk->data, blkSize);
+        }
 
         // determine if this read is from a (coherent) cache or not
         if (pkt->fromCache()) {
@@ -779,7 +791,12 @@ Cache::recvTimingReq(PacketPtr pkt)
                 blk->status &= ~BlkHWPrefetched;
 
             // Don't notify on SWPrefetch
-            if (!pkt->cmd.isSWPrefetch()) {
+            // [InvisiSpec] Nor on an unsafe speculative (ReadSpecReq)
+            // access: Sec. VI-B only allows a *visible* instruction to
+            // train the hardware prefetcher, since a still-squashable
+            // load's prefetcher training is itself an observable
+            // micro-architectural side effect.
+            if (!pkt->cmd.isSWPrefetch() && !pkt->isSpec()) {
                 assert(!pkt->req->isCacheMaintenance());
                 next_pf_time = prefetcher->notify(pkt);
             }
@@ -912,9 +929,11 @@ Cache::recvTimingReq(PacketPtr pkt)
                 // already allocated for this, we need to let the prefetcher
                 // know about the request
                 if (prefetcher) {
-                    // Don't notify on SWPrefetch
+                    // Don't notify on SWPrefetch, nor on an unsafe
+                    // speculative access (Sec. VI-B).
                     if (!pkt->cmd.isSWPrefetch() &&
-                        !pkt->req->isCacheMaintenance())
+                        !pkt->req->isCacheMaintenance() &&
+                        !pkt->isSpec())
                         next_pf_time = prefetcher->notify(pkt);
                 }
             }
@@ -963,9 +982,11 @@ Cache::recvTimingReq(PacketPtr pkt)
             }
 
             if (prefetcher) {
-                // Don't notify on SWPrefetch
+                // Don't notify on SWPrefetch, nor on an unsafe
+                // speculative access (Sec. VI-B).
                 if (!pkt->cmd.isSWPrefetch() &&
-                    !pkt->req->isCacheMaintenance())
+                    !pkt->req->isCacheMaintenance() &&
+                    !pkt->isSpec())
                     next_pf_time = prefetcher->notify(pkt);
             }
         }

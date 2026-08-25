@@ -90,16 +90,16 @@ def install_style_hooks(env):
         style_hook = all(style_hooks)
         style_extension = ui.config('extensions', 'style', None)
     except ImportError:
-        print mercurial_lib_not_found
+        print(mercurial_lib_not_found)
 
     if "python:style.check_style" in style_hooks:
         # Try to upgrade the style hooks
-        print mercurial_style_upgrade_message
+        print(mercurial_style_upgrade_message)
         # continue unless user does ctrl-c/ctrl-d etc.
         try:
-            raw_input()
+            input()
         except:
-            print "Input exception, exiting scons.\n"
+            print("Input exception, exiting scons.\n")
             sys.exit(1)
         shutil.copyfile(hgrc.abspath, hgrc_old.abspath)
         re_style_hook = re.compile(r"^([^=#]+)\.style\s*=\s*([^#\s]+).*")
@@ -111,10 +111,10 @@ def install_style_hooks(env):
             if m_hook:
                 hook, check = m_hook.groups()
                 if check != "python:style.check_style":
-                    print "Warning: %s.style is using a non-default " \
-                        "checker: %s" % (hook, check)
+                    print("Warning: %s.style is using a non-default " \
+                        "checker: %s" % (hook, check))
                 if hook not in ("pretxncommit", "pre-qrefresh"):
-                    print "Warning: Updating unknown style hook: %s" % hook
+                    print("Warning: Updating unknown style hook: %s" % hook)
 
                 l = "%s.style = python:hgstyle.check_style\n" % hook
             elif m_ext and m_ext.group(1) == style_extension:
@@ -122,20 +122,20 @@ def install_style_hooks(env):
 
             new.write(l)
     elif not style_hook:
-        print mercurial_style_message,
+        print(mercurial_style_message, end=' ')
         # continue unless user does ctrl-c/ctrl-d etc.
         try:
-            raw_input()
+            input()
         except:
-            print "Input exception, exiting scons.\n"
+            print("Input exception, exiting scons.\n")
             sys.exit(1)
         hgrc_path = '%s/.hg/hgrc' % env.root.abspath
-        print "Adding style hook to", hgrc_path, "\n"
+        print("Adding style hook to", hgrc_path, "\n")
         try:
             with open(hgrc_path, 'a') as f:
                 f.write(mercurial_style_hook_template % env.root.abspath)
         except:
-            print "Error updating", hgrc_path
+            print("Error updating", hgrc_path)
             sys.exit(1)
 
 def generate(env):

@@ -39,7 +39,7 @@
 #
 # Authors: Steve Reinhardt
 
-from __future__ import with_statement
+
 import os
 import sys
 import re
@@ -142,14 +142,14 @@ class Template(object):
             del myDict['snippets']
 
             snippetLabels = [l for l in labelRE.findall(template)
-                             if d.snippets.has_key(l)]
+                             if l in d.snippets]
 
             snippets = dict([(s, self.parser.mungeSnippet(d.snippets[s]))
                              for s in snippetLabels])
 
             myDict.update(snippets)
 
-            compositeCode = ' '.join(map(str, snippets.values()))
+            compositeCode = ' '.join(map(str, list(snippets.values())))
 
             # Add in template itself in case it references any
             # operands explicitly (like Mem)
@@ -213,7 +213,7 @@ class Template(object):
             # if the argument is an object, we use its attribute map.
             myDict.update(d.__dict__)
         else:
-            raise TypeError, "Template.subst() arg must be or have dictionary"
+            raise TypeError("Template.subst() arg must be or have dictionary")
         return template % myDict
 
     # Convert to string.
@@ -233,14 +233,20 @@ class Format(object):
         self.params = params
         label = 'def format ' + id
         self.user_code = compile(fixPythonIndentation(code), label, 'exec')
-        param_list = string.join(params, ", ")
+        param_list = ", ".join(params)
         f = '''def defInst(_code, _context, %s):
                 my_locals = vars().copy()
-                exec _code in _context, my_locals
+                exec(_code, _context, my_locals)
                 return my_locals\n''' % param_list
         c = compile(f, label + ' wrapper', 'exec')
-        exec c
-        self.func = defInst
+        # exec() with no explicit namespace never writes into a function's
+        # real local variables in Python 3 (unlike Python 2's bare exec
+        # statement, which made the enclosing function "unoptimized" and
+        # let this work). Use an explicit namespace dict and pull defInst
+        # out of it instead.
+        ns = {}
+        exec(c, ns)
+        self.func = ns['defInst']
 
     def defineInst(self, parser, name, args, lineno):
         parser.updateExportContext()
@@ -252,11 +258,11 @@ class Format(object):
         context.update({ 'name' : name, 'Name' : Name })
         try:
             vars = self.func(self.user_code, context, *args[0], **args[1])
-        except Exception, exc:
+        except Exception as exc:
             if debug:
                 raise
             error(lineno, 'error defining "%s": %s.' % (name, exc))
-        for k in vars.keys():
+        for k in list(vars.keys()):
             if k not in ('header_output', 'decoder_output',
                          'exec_output', 'decode_block'):
                 del vars[k]
@@ -1194,7 +1200,7 @@ class OperandList(object):
         return self.__internalConcatAttrs(attr_name, filter, [])
 
     def sort(self):
-        self.items.sort(lambda a, b: a.sort_pri - b.sort_pri)
+        self.items.sort(key=lambda a: a.sort_pri)
 
 class SubOperandList(OperandList):
     '''Find all the operands in the given code block.  Returns an operand
@@ -1303,7 +1309,7 @@ def makeFlagConstructor(flag_list):
             i += 1
     pre = '\n\tflags['
     post = '] = true;'
-    code = pre + string.join(flag_list, post + pre) + post
+    code = pre + (post + pre).join(flag_list) + post
     return code
 
 # Assume all instruction flags are of the form 'IsFoo'
@@ -1320,7 +1326,7 @@ class InstObjParams(object):
         self.base_class = base_class
         if not isinstance(snippets, dict):
             snippets = {'code' : snippets}
-        compositeCode = ' '.join(map(str, snippets.values()))
+        compositeCode = ' '.join(map(str, list(snippets.values())))
         self.snippets = snippets
 
         self.operands = OperandList(parser, compositeCode)
@@ -1455,6 +1461,17 @@ class LineTracker(object):
 class ISAParser(Grammar):
     def __init__(self, output_dir):
         super(ISAParser, self).__init__()
+        # Several token rules below (t_CPPDIRECTIVE, t_NEWFILE, t_ENDFILE)
+        # use '^' to anchor at the start of a line, which requires
+        # re.MULTILINE. This used to happen implicitly: pre-3.11 Python's
+        # re module let an inline (?m) flag embedded anywhere in a pattern
+        # (e.g. in t_STRLIT/t_CODELIT below) leak out and apply to the
+        # whole combined lexer regex that PLY builds by ORing all the
+        # token patterns together. Python 3.11 disallows inline global
+        # flags anywhere but the start of the *whole* expression, so that
+        # leak no longer happens (and would now be a compile error), and
+        # MULTILINE must be requested explicitly instead.
+        self.setupLexerFactory(reflags=re.MULTILINE)
         self.output_dir = output_dir
 
         self.filename = None # for output file watermarking/scaremongering
@@ -1537,11 +1554,11 @@ class ISAParser(Grammar):
         # select the different chunks. If no 'split' directives are used,
         # the cpp emissions have no effect.
         if re.search('-ns.cc.inc$', filename):
-            print >>f, '#if !defined(__SPLIT) || (__SPLIT == 1)'
+            print('#if !defined(__SPLIT) || (__SPLIT == 1)', file=f)
             self.splits[f] = 1
         # ensure requisite #include's
         elif filename == 'decoder-g.hh.inc':
-            print >>f, '#include "base/bitfield.hh"'
+            print('#include "base/bitfield.hh"', file=f)
 
         return f
 
@@ -1596,11 +1613,11 @@ class ISAParser(Grammar):
 
                 fn = 'decoder-ns.cc.inc'
                 assert(fn in self.files)
-                print >>f, 'namespace %s {' % self.namespace
+                print('namespace %s {' % self.namespace, file=f)
                 if splits > 1:
-                    print >>f, '#define __SPLIT %u' % i
-                print >>f, '#include "%s"' % fn
-                print >>f, '}'
+                    print('#define __SPLIT %u' % i, file=f)
+                print('#include "%s"' % fn, file=f)
+                print('}', file=f)
 
         # instruction execution
         splits = self.splits[self.get_file('exec')]
@@ -1617,11 +1634,11 @@ class ISAParser(Grammar):
 
                 fn = 'exec-ns.cc.inc'
                 assert(fn in self.files)
-                print >>f, 'namespace %s {' % self.namespace
+                print('namespace %s {' % self.namespace, file=f)
                 if splits > 1:
-                    print >>f, '#define __SPLIT %u' % i
-                print >>f, '#include "%s"' % fn
-                print >>f, '}'
+                    print('#define __SPLIT %u' % i, file=f)
+                print('#include "%s"' % fn, file=f)
+                print('}', file=f)
 
         # max_inst_regs.hh
         self.update('max_inst_regs.hh',
@@ -1734,7 +1751,7 @@ class ISAParser(Grammar):
     # String literal.  Note that these use only single quotes, and
     # can span multiple lines.
     def t_STRLIT(self, t):
-        r"(?m)'([^'])+'"
+        r"'([^'])+'"
         # strip off quotes
         t.value = t.value[1:-1]
         t.lexer.lineno += t.value.count('\n')
@@ -1744,7 +1761,7 @@ class ISAParser(Grammar):
     # "Code literal"... like a string literal, but delimiters are
     # '{{' and '}}' so they get formatted nicely under emacs c-mode
     def t_CODELIT(self, t):
-        r"(?m)\{\{([^\}]|}(?!\}))+\}\}"
+        r"\{\{([^\}]|}(?!\}))+\}\}"
         # strip off {{ & }}
         t.value = t.value[2:-2]
         t.lexer.lineno += t.value.count('\n')
@@ -1812,10 +1829,10 @@ class ISAParser(Grammar):
     def p_specification(self, t):
         'specification : opt_defs_and_outputs top_level_decode_block'
 
-        for f in self.splits.iterkeys():
+        for f in self.splits.keys():
             f.write('\n#endif\n')
 
-        for f in self.files.itervalues(): # close ALL the files;
+        for f in self.files.values(): # close ALL the files;
             f.close() # not doing so can cause compilation to fail
 
         self.write_top_level_files()
@@ -1932,8 +1949,8 @@ del wrap
         # next split's #define from the parser and add it to the current
         # emission-in-progress.
         try:
-            exec split_setup+fixPythonIndentation(t[2]) in self.exportContext
-        except Exception, exc:
+            exec(split_setup+fixPythonIndentation(t[2]), self.exportContext)
+        except Exception as exc:
             if debug:
                 raise
             error(t.lineno(1), 'In global let block: %s' % exc)
@@ -1949,7 +1966,7 @@ del wrap
         'def_operand_types : DEF OPERAND_TYPES CODELIT SEMI'
         try:
             self.operandTypeMap = eval('{' + t[3] + '}')
-        except Exception, exc:
+        except Exception as exc:
             if debug:
                 raise
             error(t.lineno(1),
@@ -1964,7 +1981,7 @@ del wrap
                   'error: operand types must be defined before operands')
         try:
             user_dict = eval('{' + t[3] + '}', self.exportContext)
-        except Exception, exc:
+        except Exception as exc:
             if debug:
                 raise
             error(t.lineno(1), 'In def operands: %s' % exc)
@@ -2019,7 +2036,7 @@ del wrap
     def p_def_template(self, t):
         'def_template : DEF TEMPLATE ID CODELIT SEMI'
         if t[3] in self.templateMap:
-            print "warning: template %s already defined" % t[3]
+            print("warning: template %s already defined" % t[3])
         self.templateMap[t[3]] = Template(self, t[4])
 
     # An instruction format definition looks like
@@ -2401,7 +2418,7 @@ StaticInstPtr
 
     def buildOperandNameMap(self, user_dict, lineno):
         operand_name = {}
-        for op_name, val in user_dict.iteritems():
+        for op_name, val in user_dict.items():
 
             # Check if extra attributes have been specified.
             if len(val) > 9:
@@ -2474,23 +2491,23 @@ StaticInstPtr
         self.operandNameMap = operand_name
 
         # Define operand variables.
-        operands = user_dict.keys()
+        operands = list(user_dict.keys())
         # Add the elems defined in the vector operands and
         # build a map elem -> vector (used in OperandList)
         elem_to_vec = {}
-        for op in user_dict.keys():
+        for op in list(user_dict.keys()):
             if hasattr(self.operandNameMap[op], 'elems'):
-                for elem in self.operandNameMap[op].elems.keys():
+                for elem in list(self.operandNameMap[op].elems.keys()):
                     operands.append(elem)
                     elem_to_vec[elem] = op
         self.elemToVector = elem_to_vec
-        extensions = self.operandTypeMap.keys()
+        extensions = list(self.operandTypeMap.keys())
 
         operandsREString = r'''
         (?<!\w)      # neg. lookbehind assertion: prevent partial matches
         ((%s)(?:_(%s))?)   # match: operand with optional '_' then suffix
         (?!\w)       # neg. lookahead assertion: prevent partial matches
-        ''' % (string.join(operands, '|'), string.join(extensions, '|'))
+        ''' % ('|'.join(operands), '|'.join(extensions))
 
         self.operandsRE = re.compile(operandsREString, re.MULTILINE|re.VERBOSE)
 
@@ -2498,7 +2515,7 @@ StaticInstPtr
         # groups are returned (base and ext, not full name as above).
         # Used for subtituting '_' for '.' to make C++ identifiers.
         operandsWithExtREString = r'(?<!\w)(%s)_(%s)(?!\w)' \
-            % (string.join(operands, '|'), string.join(extensions, '|'))
+            % ('|'.join(operands), '|'.join(extensions))
 
         self.operandsWithExtRE = \
             re.compile(operandsWithExtREString, re.MULTILINE)
@@ -2603,10 +2620,10 @@ StaticInstPtr
     def parse_isa_desc(self, *args, **kwargs):
         try:
             self._parse_isa_desc(*args, **kwargs)
-        except ISAParserError, e:
-            print backtrace(self.fileNameStack)
-            print "At %s:" % e.lineno
-            print e
+        except ISAParserError as e:
+            print(backtrace(self.fileNameStack))
+            print("At %s:" % e.lineno)
+            print(e)
             sys.exit(1)
 
 # Called as script: get args from command line.

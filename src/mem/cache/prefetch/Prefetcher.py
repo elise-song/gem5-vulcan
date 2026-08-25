@@ -39,7 +39,7 @@
 # Authors: Ron Dreslinski
 #          Mitch Hayenga
 
-from ClockedObject import ClockedObject
+from m5.objects.ClockedObject import ClockedObject
 from m5.params import *
 from m5.proxy import *
 

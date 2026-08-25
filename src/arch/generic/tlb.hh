@@ -140,6 +140,16 @@ class BaseTLB : public SimObject
      */
     virtual BaseMasterPort* getMasterPort() { return NULL; }
 
+    /**
+     * [InvisiSpec] Commit a TLB fill that was computed on behalf of an
+     * unsafe speculative load but whose observable effect (the new entry
+     * occupying a slot and updating replacement state) was withheld
+     * until the load reached its visibility point (Section VI-E3 of the
+     * InvisiSpec paper). Default is a no-op; only overridden by TLBs
+     * that actually defer fills this way (see X86ISA::TLB).
+     */
+    virtual void commitSpeculativeFill(RequestPtr req) {}
+
     void memInvalidate() { flushAll(); }
 };
 

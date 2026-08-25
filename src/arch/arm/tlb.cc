@@ -1417,7 +1417,13 @@ TLB::getTE(TlbEntry **te, RequestPtr req, ThreadContext *tc, Mode mode,
     } else {
         vaddr = vaddr_tainted;
     }
-    *te = lookup(vaddr, asid, vmid, isHyp, is_secure, false, false, target_el);
+    // [InvisiSpec] Section VI-E3: an unsafe speculative access that hits
+    // must not perturb TLB replacement state (moving the entry to MRU is
+    // itself an observable side channel); pass functional=true for such
+    // accesses so lookup() skips the reorder, same as a real functional
+    // access already does.
+    *te = lookup(vaddr, asid, vmid, isHyp, is_secure,
+                 functional || req->isSpec(), false, target_el);
     if (*te == NULL) {
         if (req->isPrefetch()) {
             // if the request is a prefetch don't attempt to fill the TLB or go

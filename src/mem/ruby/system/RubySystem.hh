@@ -62,6 +62,16 @@ class RubySystem : public ClockedObject
     static bool getWarmupEnabled() { return m_warmup_enabled; }
     static bool getCooldownEnabled() { return m_cooldown_enabled; }
 
+    // [InvisiSpec] Whether the compiled-in Ruby protocol (PROTOCOL, set by
+    // the SCons PROTOCOL build variable) implements real cache-maintenance
+    // (clflush/clflushopt) support. This is a narrow, build-time substitute
+    // for a full ProtocolInfo/SLICC "supports_flushes" declaration (which
+    // this older SLICC parser does not understand -- see parser.py's
+    // 'supports_flushes' dict entry, which is parsed but never wired to the
+    // grammar). RubyPort uses this to decide whether to fake a response to
+    // a cache-maintenance packet or let it flow into the protocol.
+    static bool getSupportsFlush() { return m_supports_flush; }
+
     SimpleMemory *getPhysMem() { return m_phys_mem; }
     Cycles getStartCycle() { return m_start_cycle; }
     bool getAccessBackingStore() { return m_access_backing_store; }
@@ -127,6 +137,7 @@ class RubySystem : public ClockedObject
 
     static bool m_warmup_enabled;
     static unsigned m_systems_to_warmup;
+    static bool m_supports_flush;
     static bool m_cooldown_enabled;
     SimpleMemory *m_phys_mem;
     const bool m_access_backing_store;

@@ -43,11 +43,11 @@
 
 import m5
 from m5.objects import *
-from Caches import *
+from .Caches import *
 
 def config_cache(options, system):
     if options.external_memory_system and (options.caches or options.l2cache):
-        print "External caches and internal caches are exclusive options.\n"
+        print("External caches and internal caches are exclusive options.\n")
         sys.exit(1)
 
     if options.external_memory_system:
@@ -55,9 +55,14 @@ def config_cache(options, system):
 
     if options.cpu_type == "O3_ARM_v7a_3":
         try:
-            from cores.arm.O3_ARM_v7a import *
+            # 'import *' is a SyntaxError inside a function body (this is
+            # not new in Python 3 -- Python 2 rejected it too), so import
+            # the specific names actually used below instead of using a
+            # star-import.
+            from .cores.arm.O3_ARM_v7a import (O3_ARM_v7a_DCache,
+                    O3_ARM_v7a_ICache, O3_ARM_v7aL2, O3_ARM_v7aWalkCache)
         except:
-            print "O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?"
+            print("O3_ARM_v7a_3 is unavailable. Did you compile the O3 model?")
             sys.exit(1)
 
         dcache_class, icache_class, l2_cache_class, walk_cache_class = \
@@ -95,7 +100,7 @@ def config_cache(options, system):
     if options.memchecker:
         system.memchecker = MemChecker()
 
-    for i in xrange(options.num_cpus):
+    for i in range(options.num_cpus):
         if options.caches:
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc)

@@ -433,15 +433,25 @@ PYBIND11_NOINLINE inline std::string error_string() {
         while (trace->tb_next)
             trace = trace->tb_next;
 
+        // CPython 3.11+ made PyFrameObject opaque, so direct field access
+        // (frame->f_code, frame->f_back) is no longer possible; use the
+        // stable accessor functions instead. PyFrame_GetCode/GetBack
+        // return new references that must be released; trace->tb_frame
+        // is borrowed from trace, so take our own reference to it.
         PyFrameObject *frame = trace->tb_frame;
+        Py_XINCREF(frame);
         errorString += "\n\nAt:\n";
         while (frame) {
+            PyCodeObject *f_code = PyFrame_GetCode(frame);
             int lineno = PyFrame_GetLineNumber(frame);
             errorString +=
-                "  " + handle(frame->f_code->co_filename).cast<std::string>() +
+                "  " + handle((PyObject *) f_code->co_filename).cast<std::string>() +
                 "(" + std::to_string(lineno) + "): " +
-                handle(frame->f_code->co_name).cast<std::string>() + "\n";
-            frame = frame->f_back;
+                handle((PyObject *) f_code->co_name).cast<std::string>() + "\n";
+            Py_DECREF(f_code);
+            PyFrameObject *back = PyFrame_GetBack(frame);
+            Py_DECREF(frame);
+            frame = back;
         }
     }
 #endif

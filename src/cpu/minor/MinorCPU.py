@@ -44,12 +44,12 @@ from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
 from m5.SimObject import SimObject
-from BaseCPU import BaseCPU
-from DummyChecker import DummyChecker
-from BranchPredictor import *
-from TimingExpr import TimingExpr
+from m5.objects.BaseCPU import BaseCPU
+from m5.objects.DummyChecker import DummyChecker
+from m5.objects.BranchPredictor import *
+from m5.objects.TimingExpr import TimingExpr
 
-from FuncUnit import OpClass
+from m5.objects.FuncUnit import OpClass
 
 class MinorOpClass(SimObject):
     """Boxing of OpClass to get around build problems and provide a hook for
@@ -100,7 +100,7 @@ def minorMakeOpClassSet(op_classes):
     def boxOpClass(op_class):
         return MinorOpClass(opClass=op_class)
 
-    return MinorOpClassSet(opClasses=map(boxOpClass, op_classes))
+    return MinorOpClassSet(opClasses=list(map(boxOpClass, op_classes)))
 
 class MinorFU(SimObject):
     type = 'MinorFU'
@@ -275,5 +275,5 @@ class MinorCPU(BaseCPU):
         numThreads = Parent.numThreads), "Branch Predictor")
 
     def addCheckerCpu(self):
-        print "Checker not yet supported by MinorCPU"
+        print("Checker not yet supported by MinorCPU")
         exit(1)

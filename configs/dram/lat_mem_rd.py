@@ -60,22 +60,22 @@ import protolib
 try:
     import packet_pb2
 except:
-    print "Did not find packet proto definitions, attempting to generate"
+    print("Did not find packet proto definitions, attempting to generate")
     from subprocess import call
     error = call(['protoc', '--python_out=configs/dram',
                   '--proto_path=src/proto', 'src/proto/packet.proto'])
     if not error:
-        print "Generated packet proto definitions"
+        print("Generated packet proto definitions")
 
         try:
             import google.protobuf
         except:
-            print "Please install the Python protobuf module"
+            print("Please install the Python protobuf module")
             exit(-1)
 
         import packet_pb2
     else:
-        print "Failed to import packet proto definitions"
+        print("Failed to import packet proto definitions")
         exit(-1)
 
 parser = optparse.OptionParser()
@@ -92,7 +92,7 @@ parser.add_option("--reuse-trace", action="store_true",
 (options, args) = parser.parse_args()
 
 if args:
-    print "Error: script doesn't take any positional arguments"
+    print("Error: script doesn't take any positional arguments")
     sys.exit(1)
 
 # start by creating the system itself, using a multi-layer 2.0 GHz
@@ -171,7 +171,7 @@ def create_trace(filename, max_addr, burst_size, itt):
     try:
         proto_out = gzip.open(filename, 'wb')
     except IOError:
-        print "Failed to open ", filename, " for writing"
+        print("Failed to open ", filename, " for writing")
         exit(-1)
 
     # write the magic number in 4-byte Little Endian, similar to what
@@ -186,7 +186,7 @@ def create_trace(filename, max_addr, burst_size, itt):
     protolib.encodeMessage(proto_out, header)
 
     # create a list of every single address to touch
-    addrs = range(0, max_addr, burst_size)
+    addrs = list(range(0, max_addr, burst_size))
 
     import random
     random.shuffle(addrs)
@@ -200,19 +200,19 @@ def create_trace(filename, max_addr, burst_size, itt):
     packet.size = int(burst_size)
 
     for addr in addrs:
-        packet.tick = long(tick)
-        packet.addr = long(addr)
+        packet.tick = int(tick)
+        packet.addr = int(addr)
         protolib.encodeMessage(proto_out, packet)
         tick = tick + itt
 
     proto_out.close()
 
 # this will take a while, so keep the user informed
-print "Generating traces, please wait..."
+print("Generating traces, please wait...")
 
 nxt_range = 0
 nxt_state = 0
-period = long(itt * (max_range / burst_size))
+period = int(itt * (max_range / burst_size))
 
 # now we create the states for each range
 for r in ranges:
@@ -302,6 +302,6 @@ m5.instantiate()
 m5.simulate(nxt_state * period)
 
 # print all we need to make sense of the stats output
-print "lat_mem_rd with %d iterations, ranges:" % iterations
+print("lat_mem_rd with %d iterations, ranges:" % iterations)
 for r in ranges:
-    print r
+    print(r)

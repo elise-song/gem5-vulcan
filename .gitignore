@@ -26,3 +26,25 @@ m5out
 /system/arm/aarch64_bootloader/boot_emm.arm64
 m5out*
 checkpoint*
+
+# gem5-vulcan research session scratch/output (root-level)
+/.debug.txt
+/cache_trace.txt
+/configs/test_output.txt
+/flush_reload
+/flush_reload_stats
+/full_cache_trace.txt
+/output.txt
+/paired_events.txt
+/program_out.txt
+/results.txt
+/spectre
+/spectre_run_test/
+/spectre_stt_out/
+/stats_0x3f.txt
+/stats_0x42.txt
+/stdout.txt
+/sweep_out/
+/test_locked_lru
+/test_output.txt
+/tlb_trace.txt

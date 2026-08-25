@@ -258,9 +258,12 @@ RubyPort::MemSlavePort::recvTimingReq(PacketPtr pkt)
         panic("RubyPort should never see request with the "
               "cacheResponding flag set\n");
 
-    // ruby doesn't support cache maintenance operations at the
-    // moment, as a workaround, we respond right away
-    if (pkt->req->isCacheMaintenance()) {
+    // [InvisiSpec] Ruby cache maintenance (clflush/clflushopt) support is
+    // protocol-specific: only protocols whose L1/L2 .sm files implement
+    // real Flush/Flush_Ack transitions (see RubySystem::getSupportsFlush())
+    // can handle these packets. For everyone else, fall back to the old
+    // fake-response workaround so unsupported protocols keep working.
+    if (pkt->req->isCacheMaintenance() && !RubySystem::getSupportsFlush()) {
         warn_once("Cache maintenance operations are not supported in Ruby.\n");
         pkt->makeResponse();
         schedTimingResp(pkt, curTick());
@@ -546,8 +549,14 @@ RubyPort::MemSlavePort::hitCallback(PacketPtr pkt)
         }
     }
 
-    // Flush, acquire, release requests don't access physical memory
-    if (pkt->isFlush() || pkt->isExpose() || pkt->cmd == MemCmd::MemFenceReq) {
+    // Flush, acquire, release requests don't access physical memory.
+    // [InvisiSpec] Cache-maintenance (clflush/clflushopt -> CleanInvalidReq)
+    // packets don't carry real data either (see the Clflushopt microop,
+    // which stores a dummy 0 byte) -- the Ruby protocol's Flush transitions
+    // handle the actual writeback/invalidate, so don't let M5 physical
+    // memory be clobbered with that dummy byte.
+    if (pkt->isFlush() || pkt->isExpose() || pkt->req->isCacheMaintenance() ||
+        pkt->cmd == MemCmd::MemFenceReq) {
         accessPhysMem = false;
     }
 

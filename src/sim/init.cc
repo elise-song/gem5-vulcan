@@ -196,6 +196,14 @@ EmbeddedPyBind::initAll()
     std::list<EmbeddedPyBind *> pending;
 
     py::module m_m5 = py::module("_m5");
+    // Under Python 2, py::module's constructor used Py_InitModule3(),
+    // which automatically registered the new module in sys.modules.
+    // Under Python 3 it uses PyModule_Create() instead, which does not.
+    // Without this, "import _m5.core" (in m5/__init__.py) fails to find
+    // the parent _m5 package via the normal import machinery, silently
+    // leaving m5.in_gem5 False and m5.main undefined. Register it
+    // explicitly to restore the old behavior.
+    PyDict_SetItemString(PyImport_GetModuleDict(), "_m5", m_m5.ptr());
     m_m5.attr("__package__") = py::cast("_m5");
 
     pybind_init_core(m_m5);
@@ -258,7 +266,19 @@ m5Main(int argc, char **argv)
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 #endif
 
-    PySys_SetArgv(argc, argv);
+    // PySys_SetArgv() has taken wchar_t** (not char**) since the Python 3
+    // embedding API was introduced; decode each argv entry using the
+    // current locale to build a wide-character argv array.
+    wchar_t **wargv = new wchar_t *[argc];
+    for (int i = 0; i < argc; i++) {
+        wargv[i] = Py_DecodeLocale(argv[i], NULL);
+        if (wargv[i] == NULL)
+            panic("Could not decode argv[%d]", i);
+    }
+    PySys_SetArgv(argc, wargv);
+    for (int i = 0; i < argc; i++)
+        PyMem_RawFree(wargv[i]);
+    delete[] wargv;
 
     // We have to set things up in the special __main__ module
     PyObject *module = PyImport_AddModule(PyCC("__main__"));

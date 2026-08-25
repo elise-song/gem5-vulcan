@@ -91,7 +91,7 @@ class UnitResult(object):
     def state_name(self):
         return UnitResult.state_names[self.state]
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.success() or self.skipped()
 
     def __str__(self):
@@ -138,12 +138,10 @@ class TestResult(object):
     def runtime(self):
         return sum([ r.runtime for r in self.results ])
 
-    def __nonzero__(self):
+    def __bool__(self):
         return all([ r for r in self.results ])
 
-class ResultFormatter(object):
-    __metaclass__ = ABCMeta
-
+class ResultFormatter(object, metaclass=ABCMeta):
     def __init__(self, fout=sys.stdout, verbose=False):
         self.verbose = verbose
         self.fout = fout
@@ -173,21 +171,21 @@ class Text(ResultFormatter):
     def dump_suites(self, suites):
         fout = self.fout
         for suite in suites:
-            print >> fout, "--- %s ---" % suite.name
+            print("--- %s ---" % suite.name, file=fout)
 
             for t in suite.results:
-                print >> fout, "*** %s" % t
+                print("*** %s" % t, file=fout)
 
                 if t and not self.verbose:
                     continue
 
                 if t.message:
-                    print >> fout, t.message
+                    print(t.message, file=fout)
 
                 if t.stderr:
-                    print >> fout, t.stderr
+                    print(t.stderr, file=fout)
                 if t.stdout:
-                    print >> fout, t.stdout
+                    print(t.stdout, file=fout)
 
 class TextSummary(ResultFormatter):
     """Output test results as a text summary"""
@@ -209,7 +207,7 @@ class TextSummary(ResultFormatter):
         fout = self.fout
         for suite in suites:
             status = self.test_status(suite)
-            print >> fout, "%s: %s" % (suite.name, status)
+            print("%s: %s" % (suite.name, status), file=fout)
 
 class JUnit(ResultFormatter):
     """Output test results as JUnit XML"""

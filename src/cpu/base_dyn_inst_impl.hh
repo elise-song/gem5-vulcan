@@ -88,6 +88,16 @@ BaseDynInst<Impl>::initVars()
 {
     memData = NULL;
     vldData = NULL;
+    // [InvisiSpec] These were never initialized here even though every
+    // other pointer member on this line is -- savedReq/Low/High are only
+    // ever written by initiateTranslation() when a translation is left
+    // genuinely pending (see initiateMemRead()'s early-return guard for
+    // the case where that assumption matters). Leaving them uninitialized
+    // meant reading them before that ever happens returns garbage instead
+    // of a detectable NULL.
+    savedReq = NULL;
+    savedSreqLow = NULL;
+    savedSreqHigh = NULL;
     effAddr = 0;
     physEffAddrLow = 0;
     physEffAddrHigh = 0;

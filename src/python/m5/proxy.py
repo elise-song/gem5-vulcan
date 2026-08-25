@@ -52,14 +52,13 @@ class BaseProxy(object):
 
     def __setattr__(self, attr, value):
         if not attr.startswith('_'):
-            raise AttributeError, \
-                  "cannot set attribute '%s' on proxy object" % attr
+            raise AttributeError("cannot set attribute '%s' on proxy object" % attr)
         super(BaseProxy, self).__setattr__(attr, value)
 
     # support multiplying proxies by constants
     def __mul__(self, other):
-        if not isinstance(other, (int, long, float)):
-            raise TypeError, "Proxy multiplier must be integer"
+        if not isinstance(other, (int, float)):
+            raise TypeError("Proxy multiplier must be integer")
         if self._multiplier == None:
             self._multiplier = other
         else:
@@ -96,13 +95,12 @@ class BaseProxy(object):
             base._visited = False
 
         if not done:
-            raise AttributeError, \
-                  "Can't resolve proxy '%s' of type '%s' from '%s'" % \
-                  (self.path(), self._pdesc.ptype_str, base.path())
+            raise AttributeError("Can't resolve proxy '%s' of type '%s' from '%s'" % \
+                  (self.path(), self._pdesc.ptype_str, base.path()))
 
         if isinstance(result, BaseProxy):
             if result == self:
-                raise RuntimeError, "Cycle in unproxy"
+                raise RuntimeError("Cycle in unproxy")
             result = result.unproxy(obj)
 
         return self._mulcheck(result)
@@ -137,7 +135,7 @@ class AttrProxy(BaseProxy):
         if attr.startswith('_'):
             return super(AttrProxy, self).__getattr__(self, attr)
         if hasattr(self, '_pdesc'):
-            raise AttributeError, "Attribute reference on bound proxy"
+            raise AttributeError("Attribute reference on bound proxy")
         # Return a copy of self rather than modifying self in place
         # since self could be an indirect reference via a variable or
         # parameter
@@ -148,9 +146,9 @@ class AttrProxy(BaseProxy):
     # support indexing on proxies (e.g., Self.cpu[0])
     def __getitem__(self, key):
         if not isinstance(key, int):
-            raise TypeError, "Proxy object requires integer index"
+            raise TypeError("Proxy object requires integer index")
         if hasattr(self, '_pdesc'):
-            raise AttributeError, "Index operation on bound proxy"
+            raise AttributeError("Index operation on bound proxy")
         new_self = copy.deepcopy(self)
         new_self._modifiers.append(key)
         return new_self
@@ -243,4 +241,4 @@ Self = ProxyFactory(search_self = True, search_up = False)
 __all__ = ['Parent', 'Self']
 
 # see comment on imports at end of __init__.py.
-import params # for EthernetAddr
+from . import params # for EthernetAddr

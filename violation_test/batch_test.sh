@@ -20,7 +20,7 @@ export TEST_RUBY_SH=$VIOLATION_TEST_DIR/test_ruby.sh;
 # Must at least have "Squashed" !!!
 export GEM5_DEBUG_FLAGS="Squashed,ExecAll,ROB,LSQ,LSQUnit,MemDepUnit,Branch,Fetch,IQ,LSQ,LSQUnit";
 
-# UnsafeBaseline, SpectreSafeInvisibleSpec, FuturisticSafeInvisibleSpec
+# UnsafeBaseline, SpectreSafeInvisibleSpec
 export DEFAULT_SCHEME="SpectreSafeInvisibleSpec";
 
 # memory_trace, final_cache

@@ -40,8 +40,8 @@ sv2_file = os.path.join(cwd, workload.input_set + '.sv2')
 try:
     os.unlink(sav_file)
 except:
-    print "Couldn't unlink ", sav_file
+    print("Couldn't unlink ", sav_file)
 try:
     os.unlink(sv2_file)
 except:
-    print "Couldn't unlink ", sv2_file
+    print("Couldn't unlink ", sv2_file)

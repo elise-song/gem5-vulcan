@@ -25,8 +25,7 @@ fi
 WORKLOAD=blackscholes
 INPUT_SIZE=test
 #simmedium
-SCHEME=FuturisticSafeInvisibleSpec
-#FuturisticSafeFence
+SCHEME=SpectreSafeInvisibleSpec
 CORE_NUM=4
 ISA=arm
 

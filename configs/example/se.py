@@ -131,7 +131,7 @@ if '--ruby' in sys.argv:
 (options, args) = parser.parse_args()
 
 if args:
-    print "Error: script doesn't take any positional arguments"
+    print("Error: script doesn't take any positional arguments")
     sys.exit(1)
 
 multiprocesses = []
@@ -140,7 +140,7 @@ numThreads = 1
 if options.bench:
     apps = options.bench.split("-")
     if len(apps) != options.num_cpus:
-        print "number of benchmarks not equal to set num_cpus!"
+        print("number of benchmarks not equal to set num_cpus!")
         sys.exit(1)
 
     for app in apps:
@@ -156,13 +156,13 @@ if options.bench:
                         app, options.spec_input))
             multiprocesses.append(workload.makeProcess())
         except:
-            print >>sys.stderr, "Unable to find workload for %s: %s" % (
-                    buildEnv['TARGET_ISA'], app)
+            print("Unable to find workload for %s: %s" % (
+                    buildEnv['TARGET_ISA'], app), file=sys.stderr)
             sys.exit(1)
 elif options.cmd:
     multiprocesses, numThreads = get_processes(options)
 else:
-    print >> sys.stderr, "No workload specified. Exiting!\n"
+    print("No workload specified. Exiting!\n", file=sys.stderr)
     sys.exit(1)
 
 
@@ -180,7 +180,7 @@ if options.DTB_entries is not None:
     cpu_params['dtb'] = X86TLB(size = options.DTB_entries)
 
 np = options.num_cpus
-system = System(cpu = [CPUClass(cpu_id=i, **cpu_params) for i in xrange(np)],
+system = System(cpu = [CPUClass(cpu_id=i, **cpu_params) for i in range(np)],
                 mem_mode = test_mem_mode,
                 mem_ranges = [AddrRange(options.mem_size)],
                 cache_line_size = options.cacheline_size)
@@ -236,7 +236,7 @@ if options.simpoint_profile:
     if np > 1:
         fatal("SimPoint generation not supported with more than one CPUs")
 
-for i in xrange(np):
+for i in range(np):
     if options.smt:
         system.cpu[i].workload = multiprocesses
     elif len(multiprocesses) == 1:
@@ -261,7 +261,7 @@ if options.ruby:
 
     system.ruby.clk_domain = SrcClockDomain(clock = options.ruby_clock,
                                         voltage_domain = system.voltage_domain)
-    for i in xrange(np):
+    for i in range(np):
         ruby_port = system.ruby._cpu_ports[i]
         # ruby_port.max_outstanding_requests = 4 # Default: 16 (Sequencer.py::RubySequencer())
 

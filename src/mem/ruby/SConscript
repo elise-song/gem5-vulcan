@@ -80,7 +80,7 @@ def do_embed_text(target, source, env):
     # reads the text file in, line by line, converting it to a C string
     fin = open(str(source[0]), 'r')
     fout = open(str(target[0]), 'w' )
-    fout.write("static const char *%s =\n" % source[1].get_contents());
+    fout.write("static const char *%s =\n" % source[1].get_contents().decode('utf-8'));
     for l in fin:
         # add escape sequences for the characters in escape
         fout.write("\"")
@@ -103,9 +103,9 @@ def do_embed_text(target, source, env):
 generated_dir = Dir('../protocol')
 
 def MakeIncludeAction(target, source, env):
-    f = file(str(target[0]), 'w')
+    f = open(str(target[0]), 'w')
     for s in source:
-        print >>f, '#include "%s"' % str(s.abspath)
+        print('#include "%s"' % str(s.abspath), file=f)
     f.close()
 
 def MakeInclude(source):

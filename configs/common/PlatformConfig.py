@@ -83,26 +83,26 @@ def get(name):
 def print_platform_list():
     """Print a list of available Platform classes including their aliases."""
 
-    print "Available Platform classes:"
+    print("Available Platform classes:")
     doc_wrapper = TextWrapper(initial_indent="\t\t", subsequent_indent="\t\t")
-    for name, cls in _platform_classes.items():
-        print "\t%s" % name
+    for name, cls in list(_platform_classes.items()):
+        print("\t%s" % name)
 
         # Try to extract the class documentation from the class help
         # string.
         doc = inspect.getdoc(cls)
         if doc:
             for line in doc_wrapper.wrap(doc):
-                print line
+                print(line)
 
     if _platform_aliases:
-        print "\Platform aliases:"
-        for alias, target in _platform_aliases.items():
-            print "\t%s => %s" % (alias, target)
+        print("\Platform aliases:")
+        for alias, target in list(_platform_aliases.items()):
+            print("\t%s => %s" % (alias, target))
 
 def platform_names():
     """Return a list of valid Platform names."""
-    return _platform_classes.keys() + _platform_aliases.keys()
+    return list(_platform_classes.keys()) + list(_platform_aliases.keys())
 
 # Add all Platforms in the object hierarchy.
 for name, cls in inspect.getmembers(m5.objects, is_platform_class):

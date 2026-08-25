@@ -32,7 +32,7 @@
 from m5.defines import buildEnv
 from m5.params import *
 
-from BaseCPU import BaseCPU
+from m5.objects.BaseCPU import BaseCPU
 
 class BaseMipsCPU(BaseCPU)
     if buildEnv['TARGET_ISA'] == 'mips':

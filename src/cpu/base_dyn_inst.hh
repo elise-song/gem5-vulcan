@@ -129,14 +129,14 @@ class BaseDynInst : public ExecContext, public RefCounted
         ExposeSent,
         // indicates whether expose finishes
         // (should set when expose is sent out)
-        PrevInstsCompleted,
-        // indicate whether previous instructions completed
         PrevBrsResolved,
         // [mengjia] indicate whether previous branches are resolved
-        PrevInstsCommitted,
-        // indicate whether previous instructions committed
         PrevBrsCommitted,
         // [mengjia] indicate whether previous branches are committed
+        PrevFenceCommitted,
+        // [InvisiSpec] indicate whether every earlier memory barrier has
+        // retired (Sec. V-C's "no earlier fence in the ROB" condition,
+        // used to decide validation vs. exposure under RC)
         L1HitHigh,
         L1HitLow,
         SpecBuffObsoleteHigh,
@@ -348,6 +348,7 @@ class BaseDynInst : public ExecContext, public RefCounted
 
     bool validationFail() const { return instFlags[ValidationFail]; }
     void validationFail(bool f) { instFlags[ValidationFail] = f; }
+
 
     bool onlyWaitForFence() const { return instFlags[OnlyWaitForFence]; }
     void onlyWaitForFence(bool f) { instFlags[OnlyWaitForFence] = f; }
@@ -832,8 +833,6 @@ class BaseDynInst : public ExecContext, public RefCounted
     void clearL1HitLow() { status.reset(L1HitLow); }
     bool isL1HitLow() const { return status[L1HitLow]; }
 
-    void setPrevInstsCompleted() { status.set(PrevInstsCompleted); }
-    bool isPrevInstsCompleted() const { return status[PrevInstsCompleted]; }
 
     void setSpecBuffObsoleteHigh() { status.set(SpecBuffObsoleteHigh); }
     bool isSpecBuffObsoleteHigh() const { return status[SpecBuffObsoleteHigh]; }
@@ -844,11 +843,12 @@ class BaseDynInst : public ExecContext, public RefCounted
     void setPrevBrsResolved() { status.set(PrevBrsResolved); }
     bool isPrevBrsResolved() const { return status[PrevBrsResolved]; }
 
-    void setPrevInstsCommitted() { status.set(PrevInstsCommitted); }
-    bool isPrevInstsCommitted() const { return status[PrevInstsCommitted]; }
 
     void setPrevBrsCommitted() { status.set(PrevBrsCommitted); }
     bool isPrevBrsCommitted() const { return status[PrevBrsCommitted]; }
+
+    void setPrevFenceCommitted() { status.set(PrevFenceCommitted); }
+    bool isPrevFenceCommitted() const { return status[PrevFenceCommitted]; }
     /* Configure load related status */
 
     /** Marks the result as ready. */
@@ -1067,6 +1067,26 @@ BaseDynInst<Impl>::initiateMemRead(Addr addr, unsigned size,
         req = savedReq;
         sreqLow = savedSreqLow;
         sreqHigh = savedSreqHigh;
+
+        // [InvisiSpec fix] savedReq is only ever populated by
+        // initiateTranslation() below when a translation is left
+        // genuinely pending (i.e. !translationCompleted() right after
+        // starting it) -- that's the only scenario this reuse branch was
+        // designed for. If translationCompleted() is already true here
+        // and savedReq still came back NULL, translation actually
+        // finished *synchronously* on the call that started it, and that
+        // same call already ran the code below and issued the read.
+        // This retry call only happened because executeLoad() asked to
+        // wait one extra cycle for specTLBMiss() (deferred D-TLB fill;
+        // Sec. VI-E3) to clear before finalizing -- there is nothing
+        // left to redo, and reading req->getVaddr() on the stale/unset
+        // req below would be a null-pointer dereference.
+        if (translationCompleted() && req == NULL) {
+            if (traceData) {
+                traceData->setMem(addr, size, flags);
+            }
+            return fault;
+        }
     } else {
         req = new Request(asid, addr, size, flags, masterId(), this->pc.instAddr(), this->seqNum,
                           thread->contextId());
@@ -1118,7 +1138,7 @@ BaseDynInst<Impl>::initiateMemRead(Addr addr, unsigned size,
         } else {
             // Commit will have to clean up whatever happened.  Set this
             // instruction as executed.
-           
+
             // [InvisiSpec] If it is a fault on translating a spec load
             // Deffer it and retry when it is ready to expose
             if (!readyToExpose()){
@@ -1288,6 +1308,17 @@ BaseDynInst<Impl>::finishTranslation(WholeTranslationState *state)
         }
 
         memReqFlags = state->getFlags();
+
+        // [InvisiSpec] Section VI-E3: record whether this load's D-TLB
+        // fill was computed but deferred (rather than a straight hit),
+        // purely for observability -- the actual deferred-commit
+        // mechanism lives in TLB::commitSpeculativeFill(), keyed off the
+        // request itself, not this flag.
+        instFlags[SpecTLBMiss] =
+            state->isSplit
+                ? (state->sreqLow->isSpecTLBDeferred() ||
+                   state->sreqHigh->isSpecTLBDeferred())
+                : state->mainReq->isSpecTLBDeferred();
 
         if (state->mainReq->isCondSwap()) {
             assert(state->res);

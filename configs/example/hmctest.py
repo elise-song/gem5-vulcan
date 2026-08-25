@@ -55,17 +55,17 @@ def build_system(options):
     system.clk_domain = SrcClockDomain(clock=clk, voltage_domain=vd)
     # add traffic generators to the system
     system.tgen = [TrafficGen(config_file=options.tgen_cfg_file) for i in
-                   xrange(options.num_tgen)]
+                   range(options.num_tgen)]
     # Config memory system with given HMC arch
     MemConfig.config_mem(options, system)
     # Connect the traffic generatiors
     if options.arch == "distributed":
-        for i in xrange(options.num_tgen):
+        for i in range(options.num_tgen):
             system.tgen[i].port = system.membus.slave
         # connect the system port even if it is not used in this example
         system.system_port = system.membus.slave
     if options.arch == "mixed":
-        for i in xrange(int(options.num_tgen/2)):
+        for i in range(int(options.num_tgen/2)):
             system.tgen[i].port = system.membus.slave
         hh = system.hmc_host
         if options.enable_global_monitor:
@@ -80,7 +80,7 @@ def build_system(options):
         system.system_port = system.membus.slave
     if options.arch == "same":
         hh = system.hmc_host
-        for i in xrange(options.num_links_controllers):
+        for i in range(options.num_links_controllers):
             if options.enable_global_monitor:
                 system.tgen[i].port = hh.lmonitor[i].slave
             else:
@@ -100,13 +100,13 @@ def main():
     root = build_system(options)
     # instantiate all of the objects we've created so far
     m5.instantiate()
-    print "Beginning simulation!"
+    print("Beginning simulation!")
     event = m5.simulate(10000000000)
     m5.stats.dump()
-    print 'Exiting @ tick %i because %s (exit code is %i)' % (m5.curTick(),
+    print('Exiting @ tick %i because %s (exit code is %i)' % (m5.curTick(),
                                                               event.getCause(),
-                                                              event.getCode())
-    print "Done"
+                                                              event.getCode()))
+    print("Done")
 
 
 if __name__ == "__m5_main__":

@@ -43,6 +43,9 @@ enumeration(CoherenceRequestType, desc="...") {
 
   DMA_READ, desc="DMA Read";
   DMA_WRITE, desc="DMA Write";
+
+  // [InvisiSpec] clflush/clflushopt support
+  FLUSH,     desc="L1 clflush request, line may still be present in L1";
 }
 
 // CoherenceResponseType
@@ -56,6 +59,9 @@ enumeration(CoherenceResponseType, desc="...") {
   UNBLOCK, desc="unblock";
   EXCLUSIVE_UNBLOCK, desc="exclusive unblock";
   INV, desc="Invalidate from directory";
+
+  // [InvisiSpec] clflush/clflushopt support
+  FLUSH_ACK, desc="L2 ack that a clflush fully evicted the line";
 }
 
 // RequestMsg
@@ -72,6 +78,7 @@ structure(RequestMsg, desc="...", interface="Message") {
   PrefetchBit Prefetch,         desc="Is this a prefetch request";
   MachineID origin;
   int idx, default="-1",        desc="LQ index";
+  int epoch, default="0",       desc="[InvisiSpec] requesting core's Epoch ID at issue time";
   
   bool functionalRead(Packet *pkt) {
     // Only PUTX messages contains the data block

@@ -213,7 +213,7 @@ class ROB
     void updateTail();
 
     /** [SafeSpce] Updates load instructions visible condition
-     *  set isPrevInstsCompleted and isPrevBrsResolved. */
+     *  set isPrevBrsResolved. */
     void updateVisibleState();
 
     /** Reads the PC of the oldest head instruction. */

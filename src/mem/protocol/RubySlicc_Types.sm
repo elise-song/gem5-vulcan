@@ -173,6 +173,7 @@ structure(RubyRequest, desc="...", interface="Message", external="yes") {
   HSASegment segment,        desc="HSA segment";
   PacketPtr pkt,             desc="Packet associated with this request";
   int idx,                   desc="LQ index";
+  int epoch,                 desc="[InvisiSpec] requesting core's Epoch ID at issue time";
 }
 
 structure(AbstractEntry, primitive="yes", external = "yes") {

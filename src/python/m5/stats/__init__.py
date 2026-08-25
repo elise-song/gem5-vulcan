@@ -71,7 +71,7 @@ def _url_factory(func):
 
     @wraps(func)
     def wrapper(url):
-        from urlparse import parse_qs
+        from urllib.parse import parse_qs
         from ast import literal_eval
 
         qs = parse_qs(url.query, keep_blank_values=True)
@@ -92,7 +92,7 @@ def _url_factory(func):
                     fatal("%s: %s isn't a valid Python literal" \
                           % (url.geturl(), values[0]))
 
-        kwargs = dict([ parse_value(k, v) for k, v in qs.items() ])
+        kwargs = dict([ parse_value(k, v) for k, v in list(qs.items()) ])
 
         try:
             return func("%s%s" % (url.netloc, url.path), **kwargs)
@@ -135,7 +135,7 @@ def addStatVisitor(url):
 
     """
 
-    from urlparse import urlsplit
+    from urllib.parse import urlsplit
 
     parsed = urlsplit(url)
 
@@ -169,12 +169,7 @@ def enable():
         if not (stat.flags & flags.display):
             stat.name = "__Stat%06d" % stat.id
 
-    def less(stat1, stat2):
-        v1 = stat1.name.split('.')
-        v2 = stat2.name.split('.')
-        return v1 < v2
-
-    stats_list.sort(less)
+    stats_list.sort(key=lambda stat: stat.name.split('.'))
     for stat in stats_list:
         stats_dict[stat.name] = stat
         stat.enable()

@@ -103,8 +103,6 @@ help_texts = {
     "local_vars" : ""
 }
 
-Export("help_texts")
-
 
 # There's a bug in scons in that (1) by default, the help texts from
 # AddOption() are supposed to be displayed when you type 'scons -h'
@@ -163,8 +161,17 @@ AddLocalOption('--with-ubsan', dest='with_ubsan', action='store_true',
 AddLocalOption('--with-asan', dest='with_asan', action='store_true',
                help='Build with Address Sanitizer if available')
 
+# Export help_texts only after all AddLocalOption() calls above have
+# registered their options. Export() triggers scons to lazily create the
+# DefaultEnvironment, which loads site_tools (e.g. git.py), which in turn
+# eagerly calls GetOption('use_colors') at import time via
+# gem5_scons.get_termcap(). Newer versions of scons raise an AttributeError
+# for GetOption() on a not-yet-registered option (older scons silently
+# returned None), so the option must be registered first.
+Export("help_texts")
+
 if GetOption('no_lto') and GetOption('force_lto'):
-    print '--no-lto and --force-lto are mutually exclusive'
+    print('--no-lto and --force-lto are mutually exclusive')
     Exit(1)
 
 ########################################################################
@@ -179,11 +186,11 @@ from gem5_scons import Transform
 from gem5_scons.util import get_termcap
 termcap = get_termcap()
 
-main_dict_keys = main.Dictionary().keys()
+main_dict_keys = list(main.Dictionary().keys())
 
 # Check that we have a C/C++ compiler
 if not ('CC' in main_dict_keys and 'CXX' in main_dict_keys):
-    print "No C++ compiler installed (package g++ on Ubuntu and RedHat)"
+    print("No C++ compiler installed (package g++ on Ubuntu and RedHat)")
     Exit(1)
 
 ###################################################
@@ -201,7 +208,7 @@ def rfind(l, elt, offs = -1):
     for i in range(len(l)+offs, 0, -1):
         if l[i] == elt:
             return i
-    raise ValueError, "element not found"
+    raise ValueError("element not found")
 
 # Take a list of paths (or SCons Nodes) and return a list with all
 # paths made absolute and ~-expanded.  Paths will be interpreted
@@ -230,15 +237,15 @@ for t in BUILD_TARGETS:
     try:
         build_top = rfind(path_dirs, 'build', -2)
     except:
-        print "Error: no non-leaf 'build' dir found on target path", t
+        print("Error: no non-leaf 'build' dir found on target path", t)
         Exit(1)
     this_build_root = joinpath('/',*path_dirs[:build_top+1])
     if not build_root:
         build_root = this_build_root
     else:
         if this_build_root != build_root:
-            print "Error: build targets not under same build root\n"\
-                  "  %s\n  %s" % (build_root, this_build_root)
+            print("Error: build targets not under same build root\n"\
+                  "  %s\n  %s" % (build_root, this_build_root))
             Exit(1)
     variant_path = joinpath('/',*path_dirs[:build_top+2])
     if variant_path not in variant_paths:
@@ -299,6 +306,18 @@ Export('extras_dir_list')
 # the ext directory should be on the #includes path
 main.Append(CPPPATH=[Dir('ext')])
 
+# gem5 uses exactly one Boost header (boost/algorithm/string.hpp, in
+# cpu/pred/tournament.hh) and this system has the Boost runtime libraries
+# installed but not libboost-dev (the headers), and no root access is
+# available here to install it. Fall back to a user-local copy of the
+# headers, extracted from the libboost-dev package with
+# 'apt-get download' + 'dpkg -x' (neither of which need root), if one is
+# present. This is a no-op on systems where libboost-dev is installed
+# normally.
+local_boost_include = os.path.expanduser('~/.local/include/gem5-boost')
+if os.path.isdir(local_boost_include):
+    main.Append(CPPPATH=[local_boost_include])
+
 # Add shared top-level headers
 main.Prepend(CPPPATH=Dir('include'))
 
@@ -335,7 +354,7 @@ CXX_V = readCommand([main['CXX'],'-V'], exception=False)
 main['GCC'] = CXX_version and CXX_version.find('g++') >= 0
 main['CLANG'] = CXX_version and CXX_version.find('clang') >= 0
 if main['GCC'] + main['CLANG'] > 1:
-    print 'Error: How can we have two at the same time?'
+    print('Error: How can we have two at the same time?')
     Exit(1)
 
 # Set up default C++ compiler flags
@@ -369,22 +388,22 @@ if main['GCC'] or main['CLANG']:
     #                      '-Wno-error=deprecated',
     #                     ])
 else:
-    print termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal,
-    print "Don't know what compiler options to use for your compiler."
-    print termcap.Yellow + '       compiler:' + termcap.Normal, main['CXX']
-    print termcap.Yellow + '       version:' + termcap.Normal,
+    print(termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal, end=' ')
+    print("Don't know what compiler options to use for your compiler.")
+    print(termcap.Yellow + '       compiler:' + termcap.Normal, main['CXX'])
+    print(termcap.Yellow + '       version:' + termcap.Normal, end=' ')
     if not CXX_version:
-        print termcap.Yellow + termcap.Bold + "COMMAND NOT FOUND!" +\
-               termcap.Normal
+        print(termcap.Yellow + termcap.Bold + "COMMAND NOT FOUND!" +\
+               termcap.Normal)
     else:
-        print CXX_version.replace('\n', '<nl>')
-    print "       If you're trying to use a compiler other than GCC"
-    print "       or clang, there appears to be something wrong with your"
-    print "       environment."
-    print "       "
-    print "       If you are trying to use a compiler other than those listed"
-    print "       above you will need to ease fix SConstruct and "
-    print "       src/SConscript to support that compiler."
+        print(CXX_version.replace('\n', '<nl>'))
+    print("       If you're trying to use a compiler other than GCC")
+    print("       or clang, there appears to be something wrong with your")
+    print("       environment.")
+    print("       ")
+    print("       If you are trying to use a compiler other than those listed")
+    print("       above you will need to ease fix SConstruct and ")
+    print("       src/SConscript to support that compiler.")
     Exit(1)
 
 if main['GCC']:
@@ -393,8 +412,8 @@ if main['GCC']:
     # http://gcc.gnu.org/projects/cxx0x.html for details.
     gcc_version = readCommand([main['CXX'], '-dumpversion'], exception=False)
     if compareVersions(gcc_version, "4.8") < 0:
-        print 'Error: gcc version 4.8 or newer required.'
-        print '       Installed version:', gcc_version
+        print('Error: gcc version 4.8 or newer required.')
+        print('       Installed version:', gcc_version)
         Exit(1)
 
     main['GCC_VERSION'] = gcc_version
@@ -435,31 +454,31 @@ if main['GCC']:
     as_version = as_version_raw[-1].split('-')[0] if as_version_raw else None
 
     if not as_version or compareVersions(as_version, "2.23") < 0:
-        print termcap.Yellow + termcap.Bold + \
+        print(termcap.Yellow + termcap.Bold + \
             'Warning: This combination of gcc and binutils have' + \
             ' known incompatibilities.\n' + \
             '         If you encounter build problems, please update ' + \
             'binutils to 2.23.' + \
-            termcap.Normal
+            termcap.Normal)
 
     # Make sure we warn if the user has requested to compile with the
     # Undefined Benahvior Sanitizer and this version of gcc does not
     # support it.
     if GetOption('with_ubsan') and \
             compareVersions(gcc_version, '4.9') < 0:
-        print termcap.Yellow + termcap.Bold + \
+        print(termcap.Yellow + termcap.Bold + \
             'Warning: UBSan is only supported using gcc 4.9 and later.' + \
-            termcap.Normal
+            termcap.Normal)
 
     disable_lto = GetOption('no_lto')
     if not disable_lto and main.get('BROKEN_INCREMENTAL_LTO', False) and \
             not GetOption('force_lto'):
-        print termcap.Yellow + termcap.Bold + \
+        print(termcap.Yellow + termcap.Bold + \
             'Warning: Your compiler doesn\'t support incremental linking' + \
             ' and lto at the same time, so lto is being disabled. To force' + \
             ' lto on anyway, use the --force-lto option. That will disable' + \
             ' partial linking.' + \
-            termcap.Normal
+            termcap.Normal)
         disable_lto = True
 
     # Add the appropriate Link-Time Optimization (LTO) flags
@@ -510,11 +529,11 @@ elif main['CLANG']:
     if (clang_version_match):
         clang_version = clang_version_match.groups()[0]
         if compareVersions(clang_version, "3.1") < 0:
-            print 'Error: clang version 3.1 or newer required.'
-            print '       Installed version:', clang_version
+            print('Error: clang version 3.1 or newer required.')
+            print('       Installed version:', clang_version)
             Exit(1)
     else:
-        print 'Error: Unable to determine clang version.'
+        print('Error: Unable to determine clang version.')
         Exit(1)
 
     # clang has a few additional warnings that we disable, extraneous
@@ -558,22 +577,22 @@ elif main['CLANG']:
                    LINKFLAGS='-fsanitize=address')
 
 else:
-    print termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal,
-    print "Don't know what compiler options to use for your compiler."
-    print termcap.Yellow + '       compiler:' + termcap.Normal, main['CXX']
-    print termcap.Yellow + '       version:' + termcap.Normal,
+    print(termcap.Yellow + termcap.Bold + 'Error' + termcap.Normal, end=' ')
+    print("Don't know what compiler options to use for your compiler.")
+    print(termcap.Yellow + '       compiler:' + termcap.Normal, main['CXX'])
+    print(termcap.Yellow + '       version:' + termcap.Normal, end=' ')
     if not CXX_version:
-        print termcap.Yellow + termcap.Bold + "COMMAND NOT FOUND!" +\
-               termcap.Normal
+        print(termcap.Yellow + termcap.Bold + "COMMAND NOT FOUND!" +\
+               termcap.Normal)
     else:
-        print CXX_version.replace('\n', '<nl>')
-    print "       If you're trying to use a compiler other than GCC"
-    print "       or clang, there appears to be something wrong with your"
-    print "       environment."
-    print "       "
-    print "       If you are trying to use a compiler other than those listed"
-    print "       above you will need to ease fix SConstruct and "
-    print "       src/SConscript to support that compiler."
+        print(CXX_version.replace('\n', '<nl>'))
+    print("       If you're trying to use a compiler other than GCC")
+    print("       or clang, there appears to be something wrong with your")
+    print("       environment.")
+    print("       ")
+    print("       If you are trying to use a compiler other than those listed")
+    print("       above you will need to ease fix SConstruct and ")
+    print("       src/SConscript to support that compiler.")
     Exit(1)
 
 # Set up common yacc/bison flags (needed for Ruby)
@@ -599,21 +618,21 @@ protoc_version = readCommand([main['PROTOC'], '--version'],
 
 # First two words should be "libprotoc x.y.z"
 if len(protoc_version) < 2 or protoc_version[0] != 'libprotoc':
-    print termcap.Yellow + termcap.Bold + \
+    print(termcap.Yellow + termcap.Bold + \
         'Warning: Protocol buffer compiler (protoc) not found.\n' + \
         '         Please install protobuf-compiler for tracing support.' + \
-        termcap.Normal
+        termcap.Normal)
     main['PROTOC'] = False
 else:
     # Based on the availability of the compress stream wrappers,
     # require 2.1.0
     min_protoc_version = '2.1.0'
     if compareVersions(protoc_version[1], min_protoc_version) < 0:
-        print termcap.Yellow + termcap.Bold + \
+        print(termcap.Yellow + termcap.Bold + \
             'Warning: protoc version', min_protoc_version, \
             'or newer required.\n' + \
             '         Installed version:', protoc_version[1], \
-            termcap.Normal
+            termcap.Normal)
         main['PROTOC'] = False
     else:
         # Attempt to determine the appropriate include path and
@@ -628,9 +647,9 @@ else:
                 # using pkg-config
                 main.ParseConfig('pkg-config --cflags --libs-only-L protobuf')
             except:
-                print termcap.Yellow + termcap.Bold + \
+                print(termcap.Yellow + termcap.Bold + \
                     'Warning: pkg-config could not get protobuf flags.' + \
-                    termcap.Normal
+                    termcap.Normal)
 
 
 # Check for 'timeout' from GNU coreutils. If present, regressions will
@@ -710,7 +729,7 @@ if not conf:
 
 # Cache build files in the supplied directory.
 if main['M5_BUILD_CACHE']:
-    print 'Using build cache located at', main['M5_BUILD_CACHE']
+    print('Using build cache located at', main['M5_BUILD_CACHE'])
     CacheDir(main['M5_BUILD_CACHE'])
 
 main['USE_PYTHON'] = not GetOption('without_python')
@@ -723,22 +742,38 @@ if main['USE_PYTHON']:
     # version of python, see above for instructions on how to invoke
     # scons with the appropriate PATH set.
     #
-    # First we check if python2-config exists, else we use python-config
+    # First we check if python2-config exists, else we use python-config,
+    # else fall back to python3-config (Python-2 is not installed on this
+    # system, and some distros only ship python3-config, not a generic
+    # python-config symlink).
     python_config = readCommand(['which', 'python2-config'],
                                 exception='').strip()
     if not os.path.exists(python_config):
         python_config = readCommand(['which', 'python-config'],
                                     exception='').strip()
+    if not os.path.exists(python_config):
+        python_config = readCommand(['which', 'python3-config'],
+                                    exception='').strip()
     py_includes = readCommand([python_config, '--includes'],
                               exception='').split()
     # Strip the -I from the include folders before adding them to the
     # CPPPATH
-    main.Append(CPPPATH=map(lambda inc: inc[2:], py_includes))
+    main.Append(CPPPATH=[inc[2:] for inc in py_includes])
 
     # Read the linker flags and split them into libraries and other link
     # flags. The libraries are added later through the call the CheckLib.
-    py_ld_flags = readCommand([python_config, '--ldflags'],
+    # Since Python 3.8, 'python3-config --ldflags' no longer includes
+    # -lpython3.x unless --embed is also passed (the un-embedded flags are
+    # meant for extension modules, which get libpython from the
+    # interpreter that loads them; we're embedding the interpreter into
+    # gem5.opt itself, so we need --embed here). Try --embed first and
+    # fall back to plain --ldflags for python-config versions that don't
+    # understand --embed (Python < 3.8, or python2-config).
+    py_ld_flags = readCommand([python_config, '--ldflags', '--embed'],
         exception='').split()
+    if not any(flag.startswith('-lpython') for flag in py_ld_flags):
+        py_ld_flags = readCommand([python_config, '--ldflags'],
+            exception='').split()
     py_libs = []
     for lib in py_ld_flags:
          if not lib.startswith('-l'):
@@ -750,27 +785,27 @@ if main['USE_PYTHON']:
 
     # verify that this stuff works
     if not conf.CheckHeader('Python.h', '<>'):
-        print "Error: can't find Python.h header in", py_includes
-        print "Install Python headers (package python-dev on Ubuntu and RedHat)"
+        print("Error: can't find Python.h header in", py_includes)
+        print("Install Python headers (package python-dev on Ubuntu and RedHat)")
         Exit(1)
 
     for lib in py_libs:
         if not conf.CheckLib(lib):
-            print "Error: can't find library %s required by python" % lib
+            print("Error: can't find library %s required by python" % lib)
             Exit(1)
 
 # On Solaris you need to use libsocket for socket ops
 if not conf.CheckLibWithHeader(None, 'sys/socket.h', 'C++', 'accept(0,0,0);'):
    if not conf.CheckLibWithHeader('socket', 'sys/socket.h', 'C++', 'accept(0,0,0);'):
-       print "Can't find library with socket calls (e.g. accept())"
+       print("Can't find library with socket calls (e.g. accept())")
        Exit(1)
 
 # Check for zlib.  If the check passes, libz will be automatically
 # added to the LIBS environment variable.
 if not conf.CheckLibWithHeader('z', 'zlib.h', 'C++','zlibVersion();'):
-    print 'Error: did not find needed zlib compression library '\
-          'and/or zlib.h header file.'
-    print '       Please install zlib and try again.'
+    print('Error: did not find needed zlib compression library '\
+          'and/or zlib.h header file.')
+    print('       Please install zlib and try again.')
     Exit(1)
 
 # If we have the protobuf compiler, also make sure we have the
@@ -784,10 +819,10 @@ main['HAVE_PROTOBUF'] = main['PROTOC'] and \
 
 # If we have the compiler but not the library, print another warning.
 if main['PROTOC'] and not main['HAVE_PROTOBUF']:
-    print termcap.Yellow + termcap.Bold + \
+    print(termcap.Yellow + termcap.Bold + \
         'Warning: did not find protocol buffer library and/or headers.\n' + \
     '       Please install libprotobuf-dev for tracing support.' + \
-    termcap.Normal
+    termcap.Normal)
 
 # Check for librt.
 have_posix_clock = \
@@ -806,10 +841,10 @@ if not GetOption('without_tcmalloc'):
     elif conf.CheckLib('tcmalloc_minimal'):
         main.Append(CCFLAGS=main['TCMALLOC_CCFLAGS'])
     else:
-        print termcap.Yellow + termcap.Bold + \
+        print(termcap.Yellow + termcap.Bold + \
               "You can get a 12% performance improvement by "\
               "installing tcmalloc (libgoogle-perftools-dev package "\
-              "on Ubuntu or RedHat)." + termcap.Normal
+              "on Ubuntu or RedHat)." + termcap.Normal)
 
 
 # Detect back trace implementations. The last implementation in the
@@ -828,26 +863,26 @@ elif conf.CheckLibWithHeader('execinfo', 'execinfo.h', 'C',
 
 if backtrace_impls[-1] == "none":
     default_backtrace_impl = "none"
-    print termcap.Yellow + termcap.Bold + \
+    print(termcap.Yellow + termcap.Bold + \
         "No suitable back trace implementation found." + \
-        termcap.Normal
+        termcap.Normal)
 
 if not have_posix_clock:
-    print "Can't find library for POSIX clocks."
+    print("Can't find library for POSIX clocks.")
 
 # Check for <fenv.h> (C99 FP environment control)
 have_fenv = conf.CheckHeader('fenv.h', '<>')
 if not have_fenv:
-    print "Warning: Header file <fenv.h> not found."
-    print "         This host has no IEEE FP rounding mode control."
+    print("Warning: Header file <fenv.h> not found.")
+    print("         This host has no IEEE FP rounding mode control.")
 
 # Check for <png.h> (libpng library needed if wanting to dump
 # frame buffer image in png format)
 have_png = conf.CheckHeader('png.h', '<>')
 if not have_png:
-    print "Warning: Header file <png.h> not found."
-    print "         This host has no libpng library."
-    print "         Disabling support for PNG framebuffers."
+    print("Warning: Header file <png.h> not found.")
+    print("         This host has no libpng library.")
+    print("         Disabling support for PNG framebuffers.")
 
 # Check if we should enable KVM-based hardware virtualization. The API
 # we rely on exists since version 2.6.36 of the kernel, but somehow
@@ -855,13 +890,13 @@ if not have_png:
 # the types as a fall back.
 have_kvm = conf.CheckHeader('linux/kvm.h', '<>')
 if not have_kvm:
-    print "Info: Compatible header file <linux/kvm.h> not found, " \
-        "disabling KVM support."
+    print("Info: Compatible header file <linux/kvm.h> not found, " \
+        "disabling KVM support.")
 
 # Check if the TUN/TAP driver is available.
 have_tuntap = conf.CheckHeader('linux/if_tun.h', '<>')
 if not have_tuntap:
-    print "Info: Compatible header file <linux/if_tun.h> not found."
+    print("Info: Compatible header file <linux/if_tun.h> not found.")
 
 # x86 needs support for xsave. We test for the structure here since we
 # won't be able to run new tests by the time we know which ISA we're
@@ -875,12 +910,12 @@ def is_isa_kvm_compatible(isa):
         import platform
         host_isa = platform.machine()
     except:
-        print "Warning: Failed to determine host ISA."
+        print("Warning: Failed to determine host ISA.")
         return False
 
     if not have_posix_timers:
-        print "Warning: Can not enable KVM, host seems to lack support " \
-            "for POSIX timers"
+        print("Warning: Can not enable KVM, host seems to lack support " \
+            "for POSIX timers")
         return False
 
     if isa == "arm":
@@ -890,7 +925,7 @@ def is_isa_kvm_compatible(isa):
             return False
 
         if not have_kvm_xsave:
-            print "KVM on x86 requires xsave support in kernel headers."
+            print("KVM on x86 requires xsave support in kernel headers.")
             return False
 
         return True
@@ -937,7 +972,7 @@ class CpuModel(object):
 
         # Add self to dict
         if name in CpuModel.dict:
-            raise AttributeError, "CpuModel '%s' already registered" % name
+            raise AttributeError("CpuModel '%s' already registered" % name)
         CpuModel.dict[name] = self
 
 Export('CpuModel')
@@ -963,15 +998,15 @@ Export('slicc_includes')
 # Walk the tree and execute all SConsopts scripts that wil add to the
 # above variables
 if GetOption('verbose'):
-    print "Reading SConsopts"
+    print("Reading SConsopts")
 for bdir in [ base_dir ] + extras_dir_list:
     if not isdir(bdir):
-        print "Error: directory '%s' does not exist" % bdir
+        print("Error: directory '%s' does not exist" % bdir)
         Exit(1)
     for root, dirs, files in os.walk(bdir):
         if 'SConsopts' in files:
             if GetOption('verbose'):
-                print "Reading", joinpath(root, 'SConsopts')
+                print("Reading", joinpath(root, 'SConsopts'))
             SConscript(joinpath(root, 'SConsopts'))
 
 all_isa_list.sort()
@@ -981,7 +1016,7 @@ sticky_vars.AddVariables(
     EnumVariable('TARGET_ISA', 'Target ISA', 'alpha', all_isa_list),
     EnumVariable('TARGET_GPU_ISA', 'Target GPU ISA', 'hsail', all_gpu_isa_list),
     ListVariable('CPU_MODELS', 'CPU models',
-                 sorted(n for n,m in CpuModel.dict.iteritems() if m.default),
+                 sorted(n for n,m in CpuModel.dict.items() if m.default),
                  sorted(CpuModel.dict.keys())),
     BoolVariable('EFENCE', 'Link with Electric Fence malloc debugger',
                  False),
@@ -1025,9 +1060,9 @@ export_vars += ['USE_FENV', 'SS_COMPATIBLE_FP', 'TARGET_ISA', 'TARGET_GPU_ISA',
 # operands are the name of the variable and a Value node containing the
 # value of the variable.
 def build_config_file(target, source, env):
-    (variable, value) = [s.get_contents() for s in source]
-    f = file(str(target[0]), 'w')
-    print >> f, '#define', variable, value
+    (variable, value) = [s.get_contents().decode('utf-8') for s in source]
+    f = open(str(target[0]), 'w')
+    print('#define', variable, value, file=f)
     f.close()
     return None
 
@@ -1109,7 +1144,7 @@ def build_switching_header(target, source, env):
     dp = os.path.relpath(os.path.realpath(dp),
                          os.path.realpath(env['BUILDDIR']))
     with open(path, 'w') as hdr:
-        print >>hdr, '#include "%s/%s/%s"' % (dp, subdir, fp)
+        print('#include "%s/%s/%s"' % (dp, subdir, fp), file=hdr)
 
 switching_header_action = MakeAction(build_switching_header,
                                      Transform('GENERATE'))
@@ -1134,7 +1169,7 @@ main.AddMethod(switching_headers, 'SwitchingHeaders')
 
 for variant_path in variant_paths:
     if not GetOption('silent'):
-        print "Building in", variant_path
+        print("Building in", variant_path)
 
     # Make a copy of the build-root environment to use for this config.
     env = main.Clone()
@@ -1153,7 +1188,7 @@ for variant_path in variant_paths:
     if isfile(current_vars_file):
         sticky_vars.files.append(current_vars_file)
         if not GetOption('silent'):
-            print "Using saved variables file %s" % current_vars_file
+            print("Using saved variables file %s" % current_vars_file)
     elif variant_dir in ext_build_dirs:
         # Things in ext are built without a variant directory.
         continue
@@ -1175,16 +1210,16 @@ for variant_path in variant_paths:
                                   joinpath(opts_dir, default)]
         else:
             default_vars_files = [joinpath(opts_dir, variant_dir)]
-        existing_files = filter(isfile, default_vars_files)
+        existing_files = list(filter(isfile, default_vars_files))
         if existing_files:
             default_vars_file = existing_files[0]
             sticky_vars.files.append(default_vars_file)
-            print "Variables file %s not found,\n  using defaults in %s" \
-                  % (current_vars_file, default_vars_file)
+            print("Variables file %s not found,\n  using defaults in %s" \
+                  % (current_vars_file, default_vars_file))
         else:
-            print "Error: cannot find variables file %s or " \
+            print("Error: cannot find variables file %s or " \
                   "default file(s) %s" \
-                  % (current_vars_file, ' or '.join(default_vars_files))
+                  % (current_vars_file, ' or '.join(default_vars_files)))
             Exit(1)
 
     # Apply current variable settings to env
@@ -1197,17 +1232,17 @@ for variant_path in variant_paths:
     # Process variable settings.
 
     if not have_fenv and env['USE_FENV']:
-        print "Warning: <fenv.h> not available; " \
-              "forcing USE_FENV to False in", variant_dir + "."
+        print("Warning: <fenv.h> not available; " \
+              "forcing USE_FENV to False in", variant_dir + ".")
         env['USE_FENV'] = False
 
     if not env['USE_FENV']:
-        print "Warning: No IEEE FP rounding mode control in", variant_dir + "."
-        print "         FP results may deviate slightly from other platforms."
+        print("Warning: No IEEE FP rounding mode control in", variant_dir + ".")
+        print("         FP results may deviate slightly from other platforms.")
 
     if not have_png and env['USE_PNG']:
-        print "Warning: <png.h> not available; " \
-              "forcing USE_PNG to False in", variant_dir + "."
+        print("Warning: <png.h> not available; " \
+              "forcing USE_PNG to False in", variant_dir + ".")
         env['USE_PNG'] = False
 
     if env['USE_PNG']:
@@ -1218,16 +1253,16 @@ for variant_path in variant_paths:
 
     if env['USE_KVM']:
         if not have_kvm:
-            print "Warning: Can not enable KVM, host seems to lack KVM support"
+            print("Warning: Can not enable KVM, host seems to lack KVM support")
             env['USE_KVM'] = False
         elif not is_isa_kvm_compatible(env['TARGET_ISA']):
-            print "Info: KVM support disabled due to unsupported host and " \
-                "target ISA combination"
+            print("Info: KVM support disabled due to unsupported host and " \
+                "target ISA combination")
             env['USE_KVM'] = False
 
     if env['USE_TUNTAP']:
         if not have_tuntap:
-            print "Warning: Can't connect EtherTap with a tap device."
+            print("Warning: Can't connect EtherTap with a tap device.")
             env['USE_TUNTAP'] = False
 
     if env['BUILD_GPU']:
@@ -1236,9 +1271,9 @@ for variant_path in variant_paths:
     # Warn about missing optional functionality
     if env['USE_KVM']:
         if not main['HAVE_PERF_ATTR_EXCLUDE_HOST']:
-            print "Warning: perf_event headers lack support for the " \
+            print("Warning: perf_event headers lack support for the " \
                 "exclude_host attribute. KVM instruction counts will " \
-                "be inaccurate."
+                "be inaccurate.")
 
     # Save sticky variable settings back to current variables file
     sticky_vars.Save(current_vars_file, env)

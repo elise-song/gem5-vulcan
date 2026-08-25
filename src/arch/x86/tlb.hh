@@ -41,6 +41,7 @@
 #define __ARCH_X86_TLB_HH__
 
 #include <list>
+#include <unordered_map>
 #include <vector>
 
 #include "arch/generic/tlb.hh"
@@ -113,6 +114,22 @@ namespace X86ISA
                 Translation *translation, Mode mode,
                 bool &delayedResponse, bool timing);
 
+        // [InvisiSpec] Section VI-E3: an unsafe speculative load's SE-mode
+        // TLB fill is computed immediately (so the load can proceed with a
+        // valid paddr), but the fill's observable insert() into the TLB is
+        // withheld here, keyed by page vaddr, until the load reaches its
+        // visibility point and calls commitSpeculativeFill(). If the load
+        // is squashed first, the entry is simply never inserted -- no
+        // occupancy/replacement-state footprint is left behind.
+        struct PendingSpecFill
+        {
+            Addr paddr;
+            uint64_t pid;
+            bool uncacheable;
+            bool readOnly;
+        };
+        std::unordered_map<Addr, PendingSpecFill> pendingSpecFills;
+
       public:
 
         void evictLRU();
@@ -146,6 +163,10 @@ namespace X86ISA
                                Mode mode) const override;
 
         TlbEntry *insert(Addr vpn, const TlbEntry &entry);
+
+        // [InvisiSpec] Perform the deferred TLB insert() for req's page,
+        // if one is pending (no-op otherwise). See pendingSpecFills above.
+        void commitSpeculativeFill(RequestPtr req) override;
 
         /*
          * Function to register Stats

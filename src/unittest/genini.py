@@ -68,7 +68,7 @@ for path in pathlist:
 for arg in args:
     m5execfile(arg, globals())
 
-if globals().has_key('root') and isinstance(root, Root):
+if 'root' in globals() and isinstance(root, Root):
     instantiate(root)
 else:
-    print "Instantiation skipped: no root object found."
+    print("Instantiation skipped: no root object found.")

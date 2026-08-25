@@ -45,29 +45,29 @@ from m5.defines import buildEnv
 from m5.params import *
 from m5.proxy import *
 from m5.util.fdthelper import *
-from ClockDomain import ClockDomain
-from VoltageDomain import VoltageDomain
-from Device import BasicPioDevice, PioDevice, IsaFake, BadAddr, DmaDevice
-from PciHost import *
-from Ethernet import NSGigE, IGbE_igb, IGbE_e1000
-from Ide import *
-from Platform import Platform
-from Terminal import Terminal
-from Uart import Uart
-from SimpleMemory import SimpleMemory
-from Gic import *
-from EnergyCtrl import EnergyCtrl
-from ClockedObject import ClockedObject
-from ClockDomain import SrcClockDomain
-from SubSystem import SubSystem
-from Graphics import ImageFormat
-from ClockedObject import ClockedObject
+from m5.objects.ClockDomain import ClockDomain
+from m5.objects.VoltageDomain import VoltageDomain
+from m5.objects.Device import BasicPioDevice, PioDevice, IsaFake, BadAddr, DmaDevice
+from m5.objects.PciHost import *
+from m5.objects.Ethernet import NSGigE, IGbE_igb, IGbE_e1000
+from m5.objects.Ide import *
+from m5.objects.Platform import Platform
+from m5.objects.Terminal import Terminal
+from m5.objects.Uart import Uart
+from m5.objects.SimpleMemory import SimpleMemory
+from m5.objects.Gic import *
+from m5.objects.EnergyCtrl import EnergyCtrl
+from m5.objects.ClockedObject import ClockedObject
+from m5.objects.ClockDomain import SrcClockDomain
+from m5.objects.SubSystem import SubSystem
+from m5.objects.Graphics import ImageFormat
+from m5.objects.ClockedObject import ClockedObject
 
 # Platforms with KVM support should generally use in-kernel GIC
 # emulation. Use a GIC model that automatically switches between
 # gem5's GIC model and KVM's GIC model if KVM is available.
 try:
-    from KvmGic import MuxingKvmGic
+    from m5.objects.KvmGic import MuxingKvmGic
     kvm_gicv2_class = MuxingKvmGic
 except ImportError:
     # KVM support wasn't compiled into gem5. Fallback to a
@@ -191,7 +191,7 @@ class RealViewCtrl(BasicPioDevice):
     idreg = Param.UInt32(0x00000000, "ID Register, SYS_ID")
 
     def generateDeviceTree(self, state):
-        node = FdtNode("sysreg@%x" % long(self.pio_addr))
+        node = FdtNode("sysreg@%x" % int(self.pio_addr))
         node.appendCompatible("arm,vexpress-sysreg")
         node.append(FdtPropertyWords("reg",
             state.addrCells(self.pio_addr) +
@@ -226,7 +226,7 @@ class RealViewOsc(ClockDomain):
 
     def generateDeviceTree(self, state):
         phandle = state.phandle(self)
-        node = FdtNode("osc@" + format(long(phandle), 'x'))
+        node = FdtNode("osc@" + format(int(phandle), 'x'))
         node.appendCompatible("arm,vexpress-osc")
         node.append(FdtPropertyWords("arm,vexpress-sysreg,func",
                                      [0x1, int(self.device)]))
@@ -281,7 +281,7 @@ Express (V2M-P1) motherboard. See ARM DUI 0447J for details.
         node.appendCompatible("arm,vexpress,config-bus")
         node.append(FdtPropertyWords("arm,vexpress,site", [0]))
 
-        for obj in self._children.values():
+        for obj in list(self._children.values()):
             if issubclass(type(obj), SimObject):
                 node.append(obj.generateDeviceTree(state))
 
@@ -313,7 +313,7 @@ ARM DUI 0604E for details.
         node = FdtNode("dcc")
         node.appendCompatible("arm,vexpress,config-bus")
 
-        for obj in self._children.values():
+        for obj in list(self._children.values()):
             if isinstance(obj, SimObject):
                 node.append(obj.generateDeviceTree(state))
 

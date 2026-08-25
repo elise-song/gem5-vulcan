@@ -64,27 +64,27 @@ def get(name):
         cpu_class = _cpu_classes[name]
         return cpu_class
     except KeyError:
-        print "%s is not a valid CPU model." % (name,)
+        print("%s is not a valid CPU model." % (name,))
         sys.exit(1)
 
 def print_cpu_list():
     """Print a list of available CPU classes including their aliases."""
 
-    print "Available CPU classes:"
+    print("Available CPU classes:")
     doc_wrapper = TextWrapper(initial_indent="\t\t", subsequent_indent="\t\t")
-    for name, cls in _cpu_classes.items():
-        print "\t%s" % name
+    for name, cls in list(_cpu_classes.items()):
+        print("\t%s" % name)
 
         # Try to extract the class documentation from the class help
         # string.
         doc = inspect.getdoc(cls)
         if doc:
             for line in doc_wrapper.wrap(doc):
-                print line
+                print(line)
 
 def cpu_names():
     """Return a list of valid CPU names."""
-    return _cpu_classes.keys()
+    return list(_cpu_classes.keys())
 
 # [InvisiSpec] add knob to configure the CPU modes/simulation schemes
 def config_scheme(cpu_cls, cpu_list, options):
@@ -94,10 +94,10 @@ def config_scheme(cpu_cls, cpu_list, options):
             fatal("Need to provide needsTSO and scheme "
                 "to run simulation with DerivO3CPU")
 
-        print "**********"
-        print "info: Configure for DerivO3CPU. needsTSO=%d; scheme=%s"\
-            % (options.needsTSO, options.scheme)
-        print "**********"
+        print("**********")
+        print("info: Configure for DerivO3CPU. needsTSO=%d; scheme=%s"\
+            % (options.needsTSO, options.scheme))
+        print("**********")
         for cpu in cpu_list:
             if options.needsTSO:
                 cpu.needsTSO = True
@@ -111,7 +111,7 @@ def config_scheme(cpu_cls, cpu_list, options):
             if len(options.scheme)!=0:
                 cpu.simulateScheme = options.scheme
     else:
-        print "not DerivO3CPU"
+        print("not DerivO3CPU")
 
 
 

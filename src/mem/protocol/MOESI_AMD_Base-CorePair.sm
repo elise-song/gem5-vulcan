@@ -1000,14 +1000,14 @@ machine(MachineType:CorePair, "CP-like Core Coherence")
   action(forward_eviction_to_cpu0, "fec0", desc="sends eviction information to processor0") {
     if (send_evictions) {
       DPRINTF(RubySlicc, "Sending invalidation for %s to the CPU\n", address);
-      sequencer.evictionCallback(address);
+      sequencer.evictionCallback(address, false);
     }
   }
 
   action(forward_eviction_to_cpu1, "fec1", desc="sends eviction information to processor1") {
     if (send_evictions) {
       DPRINTF(RubySlicc, "Sending invalidation for %s to the CPU\n", address);
-      sequencer1.evictionCallback(address);
+      sequencer1.evictionCallback(address, false);
     }
   }
 

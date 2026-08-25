@@ -58,7 +58,7 @@ class TestMacroop(Combinational_Macroop):
     def untweak(self):
         microops["bah"] = Bah
     def print_debug(self, message):
-        print message
+        print(message)
 
     def __init__(self, name):
         super(TestMacroop, self).__init__(name)

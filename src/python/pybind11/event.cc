@@ -137,7 +137,7 @@ pybind_init_event(py::module &m_native)
         .def("getCause", &GlobalSimLoopExitEvent::getCause)
         .def("getCode", [](GlobalSimLoopExitEvent *e) {
                 return py::reinterpret_steal<py::object>(
-                    PyInt_FromLong(e->getCode()));
+                    PyLong_FromLong(e->getCode()));
             })
         ;
 

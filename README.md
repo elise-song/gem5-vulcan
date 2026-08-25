@@ -18,12 +18,10 @@ We made following major changes in gem5:
 ## How to run the simulator?
 
 We added several configuration paramters to the simulator for different modes of InvisiSpec as follows.
-* --scheme: configure the 5 modes of the simulator
+* --scheme: configure the 3 modes of the simulator
   * UnsafeBaseline: the unmodified out-of-order CPU
   * SpectreSafeFence: simulate a fence after every branch instruction.
-  * FuturisticSafeFence: simulate a fence before every load instruction.
   * SpectreSafeInvisibleSpec: InvisiSpec working under Spectre threat model.
-  * FuturisticSafeInvisibleSpec: InvisiSpec working under Futuristic threat model.
 * --needsTSO: configure the consistency model
   * True: use TSO
   * False: use RC

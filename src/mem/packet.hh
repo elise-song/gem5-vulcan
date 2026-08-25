@@ -411,6 +411,10 @@ class Packet : public Printable
     //if the load should get data from specbuffer
     int srcIdx;
     int reqIdx;
+    //[InvisiSpec] Epoch ID of the requesting core at issue time
+    //(Section VI-C), carried through to the LLC-side speculative buffer
+    //so a stale, reordered Spec-GetS/Validate/Expose can be identified.
+    int reqEpoch;
     bool isSplit;
 
     /**
@@ -824,7 +828,7 @@ class Packet : public Printable
     Packet(const RequestPtr _req, MemCmd _cmd)
         :  cmd(_cmd), id((PacketId)_req), req(_req), data(nullptr), addr(0),
            _isSecure(false), size(0), headerDelay(0), snoopDelay(0),
-           payloadDelay(0), srcIdx(-1), reqIdx(-1), isSplit(false),
+           payloadDelay(0), srcIdx(-1), reqIdx(-1), reqEpoch(0), isSplit(false),
            senderState(NULL)
     {
         if (req->hasPaddr()) {
@@ -846,7 +850,7 @@ class Packet : public Printable
     Packet(const RequestPtr _req, MemCmd _cmd, int _blkSize, PacketId _id = 0)
         :  cmd(_cmd), id(_id ? _id : (PacketId)_req), req(_req), data(nullptr),
            addr(0), _isSecure(false), headerDelay(0), snoopDelay(0),
-           payloadDelay(0), srcIdx(-1), reqIdx(-1), isSplit(false),
+           payloadDelay(0), srcIdx(-1), reqIdx(-1), reqEpoch(0), isSplit(false),
            senderState(NULL)
     {
         if (req->hasPaddr()) {
@@ -875,6 +879,7 @@ class Packet : public Printable
            payloadDelay(pkt->payloadDelay),
            srcIdx(pkt->srcIdx),
            reqIdx(pkt->reqIdx),
+           reqEpoch(pkt->reqEpoch),
            isSplit(pkt->isSplit),
            senderState(pkt->senderState)
     {

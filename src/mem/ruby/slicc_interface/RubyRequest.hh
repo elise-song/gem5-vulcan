@@ -61,6 +61,9 @@ class RubyRequest : public Message
     HSAScope m_scope;
     HSASegment m_segment;
     int m_idx;
+    // [InvisiSpec] Epoch ID of the requesting core at issue time
+    // (Section VI-C), copied from the originating packet.
+    int m_epoch;
 
 
     RubyRequest(Tick curTime, uint64_t _paddr, uint8_t* _data, int _len,
@@ -88,6 +91,7 @@ class RubyRequest : public Message
         } else {
             m_idx = (_pkt->reqIdx) * 2 + (_pkt->isFirst()? 0 : 1);
         }
+        m_epoch = _pkt->reqEpoch;
     }
 
     RubyRequest(Tick curTime, uint64_t _paddr, uint8_t* _data, int _len,
@@ -120,6 +124,7 @@ class RubyRequest : public Message
         } else {
             m_idx = (_pkt->reqIdx) * 2 + (_pkt->isFirst()? 0 : 1);
         }
+        m_epoch = _pkt->reqEpoch;
     }
 
     RubyRequest(Tick curTime, uint64_t _paddr, uint8_t* _data, int _len,
@@ -153,6 +158,7 @@ class RubyRequest : public Message
         } else {
             m_idx = (_pkt->reqIdx) * 2 + (_pkt->isFirst()? 0 : 1);
         }
+        m_epoch = _pkt->reqEpoch;
     }
 
 

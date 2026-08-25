@@ -40,8 +40,8 @@ from m5.params import *
 from m5.SimObject import *
 from m5.util.fdthelper import *
 
-from System import System
-from ArmSemihosting import ArmSemihosting
+from m5.objects.System import System
+from m5.objects.ArmSemihosting import ArmSemihosting
 
 class ArmMachineType(Enum):
     map = {
@@ -95,7 +95,7 @@ class ArmSystem(System):
         # root instead of appended.
 
         def generateMemNode(mem_range):
-            node = FdtNode("memory@%x" % long(mem_range.start))
+            node = FdtNode("memory@%x" % int(mem_range.start))
             node.append(FdtPropertyStrings("device_type", ["memory"]))
             node.append(FdtPropertyWords("reg",
                 state.addrCells(mem_range.start) +

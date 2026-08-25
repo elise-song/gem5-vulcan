@@ -181,7 +181,7 @@ LSQUnit<Impl>::completeDataAccess(PacketPtr pkt)
 
 template <class Impl>
 LSQUnit<Impl>::LSQUnit()
-    : loads(0), loadsToVLD(0), stores(0), storesToWB(0), cacheBlockMask(0), stalled(false),
+    : loads(0), loadsToVLD(0), stores(0), storesToWB(0), curEpoch(0), cacheBlockMask(0), stalled(false),
       isStoreBlocked(false), isValidationBlocked(false), storeInFlight(false), hasPendingPkt(false),
       pendingPkt(nullptr)
 {
@@ -206,9 +206,10 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
     LQEntries = maxLQEntries + 1;
     SQEntries = maxSQEntries + 1;
 
-    //Due to uint8_t index in LSQSenderState
-    assert(LQEntries <= 256);
-    assert(SQEntries <= 256);
+    // LSQSenderState::idx is uint32_t; the real remaining ceiling is
+    // DynInst::lqIdx/sqIdx (int16_t), so stay comfortably under 32768.
+    assert(LQEntries <= 32768);
+    assert(SQEntries <= 32768);
 
     loadQueue.resize(LQEntries);
     storeQueue.resize(SQEntries);
@@ -230,28 +231,14 @@ LSQUnit<Impl>::init(O3CPU *cpu_ptr, IEW *iew_ptr, DerivO3CPUParams *params,
     if (scheme.compare("UnsafeBaseline")==0){
         loadInExec = true;
         isInvisibleSpec = false; // send real request
-        isFuturistic = false; // not relevant in unsafe mode.
-    }else if (scheme.compare("FuturisticSafeFence")==0){
-        // "LFENCE" before every load
-        loadInExec = false;
-        isInvisibleSpec = false; // not used since loadInExec is false
-        isFuturistic = true; // send readReq at head of ROB
-    }else if (scheme.compare("FuturisticSafeInvisibleSpec")==0){
-        // only make load visible when all preceding instructions
-        // complete and no exception
-        loadInExec = true;
-        isInvisibleSpec = true; // send request but not change cache state
-        isFuturistic = true; // conservative condition to send validations
     }else if (scheme.compare("SpectreSafeFence")==0){
         // "LFENCE" after every branch
         loadInExec = false;
         isInvisibleSpec = false; // not used since loadInExec is false
-        isFuturistic = false; // commit when preceding branches are resolved
     }else if (scheme.compare("SpectreSafeInvisibleSpec")==0){
         // make load visible when all preceiding branches are resolved
         loadInExec = true;
         isInvisibleSpec = true; // send request but not change cache state
-        isFuturistic = false; // only deal with spectre attacks
     }else {
         cprintf("ERROR: unsupported simulation scheme: %s!\n", scheme);
         exit(1);
@@ -420,7 +407,7 @@ LSQUnit<Impl>::resizeLQ(unsigned size)
         LQEntries = size_plus_sentinel;
     }
 
-    assert(LQEntries <= 256);
+    assert(LQEntries <= 32768);
 }
 
 template<class Impl>
@@ -438,7 +425,7 @@ LSQUnit<Impl>::resizeSQ(unsigned size)
         SQEntries = size_plus_sentinel;
     }
 
-    assert(SQEntries <= 256);
+    assert(SQEntries <= 32768);
 }
 
 template <class Impl>
@@ -716,7 +703,12 @@ LSQUnit<Impl>::checkSpecBuffHit(RequestPtr req, int req_idx)
 
     int load_idx = loadHead;
 
-    while (load_idx != loadTail){
+    // [InvisiSpec] Only reuse state (SB data / L1-hit info) left behind by
+    // loads that are earlier in program order than the requester. Reusing
+    // state from a later load would let that later (possibly squashed,
+    // transient) load speed up this one -- reopening the covert channel
+    // that Sec. VII of the InvisiSpec paper argues is closed.
+    while (load_idx != req_idx){
         DynInstPtr ld_inst = loadQueue[load_idx];
         if (ld_inst->effAddrValid()){
             Addr ld_eff_addr1 = ld_inst->physEffAddrLow & cacheBlockMask;
@@ -1049,8 +1041,7 @@ LSQUnit<Impl>::updateVisibleState()
 
         if (!loadInExec){
 
-            if ( (isFuturistic && inst->isPrevInstsCommitted()) ||
-                    (!isFuturistic && inst->isPrevBrsCommitted())){
+            if (inst->isPrevBrsCommitted()){
                 if (inst->fenceDelay()){
                     DPRINTF(LSQUnit, "Clear virtual fence for "
                             "inst [sn:%lli] PC %s\n",
@@ -1068,8 +1059,7 @@ LSQUnit<Impl>::updateVisibleState()
             inst->readyToExpose(true);
         } else if (loadInExec && isInvisibleSpec){
 
-            if ( (isFuturistic && inst->isPrevInstsCompleted()) ||
-                    (!isFuturistic && inst->isPrevBrsResolved())){
+            if (inst->isPrevBrsResolved()){
                 if (!inst->readyToExpose()){
                     DPRINTF(LSQUnit, "Set readyToExpose for "
                             "inst [sn:%lli] PC %s\n",
@@ -1204,6 +1194,17 @@ LSQUnit<Impl>::exposeLoads()
             DPRINTF(Squashed, "Validate/Expose: PC %#x, Addr %#x\n", load_inst->pcState().pc(), (Addr)(req->getPaddr()));
         }
 
+        // [InvisiSpec] This load has reached its visibility point
+        // (Section VI-E3): if TLB::translate() deferred a D-TLB fill for
+        // it earlier because it was an unsafe speculative load, publish
+        // that fill now. No-op if no fill was deferred.
+        if (split) {
+            cpu->dtb->commitSpeculativeFill(sreqLow);
+            cpu->dtb->commitSpeculativeFill(sreqHigh);
+        } else {
+            cpu->dtb->commitSpeculativeFill(req);
+        }
+
         bool onlyExpose = false;
         if (!split) {
             if (load_inst->needExposeOnly() || load_inst->isL1HitLow()){
@@ -1218,6 +1219,7 @@ LSQUnit<Impl>::exposeLoads()
             data_pkt->senderState = state;
             data_pkt->setFirst();
             data_pkt->reqIdx = loadVLDIdx;
+            data_pkt->reqEpoch = curEpoch;
             DPRINTF(LSQUnit, "contextid = %d\n", req->contextId());
         } else {
             // allocate memory if we need at least one validation
@@ -1252,6 +1254,8 @@ LSQUnit<Impl>::exposeLoads()
             snd_data_pkt->senderState = state;
             data_pkt->reqIdx = loadVLDIdx;
             snd_data_pkt->reqIdx = loadVLDIdx;
+            data_pkt->reqEpoch = curEpoch;
+            snd_data_pkt->reqEpoch = curEpoch;
 
             data_pkt->isSplit = true;
             snd_data_pkt->isSplit = true;
@@ -1589,6 +1593,13 @@ LSQUnit<Impl>::squash(const InstSeqNum &squashed_num)
             "(Loads:%i Stores:%i)\n", squashed_num, loads, stores);
     DPRINTF(Squashed, "Squashing from SQ [sn:%lli]\n", squashed_num);
 
+    // [InvisiSpec] Bump this core's Epoch ID (Section VI-C). Any
+    // Spec-GetS/Validate/Expose request already in flight for a
+    // now-squashed load is tagged with the old epoch, so the LLC-SB can
+    // recognize and drop it if it lands out of order relative to a
+    // reissued (higher-epoch) request for the same LQ slot.
+    ++curEpoch;
+
     int load_idx = loadTail;
     decrLdIdx(load_idx);
 
@@ -1597,7 +1608,7 @@ LSQUnit<Impl>::squash(const InstSeqNum &squashed_num)
                 "[sn:%lli]\n",
                 loadQueue[load_idx]->pcState(),
                 loadQueue[load_idx]->seqNum);
-        
+
         DynInstPtr ld_inst = loadQueue[load_idx];
         if(ld_inst->effAddrValid()){
             DPRINTF(Squashed, "LSQUnit - Squashed Load: PC %#x, SQ: [sn:%lli], Paddr %#x, Vaddr %#x\n", ld_inst->pcState().pc(), ld_inst->seqNum, ld_inst->physEffAddrLow, ld_inst->effAddr);
@@ -1943,7 +1954,16 @@ LSQUnit<Impl>::recvRetry()
     if (isStoreBlocked) {
         DPRINTF(LSQUnit, "Receiving retry: store blocked\n");
         assert(retryPkt != NULL);
-        assert(retryPkt->isWrite());
+        // [InvisiSpec] A clflush/clflushopt in the store queue is written
+        // back through this same sendStore()/recvRetry() path as a real
+        // store (see LSQUnit::write()), but Packet::createWrite()
+        // legitimately turns a cache-maintenance request into
+        // MemCmd::CleanInvalidReq rather than a WriteReq (packet.hh's
+        // makeWriteCmd()) -- a command that carries neither IsWrite nor
+        // IsRead nor IsFlush. Nothing below this point actually depends
+        // on retryPkt being a write specifically, so accept either.
+        assert(retryPkt->isWrite() ||
+               (retryPkt->req && retryPkt->req->isCacheMaintenance()));
 
         LSQSenderState *state =
             dynamic_cast<LSQSenderState *>(retryPkt->senderState);

@@ -160,7 +160,7 @@ def addOptions(parser):
                         help="Disks to instantiate")
     parser.add_argument("--bootscript", type=str, default=default_rcs,
                         help="Linux bootscript")
-    parser.add_argument("--cpu-type", type=str, choices=cpu_types.keys(),
+    parser.add_argument("--cpu-type", type=str, choices=list(cpu_types.keys()),
                         default="timing",
                         help="CPU simulation mode. Default: %(default)s")
     parser.add_argument("--kernel-init", type=str, default="/sbin/init",
@@ -311,12 +311,12 @@ def run(checkpoint_dir=m5.options.outdir):
         event = m5.simulate()
         exit_msg = event.getCause()
         if exit_msg == "checkpoint":
-            print "Dropping checkpoint at tick %d" % m5.curTick()
+            print("Dropping checkpoint at tick %d" % m5.curTick())
             cpt_dir = os.path.join(checkpoint_dir, "cpt.%d" % m5.curTick())
             m5.checkpoint(cpt_dir)
-            print "Checkpoint done."
+            print("Checkpoint done.")
         else:
-            print exit_msg, " @ ", m5.curTick()
+            print(exit_msg, " @ ", m5.curTick())
             break
 
     sys.exit(event.getCode())

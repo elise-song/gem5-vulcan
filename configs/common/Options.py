@@ -306,8 +306,7 @@ def addCommonOptions(parser):
                       help="ARM instruction set.")
     # [InvisiSpec] add options to configure needsTSO and scheme
     parser.add_option("--scheme", default=None, action="store", type="choice",
-            choices=["UnsafeBaseline", "FuturisticSafeFence",
-            "SpectreSafeFence", "FuturisticSafeInvisibleSpec",
+            choices=["UnsafeBaseline", "SpectreSafeFence",
             "SpectreSafeInvisibleSpec"],
             help="choose baseline or defense designs to evaluate")
     parser.add_option("--needsTSO", default=None, action="store", type="int",
@@ -336,7 +335,7 @@ def addSEOptions(parser):
                         help="CommMonitors are inserted between each CPU and its L1 cache")
 
 def addFSOptions(parser):
-    from FSConfig import os_types
+    from .FSConfig import os_types
 
     # Simulation options
     parser.add_option("--timesync", action="store_true",

@@ -36,7 +36,7 @@
 # Authors: Andreas Hansson
 
 from m5.params import *
-from AbstractMemory import *
+from m5.objects.AbstractMemory import *
 
 # A wrapper for DRAMSim2 multi-channel memory controller
 class DRAMSim2(AbstractMemory):

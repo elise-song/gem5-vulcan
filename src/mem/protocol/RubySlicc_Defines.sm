@@ -35,7 +35,7 @@ Cycles recycle_latency;
 // Functions implemented in the AbstractController class for
 // making timing access to the memory maintained by the
 // memory controllers.
-void queueMemoryRead(MachineID id, Addr addr, Cycles latency, MachineID origin, int idx, int type);
+void queueMemoryRead(MachineID id, Addr addr, Cycles latency, MachineID origin, int idx, int type, int epoch);
 void queueMemoryWrite(MachineID id, Addr addr, Cycles latency,
                       DataBlock block);
 void queueMemoryWritePartial(MachineID id, Addr addr, Cycles latency,

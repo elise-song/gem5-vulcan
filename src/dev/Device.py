@@ -42,7 +42,7 @@
 from m5.params import *
 from m5.proxy import *
 from m5.util.fdthelper import *
-from MemObject import MemObject
+from m5.objects.MemObject import MemObject
 
 class PioDevice(MemObject):
     type = 'PioDevice'
@@ -53,15 +53,14 @@ class PioDevice(MemObject):
 
     def generateBasicPioDeviceNode(self, state, name, pio_addr,
                                    size, interrupts = None):
-        node = FdtNode("%s@%x" % (name, long(pio_addr)))
+        node = FdtNode("%s@%x" % (name, int(pio_addr)))
         node.append(FdtPropertyWords("reg",
             state.addrCells(pio_addr) +
             state.sizeCells(size) ))
 
         if interrupts:
             if any([i < 32 for i in interrupts]):
-                raise(("Interrupt number smaller than 32 "+
-                       " in PioDevice %s") % name)
+                raise "Interrupt number smaller than 32 "
 
             # subtracting 32 because Linux assumes that SPIs start at 0, while
             # gem5 uses the internal GIC numbering (SPIs start at 32)

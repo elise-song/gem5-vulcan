@@ -92,7 +92,7 @@ def define_options(parser):
                       help="Apply patch for speculative eviction vulnerability discovered by AMuLeT. Default=False.")
 
     protocol = buildEnv['PROTOCOL']
-    exec "import %s" % protocol
+    exec("from . import %s" % protocol)
     eval("%s.define_options(parser)" % protocol)
     Network.define_options(parser)
 
@@ -144,7 +144,7 @@ def create_topology(controllers, options):
         found in configs/topologies/BaseTopology.py
         This is a wrapper for the legacy topologies.
     """
-    exec "import topologies.%s as Topo" % options.topology
+    exec("import topologies.%s as Topo" % options.topology)
     topology = eval("Topo.%s(controllers)" % options.topology)
     return topology
 
@@ -160,14 +160,14 @@ def create_system(options, full_system, system, piobus = None, dma_ports = []):
     ruby.network = network
 
     protocol = buildEnv['PROTOCOL']
-    exec "import %s" % protocol
+    exec("from . import %s" % protocol)
     try:
         (cpu_sequencers, dir_cntrls, topology) = \
              eval("%s.create_system(options, full_system, system, dma_ports,\
                                     ruby)"
                   % protocol)
     except:
-        print "Error: could not create sytem for ruby protocol %s" % protocol
+        print("Error: could not create sytem for ruby protocol %s" % protocol)
         raise
 
     # Create the network topology
@@ -224,7 +224,7 @@ def create_directories(options, mem_ranges, ruby_system):
         block_size_bits = int(math.log(options.cacheline_size, 2))
         numa_bit = block_size_bits + dir_bits - 1
 
-    for i in xrange(options.num_dirs):
+    for i in range(options.num_dirs):
         dir_ranges = []
         for r in mem_ranges:
             addr_range = m5.objects.AddrRange(r.start, size = r.size(),

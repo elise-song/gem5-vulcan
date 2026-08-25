@@ -120,6 +120,10 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     Exclusive_Unblock, desc="Unblock from L1 requestor";
 
     MEM_Inv, desc="Invalidation from directory";
+
+    // [InvisiSpec] clflush/clflushopt support
+    L1_FLUSH,    desc="L1 Flush (clflush) request for a block mapped to us, we (or a TBE) know about it";
+    L1_FLUSH_NP, desc="L1 Flush (clflush) request for a block not present anywhere in L2";
   }
 
   // TYPES
@@ -145,6 +149,10 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     NetDest L1_Expose_IDs,            desc="Set of the internal processors that want the block to be exposed";
     MachineID L1_GetX_ID,          desc="ID of the L1 cache to forward the block to once we get a response";
     int pendingAcks,            desc="number of pending acks for invalidates during writeback";
+
+    // [InvisiSpec] clflush/clflushopt support
+    bool isFlush, default="false", desc="This eviction was triggered by an L1 Flush (clflush), not internal replacement";
+    MachineID flushRequestor,      desc="The L1 that issued the Flush; ack'd with FLUSH_ACK once eviction completes";
   }
 
   structure(TBETable, external="yes") {
@@ -377,7 +385,19 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
         assert(machineIDToMachineType(in_msg.Requestor) == MachineType:L1Cache);
         assert(in_msg.Destination.isElement(machineID));
 
-        if (is_valid(cache_entry)) {
+        if (in_msg.Type == CoherenceRequestType:FLUSH) {
+          // [InvisiSpec] clflush/clflushopt support. Never try to allocate
+          // a fresh block for a Flush (unlike ordinary misses below) --
+          // if L2 (or a TBE) doesn't know about this address at all, there
+          // is nothing anywhere in the hierarchy to evict, so ack right
+          // away. Otherwise let the current state's own transition table
+          // decide (real eviction from SS/M/MT, or stall if mid-transient).
+          if (is_valid(cache_entry) || is_valid(tbe)) {
+            trigger(Event:L1_FLUSH, in_msg.addr, cache_entry, tbe);
+          } else {
+            trigger(Event:L1_FLUSH_NP, in_msg.addr, cache_entry, tbe);
+          }
+        } else if (is_valid(cache_entry)) {
           // The L2 contains the block, so proceeded with handling the request
           trigger(L1Cache_request_type_to_event(in_msg.Type, in_msg.addr,
                                                 in_msg.Requestor, cache_entry),
@@ -418,6 +438,7 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
         out_msg.MessageSize := in_msg.MessageSize;
         out_msg.idx := in_msg.idx;
         out_msg.origin := in_msg.Requestor;
+        out_msg.epoch := in_msg.epoch;
       }
     }
   }
@@ -741,6 +762,59 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     tbe.pendingAcks := cache_entry.Sharers.count();
   }
 
+  // [InvisiSpec] clflush/clflushopt support. Same as i_allocateTBE, but
+  // also records the flush requestor so the eventual completion (see
+  // fa_sendFlushAckToRequestorIfFlush) can ack it specifically, since a
+  // Flush eviction (unlike an internal L2_Replacement) has a specific L1
+  // waiting on FLUSH_ACK.
+  action(i_allocateTBEForFlush, "if2", desc="Allocate TBE for L1-initiated Flush eviction") {
+    peek(L1RequestL2Network_in, RequestMsg) {
+      check_allocate(TBEs);
+      assert(is_valid(cache_entry));
+      TBEs.allocate(address);
+      set_tbe(TBEs[address]);
+      tbe.L1_GetS_IDs.clear();
+      tbe.L1_GetSPEC_IDs.clear();
+      tbe.L1_Expose_IDs.clear();
+      tbe.DataBlk := cache_entry.DataBlk;
+      tbe.Dirty := cache_entry.Dirty;
+      tbe.pendingAcks := cache_entry.Sharers.count();
+      tbe.isFlush := true;
+      tbe.flushRequestor := in_msg.Requestor;
+    }
+  }
+
+  // [InvisiSpec] clflush/clflushopt support. Nothing anywhere in L2 (or a
+  // TBE) knows about this address -- ack the flush immediately.
+  action(fa_sendFlushAckToRequestor, "fanp", desc="Send FLUSH_ACK immediately, block not present in L2") {
+    peek(L1RequestL2Network_in, RequestMsg) {
+      enqueue(responseL2Network_out, ResponseMsg, l2_response_latency) {
+        out_msg.addr := address;
+        out_msg.Type := CoherenceResponseType:FLUSH_ACK;
+        out_msg.Sender := machineID;
+        out_msg.Destination.add(in_msg.Requestor);
+        out_msg.MessageSize := MessageSizeType:Response_Control;
+      }
+    }
+  }
+
+  // [InvisiSpec] clflush/clflushopt support. Called once an L2 eviction
+  // reaches its normal internal completion point (memory ack'd); if that
+  // eviction was triggered by an L1 Flush, additionally tell the
+  // requestor the line is now fully gone from the hierarchy.
+  action(fa_sendFlushAckToRequestorIfFlush, "faf", desc="Ack the Flush requestor, if this eviction was a Flush") {
+    assert(is_valid(tbe));
+    if (tbe.isFlush) {
+      enqueue(responseL2Network_out, ResponseMsg, l2_response_latency) {
+        out_msg.addr := address;
+        out_msg.Type := CoherenceResponseType:FLUSH_ACK;
+        out_msg.Sender := machineID;
+        out_msg.Destination.add(tbe.flushRequestor);
+        out_msg.MessageSize := MessageSizeType:Response_Control;
+      }
+    }
+  }
+
   action(iw_allocateTBEWithoutCacheEntry, "iw", desc="Allocate TBE for request without a cache entry") {
     check_allocate(TBEs);
     assert(!is_valid(cache_entry));
@@ -965,7 +1039,8 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     jj_popL1RequestQueue;
   }
 
-  transition({IM, IS, ISS, IEE, II, SS_MB, MT_MB, MT_IIB, MT_IB, MT_SB}, {L2_Replacement, L2_Replacement_clean}) {
+  transition({IM, IS, ISS, IEE, II, SS_MB, MT_MB, MT_IIB, MT_IB, MT_SB},
+             {L2_Replacement, L2_Replacement_clean, L1_FLUSH}) {
     zz_stallAndWaitL1RequestQueue;
   }
 
@@ -1025,6 +1100,13 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     xx_recordGetXL1ID;
     a_issueFetchToMemory;
     uu_profileMiss;
+    jj_popL1RequestQueue;
+  }
+
+  // [InvisiSpec] clflush/clflushopt support: nothing anywhere in the
+  // hierarchy has this block, so the flush is trivially satisfied.
+  transition(NP, L1_FLUSH_NP) {
+    fa_sendFlushAckToRequestor;
     jj_popL1RequestQueue;
   }
 
@@ -1169,6 +1251,18 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     rr_deallocateL2CacheBlock;
   }
 
+  // [InvisiSpec] clflush/clflushopt support. Same real eviction as
+  // L2_Replacement (invalidate every L1 sharer, including the flush
+  // requestor itself -- it will just immediately ack, having already
+  // dropped its own copy locally), but remember who to send FLUSH_ACK to
+  // once the eviction fully completes (see fa_sendFlushAckToRequestorIfFlush).
+  transition(SS, L1_FLUSH, S_I) {
+    i_allocateTBEForFlush;
+    f_sendInvToSharers;
+    rr_deallocateL2CacheBlock;
+    jj_popL1RequestQueue;
+  }
+
 
   transition(M, L1_GETX, MT_MB) {
     d_sendDataToRequestor;
@@ -1204,6 +1298,16 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     i_allocateTBE;
     c_exclusiveReplacement;
     rr_deallocateL2CacheBlock;
+  }
+
+  // [InvisiSpec] clflush/clflushopt support. M means L2 already holds the
+  // sole (possibly dirty) copy with no L1 owner, so this is a plain
+  // eviction to memory, just like L2_Replacement.
+  transition(M, L1_FLUSH, M_I) {
+    i_allocateTBEForFlush;
+    c_exclusiveReplacement;
+    rr_deallocateL2CacheBlock;
+    jj_popL1RequestQueue;
   }
 
   transition(M, L2_Replacement_clean, M_I) {
@@ -1263,6 +1367,25 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
     jj_popL1RequestQueue;
   }
 
+  // [InvisiSpec] clflush/clflushopt support. MT means a single L1 owns
+  // the block exclusively and L2's own copy may be stale -- but that
+  // exclusive owner is exactly who is flushing, and its Flush request
+  // (like a PUTX) already carries the fresh data if dirty. Sync L2's copy
+  // from the request first, then evict it to memory like a plain M
+  // eviction. NOTE: this assumes the flush requestor is the current
+  // exclusive owner, which always holds in a single-core configuration;
+  // a multi-core build where a non-owner core flushes a line it never
+  // cached would need the MT_I-style (invalidate-and-collect) path
+  // instead -- not needed for this single-core validation target.
+  transition(MT, L1_FLUSH, M_I) {
+    mr_writeDataToCacheFromRequest;
+    i_allocateTBEForFlush;
+    c_exclusiveReplacement;
+    ll_clearSharers;
+    rr_deallocateL2CacheBlock;
+    jj_popL1RequestQueue;
+  }
+
   transition({SS_MB,MT_MB}, Exclusive_Unblock, MT) {
     // update actual directory
     mmu_markExclusiveFromUnblock;
@@ -1297,7 +1420,8 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
   }
 
   // writeback states
-  transition({I_I, S_I, MT_I, MCT_I, M_I}, {L1_GETX, L1_UPGRADE, L1_GETS, L1_EXPOSE, L1_GET_INSTR, L1_GETSPEC}) {
+  transition({I_I, S_I, MT_I, MCT_I, M_I},
+             {L1_GETX, L1_UPGRADE, L1_GETS, L1_EXPOSE, L1_GET_INSTR, L1_GETSPEC, L1_FLUSH}) {
     zz_stallAndWaitL1RequestQueue;
   }
 
@@ -1352,6 +1476,12 @@ machine(MachineType:L2Cache, "MESI Directory L2 Cache CMP")
   }
 
   transition(M_I, Mem_Ack, NP) {
+    // [InvisiSpec] clflush/clflushopt support: this is the single point
+    // where every eviction path (SS/M/MT, whether internally- or
+    // Flush-triggered) converges once the writeback to memory is
+    // acknowledged. If this eviction was a Flush, tell the requestor now
+    // that the line is fully gone from the hierarchy.
+    fa_sendFlushAckToRequestorIfFlush;
     s_deallocateTBE;
     o_popIncomingResponseQueue;
     kd_wakeUpDependents;

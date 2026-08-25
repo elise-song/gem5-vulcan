@@ -45,7 +45,15 @@ main(int argc, char **argv)
     // Initialize m5 special signal handling.
     initSignals();
 
-    Py_SetProgramName(argv[0]);
+    // Py_SetProgramName() has taken a wchar_t* (not char*) since the
+    // Python 3 embedding API was introduced; decode argv[0] using the
+    // current locale to get a wide-character copy.
+    wchar_t *program = Py_DecodeLocale(argv[0], NULL);
+    if (program == NULL) {
+        fprintf(stderr, "Fatal error: cannot decode argv[0]\n");
+        return 1;
+    }
+    Py_SetProgramName(program);
 
     // initialize embedded Python interpreter
     Py_Initialize();
@@ -60,6 +68,8 @@ main(int argc, char **argv)
 
     // clean up Python intepreter.
     Py_Finalize();
+
+    PyMem_RawFree(program);
 
     return ret;
 }

@@ -522,7 +522,7 @@ static SyscallDesc syscallDescs64[] = {
     /* 299 */ SyscallDesc("recvmmsg", unimplementedFunc),
     /* 300 */ SyscallDesc("fanotify_init", unimplementedFunc),
     /* 301 */ SyscallDesc("fanotify_mark", unimplementedFunc),
-    /* 302 */ SyscallDesc("prlimit64", unimplementedFunc),
+    /* 302 */ SyscallDesc("prlimit64", prlimitFunc<X86Linux64>),
     /* 303 */ SyscallDesc("name_to_handle_at", unimplementedFunc),
     /* 304 */ SyscallDesc("open_by_handle_at", unimplementedFunc),
     /* 305 */ SyscallDesc("clock_adjtime", unimplementedFunc),
@@ -534,6 +534,33 @@ static SyscallDesc syscallDescs64[] = {
     /* 311 */ SyscallDesc("proess_vm_writev", unimplementedFunc),
     /* 312 */ SyscallDesc("kcmp", unimplementedFunc),
     /* 313 */ SyscallDesc("finit_module", unimplementedFunc),
+    /* 314 */ SyscallDesc("sched_setattr", unimplementedFunc),
+    /* 315 */ SyscallDesc("sched_getattr", unimplementedFunc),
+    /* 316 */ SyscallDesc("renameat2", unimplementedFunc),
+    /* 317 */ SyscallDesc("seccomp", unimplementedFunc),
+    /* 318 */ SyscallDesc("getrandom", getrandomFunc),
+    /* 319 */ SyscallDesc("memfd_create", unimplementedFunc),
+    /* 320 */ SyscallDesc("kexec_file_load", unimplementedFunc),
+    /* 321 */ SyscallDesc("bpf", unimplementedFunc),
+    /* 322 */ SyscallDesc("execveat", unimplementedFunc),
+    /* 323 */ SyscallDesc("userfaultfd", unimplementedFunc),
+    /* 324 */ SyscallDesc("membarrier", unimplementedFunc),
+    /* 325 */ SyscallDesc("mlock2", unimplementedFunc),
+    /* 326 */ SyscallDesc("copy_file_range", unimplementedFunc),
+    /* 327 */ SyscallDesc("preadv2", unimplementedFunc),
+    /* 328 */ SyscallDesc("pwritev2", unimplementedFunc),
+    /* 329 */ SyscallDesc("pkey_mprotect", unimplementedFunc),
+    /* 330 */ SyscallDesc("pkey_alloc", unimplementedFunc),
+    /* 331 */ SyscallDesc("pkey_free", unimplementedFunc),
+    /* 332 */ SyscallDesc("statx", unimplementedFunc),
+    /* 333 */ SyscallDesc("io_pgetevents", unimplementedFunc),
+    // rseq is a purely optional, best-effort glibc/kernel feature (used
+    // to accelerate per-CPU data structures); modern glibc (>= 2.35, as
+    // shipped on the Ubuntu 24.04 host this was built on) calls it
+    // unconditionally during thread/process startup and copes fine with
+    // it failing, so it's safe to no-op here the same way
+    // set_robust_list is above.
+    /* 334 */ SyscallDesc("rseq", ignoreFunc),
 };
 
 X86_64LinuxProcess::X86_64LinuxProcess(ProcessParams * params,

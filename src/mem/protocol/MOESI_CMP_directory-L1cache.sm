@@ -890,7 +890,7 @@ machine(MachineType:L1Cache, "Directory protocol")
   action(forward_eviction_to_cpu, "\cc", desc="sends eviction information to the processor") {
     if (send_evictions) {
       DPRINTF(RubySlicc, "Sending invalidation for %#x to the CPU\n", address);
-      sequencer.evictionCallback(address);
+      sequencer.evictionCallback(address, false);
     }
   }
 

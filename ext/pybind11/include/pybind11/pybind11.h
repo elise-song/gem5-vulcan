@@ -1887,14 +1887,30 @@ inline function get_type_overload(const void *this_ptr, const detail::type_info 
     /* Don't call dispatch code if invoked from overridden function.
        Unfortunately this doesn't work on PyPy. */
 #if !defined(PYPY_VERSION)
-    PyFrameObject *frame = PyThreadState_Get()->frame;
-    if (frame && (std::string) str(frame->f_code->co_name) == name &&
-        frame->f_code->co_argcount > 0) {
-        PyFrame_FastToLocals(frame);
-        PyObject *self_caller = PyDict_GetItem(
-            frame->f_locals, PyTuple_GET_ITEM(frame->f_code->co_varnames, 0));
-        if (self_caller == self.ptr())
-            return function();
+    // CPython 3.11+ made PyFrameObject opaque, so direct field access
+    // (frame->f_code, frame->f_locals, code->co_varnames) is no longer
+    // possible; use the stable accessor functions instead. These all
+    // return new references that must be released.
+    PyFrameObject *frame = PyThreadState_GetFrame(PyThreadState_Get());
+    if (frame != nullptr) {
+        PyCodeObject *f_code = PyFrame_GetCode(frame);
+        if ((std::string) str(f_code->co_name) == name &&
+            f_code->co_argcount > 0) {
+            PyFrame_FastToLocals(frame);
+            PyObject *frame_locals = PyFrame_GetLocals(frame);
+            PyObject *varnames = PyCode_GetVarnames(f_code);
+            PyObject *self_caller = PyDict_GetItem(
+                frame_locals, PyTuple_GET_ITEM(varnames, 0));
+            Py_XDECREF(varnames);
+            Py_XDECREF(frame_locals);
+            if (self_caller == self.ptr()) {
+                Py_DECREF(f_code);
+                Py_DECREF(frame);
+                return function();
+            }
+        }
+        Py_DECREF(f_code);
+        Py_DECREF(frame);
     }
 #else
     /* PyPy currently doesn't provide a detailed cpyext emulation of

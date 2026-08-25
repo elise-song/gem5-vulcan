@@ -354,19 +354,19 @@ machine(MachineType:Directory, "MESI Two Level directory protocol")
 
   action(qf_queueMemoryFetchRequest, "qf", desc="Queue off-chip fetch request") {
     peek(requestNetwork_in, RequestMsg) {
-      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 0);
+      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 0, in_msg.epoch);
     }
   }
 
   action(qfs_queueMemorySpecFetchRequest, "qfs", desc="Queue off-chip fetch request") {
     peek(requestNetwork_in, RequestMsg) {
-      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 1);
+      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 1, in_msg.epoch);
     }
   }
 
   action(qfe_queueMemoryExposeRequest, "qfe", desc="Queue off-chip fetch request") {
     peek(requestNetwork_in, RequestMsg) {
-      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 2);
+      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.origin, in_msg.idx, 2, in_msg.epoch);
     }
   }
 
@@ -381,7 +381,7 @@ machine(MachineType:Directory, "MESI Two Level directory protocol")
   action(qf_queueMemoryFetchRequestDMA, "qfd", desc="Queue off-chip fetch request") {
     peek(requestNetwork_in, RequestMsg) {
       assert(false);
-      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.Requestor, -1, -1);
+      queueMemoryRead(in_msg.Requestor, address, to_mem_ctrl_latency, in_msg.Requestor, -1, -1, 0);
     }
   }
 

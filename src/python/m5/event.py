@@ -76,7 +76,7 @@ class ProgressEvent(Event):
         self.eventq.schedule(self, m5.curTick() + self.period)
 
     def __call__(self):
-        print "Progress! Time now %fs" % (m5.curTick()/1e12)
+        print(("Progress! Time now %fs" % (m5.curTick()/1e12)))
         self.eventq.schedule(self, m5.curTick() + self.period)
 
 

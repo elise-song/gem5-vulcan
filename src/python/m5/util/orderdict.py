@@ -28,9 +28,7 @@
 
 __all__ = [ 'orderdict' ]
 
-from UserDict import DictMixin
-
-class orderdict(dict, DictMixin):
+class orderdict(dict):
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
             raise TypeError("expected at most one argument, got %d" % \
@@ -70,4 +68,4 @@ class orderdict(dict, DictMixin):
         return [ self[key] for key in self._keys ]
 
     def items(self):
-        return [ (self[key],key) for key in self._keys ]
+        return [ (key, self[key]) for key in self._keys ]

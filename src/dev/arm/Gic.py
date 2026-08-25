@@ -39,8 +39,8 @@ from m5.params import *
 from m5.proxy import *
 from m5.SimObject import SimObject
 
-from Device import PioDevice
-from Platform import Platform
+from m5.objects.Device import PioDevice
+from m5.objects.Platform import Platform
 
 class BaseGic(PioDevice):
     type = 'BaseGic'

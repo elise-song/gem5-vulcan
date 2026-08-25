@@ -64,7 +64,7 @@ class Sequential:
         self.cur_cpu = self.first_cpu
         self.cpus = cpus
 
-    def next(self):
+    def __next__(self):
         self.cur_cpu = (self.cur_cpu + 1) % len(self.cpus)
         return self.cpus[self.cur_cpu]
 
@@ -119,22 +119,22 @@ def run_test(root, switcher=None, freq=1000, verbose=False):
         exit_cause = exit_event.getCause()
 
         if exit_cause == "simulate() limit reached":
-            next_cpu = switcher.next()
+            next_cpu = next(switcher)
 
             if verbose:
-                print "Switching CPUs..."
-                print "Next CPU: %s" % type(next_cpu)
+                print("Switching CPUs...")
+                print("Next CPU: %s" % type(next_cpu))
             m5.drain()
             if current_cpu != next_cpu:
                 m5.switchCpus(system, [ (current_cpu, next_cpu) ],
                               verbose=verbose)
             else:
-                print "Source CPU and destination CPU are the same, skipping..."
+                print("Source CPU and destination CPU are the same, skipping...")
             current_cpu = next_cpu
         elif exit_cause == "target called exit()" or \
                 exit_cause == "m5_exit instruction encountered":
 
             sys.exit(0)
         else:
-            print "Test failed: Unknown exit cause: %s" % exit_cause
+            print("Test failed: Unknown exit cause: %s" % exit_cause)
             sys.exit(1)

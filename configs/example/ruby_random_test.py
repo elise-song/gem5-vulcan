@@ -57,7 +57,7 @@ parser.add_option("-f", "--wakeup_freq", metavar="N", default=10,
 #
 Ruby.define_options(parser)
 
-execfile(os.path.join(config_root, "common", "Options.py"))
+exec(compile(open(os.path.join(config_root, "common", "Options.py"), "rb").read(), os.path.join(config_root, "common", "Options.py"), 'exec'))
 
 (options, args) = parser.parse_args()
 
@@ -75,7 +75,7 @@ options.l2_assoc=2
 options.l3_assoc=2
 
 if args:
-     print "Error: script doesn't take any positional arguments"
+     print("Error: script doesn't take any positional arguments")
      sys.exit(1)
 
 #
@@ -156,4 +156,4 @@ m5.instantiate()
 # simulate until program terminates
 exit_event = m5.simulate(options.abs_max_tick)
 
-print 'Exiting @ tick', m5.curTick(), 'because', exit_event.getCause()
+print('Exiting @ tick', m5.curTick(), 'because', exit_event.getCause())

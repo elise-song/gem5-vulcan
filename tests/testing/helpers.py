@@ -187,4 +187,4 @@ if __name__ == "__main__":
     ignore_list.rules.append(FileIgnoreList.simple("bar.txt"))
     assert "bar.txt" in ignore_list
 
-    print "SUCCESS!"
+    print("SUCCESS!")

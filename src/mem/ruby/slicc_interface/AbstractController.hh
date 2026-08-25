@@ -129,7 +129,7 @@ class AbstractController : public MemObject, public Consumer
     BaseMasterPort& getMasterPort(const std::string& if_name,
                                   PortID idx = InvalidPortID);
 
-    void queueMemoryRead(const MachineID &id, Addr addr, Cycles latency, MachineID origin, int idx, int type);
+    void queueMemoryRead(const MachineID &id, Addr addr, Cycles latency, MachineID origin, int idx, int type, int epoch);
     void queueMemoryWrite(const MachineID &id, Addr addr, Cycles latency,
                           const DataBlock &block);
     void queueMemoryWritePartial(const MachineID &id, Addr addr, Cycles latency,
@@ -255,6 +255,7 @@ class AbstractController : public MemObject, public Consumer
         int type;
         int coreId;
         int sbeId;
+        int epoch;
 
         SenderState(MachineID _id) : id(_id)
         {}
@@ -264,13 +265,25 @@ class AbstractController : public MemObject, public Consumer
     /** The address range to which the controller responds on the CPU side. */
     const AddrRangeList addrRanges;
 
+    // [InvisiSpec] Per-core LLC-SB entry (Section VI-C). "epoch" is the
+    // Epoch ID of the core at the time this entry was filled by a
+    // Spec-GetS response, used to identify and drop stale, reordered
+    // requests instead of trusting whichever response happens to arrive
+    // last.
     struct SBE
     {
       Addr address;
       DataBlock data;
+      int epoch;
+      bool valid;
     };
 
-    SBE m_specBuf[8][66];
+    // [InvisiSpec] Sec. V-C2(b)/simulation-only sizing: the per-core
+    // dimension is 2*(LQEntries+1) (RubyRequest.hh packs 2 LLC-SB slots
+    // per LQ entry for split/misaligned accesses). 8194 = 2*(4096+1)
+    // matches O3CPU.py's LQEntries default, so the LLC-SB is effectively
+    // unbounded rather than a realistic hardware structure.
+    SBE m_specBuf[8][8194];
 };
 
 #endif // __MEM_RUBY_SLICC_INTERFACE_ABSTRACTCONTROLLER_HH__

@@ -200,6 +200,15 @@ class Request
         DST_BITS                    = 0x0000003000000000,
 
         /**
+         * [InvisiSpec] This request's D-TLB fill was computed (so the
+         * request already carries a valid paddr) but the observable
+         * insert() into the TLB -- the part that changes occupancy and
+         * replacement state -- was withheld until the load reached its
+         * visibility point (Section VI-E3).
+         */
+        SPEC_TLB_DEFERRED           = 0x0000004000000000,
+
+        /**
          * These flags are *not* cleared when a Request object is
          * reused (assigned a new address).
          */
@@ -801,6 +810,7 @@ class Request
     bool isInstFetch() const { return _flags.isSet(INST_FETCH); }
     bool isPrefetch() const { return _flags.isSet(PREFETCH); }
     bool isSpec() const { return _flags.isSet(SPEC); }
+    bool isSpecTLBDeferred() const { return _flags.isSet(SPEC_TLB_DEFERRED); }
     bool isLLSC() const { return _flags.isSet(LLSC); }
     bool isPriv() const { return _flags.isSet(PRIVILEGED); }
     bool isLockedRMW() const { return _flags.isSet(LOCKED_RMW); }

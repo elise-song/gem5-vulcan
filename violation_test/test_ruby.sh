@@ -10,7 +10,7 @@ export GEM5_DIR=$CODE_DIR/gem5-docker;
 # Must at least have "Squashed" !!!
 export GEM5_DEBUG_FLAGS="Squashed,DRAM,CommMonitor,O3CPUAll,ExecAll,Branch,MemoryAccess,RubyCache,LSQ,LSQUnit,Fetch,Decode,RubySlicc,RubyPort,RubySequencer,RubyQueue,RubyNetwork";
 
-# UnsafeBaseline, SpectreSafeInvisibleSpec, FuturisticSafeInvisibleSpec
+# UnsafeBaseline, SpectreSafeInvisibleSpec
 export INVISISPEC_SCHEME="SpectreSafeInvisibleSpec";
 
 init_dirs(){ 
@@ -188,7 +188,7 @@ main() {
 
         <run_asm> is a filepath, expects format of './test_case_<run_name>.asm'
 
-        <invisispec_scheme> can be "UnsafeBaseline", "SpectreSafeInvisibleSpec", "FuturisticSafeInvisibleSpec"
+        <invisispec_scheme> can be "UnsafeBaseline", "SpectreSafeInvisibleSpec"
 
         <debug_flags> are gem5 debug flags
 

@@ -413,7 +413,7 @@ ROB<Impl>::doSquash(ThreadID tid)
 
 /* **************************
  * [InvisiSpec] update load insts state
- * isPrevInstsCompleted; isPrevBrsResolved
+ * isPrevBrsResolved
  * *************************/
 template <class Impl>
 void
@@ -431,36 +431,38 @@ ROB<Impl>::updateVisibleState()
         InstIt inst_it = instList[tid].begin();
         InstIt tail_inst_it = instList[tid].end();
 
-        bool prevInstsComplete=true;
         bool prevBrsResolved=true;
-        bool prevInstsCommitted=true;
         bool prevBrsCommitted=true;
+        bool prevFenceCommitted=true;
 
         while (inst_it != tail_inst_it) {
             DynInstPtr inst = *inst_it++;
 
             assert(inst!=0);
 
-            if (!prevInstsComplete &&
-                    !prevBrsResolved) {
+            if (!prevBrsResolved) {
                 break;
             }
 
             if (inst->isLoad()) {
-                if (prevInstsComplete) {
-                    inst->setPrevInstsCompleted();
-                }
                 if (prevBrsResolved){
                     inst->setPrevBrsResolved();
-                }
-                if (prevInstsCommitted) {
-                    inst->setPrevInstsCommitted();
                 }
                 if (prevBrsCommitted) {
                     inst->setPrevBrsCommitted();
                 }
+                if (prevFenceCommitted) {
+                    // [InvisiSpec] Sec. V-C (RC): true only if no earlier
+                    // memory barrier is still sitting in the ROB. Used to
+                    // pick validation vs. exposure -- unlike prevBrsResolved
+                    // (visibility point), this must stay accurate even past
+                    // the early-exit below, but any load reached after the
+                    // early exit is conservatively left unset (=false),
+                    // which maps to "needs validation".
+                    inst->setPrevFenceCommitted();
+                }
             }
-            
+
             // Update prev control insts state
             if (inst->isControl()){
                 prevBrsCommitted = false;
@@ -468,24 +470,14 @@ ROB<Impl>::updateVisibleState()
                         || inst->isSquashed()){
                     prevBrsResolved = false;
                 }
-            } 
-            
-            prevInstsCommitted = false;
-
-            // Update prev insts state
-            if (inst->isNonSpeculative() || inst->isStoreConditional()
-               || inst->isMemBarrier() || inst->isWriteBarrier() ||
-               (inst->isLoad() && inst->strictlyOrdered())){
-                //Some special instructions, directly set canCommit
-                //when entering ROB
-                prevInstsComplete = false;
-            }
-            if (!(inst->readyToCommit() && inst->isLoadSafeToCommit())
-                    || inst->getFault()!=NoFault
-                    || inst->isSquashed()){
-                prevInstsComplete = false;
             }
 
+            // [InvisiSpec] A not-yet-retired memory barrier (full fence)
+            // in the ROB means any later load could still be reordered
+            // around it under RC and must use validation, per Sec. V-C.
+            if (inst->isMemBarrier()) {
+                prevFenceCommitted = false;
+            }
         }
     }
 }

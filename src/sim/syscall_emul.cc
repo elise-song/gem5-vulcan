@@ -35,6 +35,8 @@
 #include <unistd.h>
 
 #include <csignal>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <string>
 
@@ -382,6 +384,48 @@ gethostnameFunc(SyscallDesc *desc, int num, Process *p, ThreadContext *tc)
     name.copyOut(tc->getMemProxy());
 
     return 0;
+}
+
+SyscallReturn
+getrandomFunc(SyscallDesc *desc, int num, Process *p, ThreadContext *tc)
+{
+    // ssize_t getrandom(void *buf, size_t buflen, unsigned int flags);
+    // Modern (>= 2.25 or so) glibc calls this unconditionally during
+    // process/thread startup (e.g. to seed the stack-protector canary),
+    // so unlike most syscalls added after this table was originally
+    // written, we can't just no-op or fatal on it: we need to actually
+    // hand back some bytes, or the guest program can't even start. Pull
+    // the bytes from the host's /dev/urandom; this is host randomness
+    // standing in for guest randomness, which is fine for our purposes
+    // (stack canaries, ASLR-ish seeding) since we're not trying to model
+    // a specific deterministic RNG here.
+    int index = 0;
+    Addr buf_ptr = p->getSyscallArg(tc, index);
+    size_t buflen = p->getSyscallArg(tc, index);
+    // flags (GRND_NONBLOCK / GRND_RANDOM) are ignored; /dev/urandom
+    // never blocks in practice on any host we care about here.
+
+    BufferArg buf(buf_ptr, buflen);
+    memset(buf.bufferPtr(), 0, buflen);
+
+    int fd = open("/dev/urandom", O_RDONLY);
+    if (fd >= 0) {
+        ssize_t got = read(fd, buf.bufferPtr(), buflen);
+        close(fd);
+        if (got < 0)
+            got = 0;
+        buf.copyOut(tc->getMemProxy());
+        return got;
+    }
+
+    // Extremely unlikely fallback if /dev/urandom isn't available on
+    // the host: hand back low-quality randomness rather than failing
+    // the syscall outright.
+    uint8_t *p8 = (uint8_t *)buf.bufferPtr();
+    for (size_t i = 0; i < buflen; i++)
+        p8[i] = (uint8_t)random();
+    buf.copyOut(tc->getMemProxy());
+    return buflen;
 }
 
 SyscallReturn

@@ -108,7 +108,7 @@ let {{
             self.className = "Limm"
             self.mnemonic = "limm"
             self.dest = dest
-            if isinstance(imm, (int, long)):
+            if isinstance(imm, int):
                 imm = "ULL(%d)" % imm
             self.imm = imm
             self.dataSize = dataSize
@@ -138,7 +138,7 @@ let {{
             self.className = "Lfpimm"
             self.mnemonic = "lfpimm"
             self.dest = dest
-            if isinstance(imm, (int, long)):
+            if isinstance(imm, int):
                 imm = "ULL(%d)" % imm
             elif isinstance(imm, float):
                 imm = "getDoubleBits(%.16f)" % imm

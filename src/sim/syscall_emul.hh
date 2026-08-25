@@ -185,6 +185,10 @@ SyscallReturn munmapFunc(SyscallDesc *desc, int num,
 SyscallReturn gethostnameFunc(SyscallDesc *desc, int num,
                               Process *p, ThreadContext *tc);
 
+/// Target getrandom() handler.
+SyscallReturn getrandomFunc(SyscallDesc *desc, int num,
+                            Process *p, ThreadContext *tc);
+
 /// Target getcwd() handler.
 SyscallReturn getcwdFunc(SyscallDesc *desc, int num,
                          Process *p, ThreadContext *tc);

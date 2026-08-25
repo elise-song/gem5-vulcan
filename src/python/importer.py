@@ -35,39 +35,52 @@ class CodeImporter(object):
 
     def add_module(self, filename, abspath, modpath, code):
         if modpath in self.modules:
-            raise AttributeError, "%s already found in importer" % modpath
+            raise AttributeError("%s already found in importer" % modpath)
 
         self.modules[modpath] = (filename, abspath, code)
 
-    def find_module(self, fullname, path):
-        if fullname in self.modules:
-            return self
+    # Python 3.4+ deprecated the PEP 302 find_module()/load_module() pair
+    # in favor of the PEP 451 find_spec()/exec_module() pair, and Python
+    # 3.12 removed the compatibility shim that let old-style finders (ones
+    # that only implement find_module) keep working on sys.meta_path.
+    # Without find_spec(), this importer is silently skipped by the
+    # embedded interpreter and none of the marshalled-in m5/config modules
+    # can be found, so we implement the modern protocol here.
+    def find_spec(self, fullname, path, target=None):
+        # These imports must live here: the importer is created and
+        # initialized in its own little sandbox (in init.cc), so the
+        # globals that were available when this module was loaded and
+        # CodeImporter was defined are not available when find_spec is
+        # actually called.
+        import importlib.util
+        import os
 
+        entry = self.modules.get(fullname, None)
+        if entry is None:
+            return None
+
+        srcfile, abspath, code = entry
+        is_pkg = os.path.basename(srcfile) == '__init__.py'
+        return importlib.util.spec_from_loader(
+            fullname, self, origin=abspath, is_package=is_pkg)
+
+    def create_module(self, spec):
+        # Use the default module creation semantics.
         return None
 
-    def load_module(self, fullname):
-        # Because the importer is created and initialized in its own
-        # little sandbox (in init.cc), the globals that were available
-        # when the importer module was loaded and CodeImporter was
-        # defined are not available when load_module is actually
-        # called. Soooo, the imports must live here.
-        import imp
+    def exec_module(self, mod):
         import os
         import sys
 
-        try:
-            mod = sys.modules[fullname]
-        except KeyError:
-            mod = imp.new_module(fullname)
-            sys.modules[fullname] = mod
-
+        fullname = mod.__name__
         try:
             mod.__loader__ = self
             srcfile,abspath,code = self.modules[fullname]
 
             override = os.environ.get('M5_OVERRIDE_PY_SOURCE', 'false').lower()
             if override in ('true', 'yes') and  os.path.exists(abspath):
-                src = file(abspath, 'r').read()
+                with open(abspath, 'r') as f:
+                    src = f.read()
                 code = compile(src, abspath, 'exec')
 
             if os.path.basename(srcfile) == '__init__.py':
@@ -77,12 +90,10 @@ class CodeImporter(object):
                 mod.__package__ = fullname.rpartition('.')[0]
             mod.__file__ = srcfile
 
-            exec code in mod.__dict__
+            exec(code, mod.__dict__)
         except Exception:
             del sys.modules[fullname]
             raise
-
-        return mod
 
 # Create an importer and add it to the meta_path so future imports can
 # use it.  There's currently nothing in the importer, but calls to

@@ -1404,7 +1404,7 @@ DefaultCommit<Impl>::markCompletedInsts()
 
     // [InvisiSpec]
     // update load status
-    // isPrevInstsCompleted; isPrevBrsResolved
+    // isPrevBrsResolved
     rob->updateVisibleState();
 }
 

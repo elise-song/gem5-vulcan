@@ -45,7 +45,7 @@ def eprint(format, *args):
     if args:
         format = format % args
 
-    print >>sys.stderr, format
+    print(format, file=sys.stderr)
 
 def main(args=None):
     import optparse
@@ -79,7 +79,7 @@ def main(args=None):
 
     if opts.print_files:
         for i in sorted(slicc.files()):
-            print '    %s' % i
+            print('    %s' % i)
     else:
         output("Processing AST...")
         slicc.process()

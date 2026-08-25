@@ -29,7 +29,7 @@
 
 from m5.params import *
 from m5.proxy import *
-from MemObject import MemObject
+from m5.objects.MemObject import MemObject
 
 class RubyPort(MemObject):
    type = 'RubyPort'
@@ -71,6 +71,13 @@ class RubySequencer(RubyPort):
    dcache_hit_latency = Param.Cycles(1, "Data cache hit latency")
    max_outstanding_requests = Param.Int(16, # LSQ Size; Default: 16
        "max requests (incl. prefetches) outstanding")
+   # [InvisiSpec] Number of per-core Speculative Buffer (SB) entries
+   # (Sec. VI-A), indexed 1:1 by the CPU's internal load queue (which is
+   # cpu.LQEntries + 1 for a sentinel slot). Must be kept > cpu.LQEntries
+   # -- an undersized value here is a silent out-of-bounds vector access,
+   # not a graceful failure, so keep generous headroom.
+   spec_buf_entries = Param.Unsigned(8192,
+       "Number of speculative buffer entries")
    deadlock_threshold = Param.Cycles(500000,
        "max outstanding cycles for a request before deadlock/livelock declared")
    garnet_standalone = Param.Bool(False, "")

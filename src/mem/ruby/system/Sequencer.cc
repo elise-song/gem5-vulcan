@@ -58,8 +58,9 @@ RubySequencerParams::create()
 Sequencer::Sequencer(const Params *p)
     : RubyPort(p), m_IncompleteTimes(MachineType_NUM),
       deadlockCheckEvent([this]{ wakeup(); }, "Sequencer deadlock check"),
-      m_specBuf(33),
-      specBufferHitEvent([this]{ specBufferHitCallback(); }, "Sequencer spec buffer hit")
+      m_specBuf(p->spec_buf_entries),
+      specBufferHitEvent([this]{ specBufferHitCallback(); },
+                         "Sequencer spec buffer hit")
 {
     m_outstanding_count = 0;
 
@@ -432,7 +433,10 @@ Sequencer::writeCallback(Addr address, DataBlock& data,
 }
 
 bool Sequencer::updateSBB(PacketPtr pkt, DataBlock& data, Addr dataAddress) {
-    uint8_t idx = pkt->reqIdx;
+    unsigned idx = pkt->reqIdx;
+    panic_if(idx >= m_specBuf.size(), "InvisiSpec SB index %d out of range "
+             "for m_specBuf (configured load queue is larger than the SB "
+             "supports)", idx);
     SBE& sbe = m_specBuf[idx];
     int blkIdx = pkt->isFirst() ? 0 : 1;
     SBB& sbb = sbe.blocks[blkIdx];
@@ -497,7 +501,10 @@ Sequencer::readCallback(Addr address, DataBlock& data,
         DPRINTFR(SpecBuffer, "%10s EXPOSE callback (idx=%d-%d, addr=%#x)\n", curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1, printAddress(pkt->getAddr()));
     } else if (pkt->isValidate()) {
         DPRINTFR(SpecBuffer, "%10s VALIDATE callback (idx=%d-%d, addr=%#x)\n", curTick(), pkt->reqIdx, pkt->isFirst()? 0 : 1, printAddress(pkt->getAddr()));
-        uint8_t idx = pkt->reqIdx;
+        unsigned idx = pkt->reqIdx;
+        panic_if(idx >= m_specBuf.size(), "InvisiSpec SB index %d out of "
+                 "range for m_specBuf (configured load queue is larger "
+                 "than the SB supports)", idx);
         SBE& sbe = m_specBuf[idx];
         int blkIdx = pkt->isFirst() ? 0 : 1;
         SBB& sbb = sbe.blocks[blkIdx];
@@ -587,7 +594,8 @@ Sequencer::hitCallback(SequencerRequest* srequest, DataBlock& data,
     if (RubySystem::getWarmupEnabled()) {
         data.setData(pkt->getConstPtr<uint8_t>(),
                      getOffset(request_address), pkt->getSize());
-    } else if (!pkt->isFlush() && !pkt->isExpose() && !pkt->isValidate()) {
+    } else if (!pkt->isFlush() && !pkt->isExpose() && !pkt->isValidate() &&
+               !pkt->req->isCacheMaintenance()) {
         if ((type == RubyRequestType_LD) ||
             (type == RubyRequestType_SPEC_LD) ||
             (type == RubyRequestType_IFETCH) ||
@@ -667,7 +675,10 @@ Sequencer::makeRequest(PacketPtr pkt)
     if (pkt->isSpec()) {
         assert(pkt->cmd == MemCmd::ReadSpecReq);
         assert(pkt->isSplit || pkt->isFirst());
-        uint8_t idx = pkt->reqIdx;
+        unsigned idx = pkt->reqIdx;
+        panic_if(idx >= m_specBuf.size(), "InvisiSpec SB index %d out of "
+                 "range for m_specBuf (configured load queue is larger "
+                 "than the SB supports)", idx);
         SBE& sbe = m_specBuf[idx];
         sbe.isSplit = pkt->isSplit;
         int blkIdx = pkt->isFirst() ? 0 : 1;
@@ -700,7 +711,10 @@ Sequencer::makeRequest(PacketPtr pkt)
     } else if (pkt->isExpose() || pkt->isValidate()) {
         assert(pkt->cmd == MemCmd::ExposeReq || pkt->cmd == MemCmd::ValidateReq);
         assert(pkt->isSplit || pkt->isFirst());
-        uint8_t idx = pkt->reqIdx;
+        unsigned idx = pkt->reqIdx;
+        panic_if(idx >= m_specBuf.size(), "InvisiSpec SB index %d out of "
+                 "range for m_specBuf (configured load queue is larger "
+                 "than the SB supports)", idx);
         SBE& sbe = m_specBuf[idx];
         sbe.isSplit = pkt->isSplit;
         int blkIdx = pkt->isFirst() ? 0 : 1;
@@ -777,6 +791,14 @@ Sequencer::makeRequest(PacketPtr pkt)
             }
         } else if (pkt->isFlush()) {
           primary_type = secondary_type = RubyRequestType_FLUSH;
+        } else if (pkt->req->isCacheMaintenance()) {
+            // [InvisiSpec] clflush/clflushopt decode to MemCmd::CleanInvalidReq,
+            // which carries neither IsRead/IsWrite/IsFlush attributes (see
+            // packet.cc's MemCmd table), so it falls through the checks
+            // above. Route it into the same RubyRequestType_FLUSH path used
+            // by "real" flush packets so the protocol's Flush transitions
+            // handle it (drop from cache, writeback if dirty).
+            primary_type = secondary_type = RubyRequestType_FLUSH;
         } else {
             panic("Unsupported ruby packet type\n");
         }
@@ -825,7 +847,8 @@ Sequencer::issueRequest(PacketPtr pkt, RubyRequestType secondary_type)
     // requests do not
     std::shared_ptr<RubyRequest> msg =
         std::make_shared<RubyRequest>(clockEdge(), pkt->getAddr(),
-                                      pkt->isFlush() || pkt->isExpose() ?
+                                      pkt->isFlush() || pkt->isExpose() ||
+                                      pkt->req->isCacheMaintenance() ?
                                       nullptr : pkt->getPtr<uint8_t>(),
                                       pkt->getSize(), pc, secondary_type,
                                       RubyAccessMode_Supervisor, pkt,
