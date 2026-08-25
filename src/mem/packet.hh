@@ -56,6 +56,8 @@
 #include <bitset>
 #include <cassert>
 #include <list>
+#include <utility>
+#include <vector>
 
 #include "base/cast.hh"
 #include "base/compiler.hh"
@@ -416,6 +418,25 @@ class Packet : public Printable
     //so a stale, reordered Spec-GetS/Validate/Expose can be identified.
     int reqEpoch;
     bool isSplit;
+
+    // [InvisiSpec] Sec. V-C2(b): the seqNum of the load this ReadSpecReq
+    // belongs to, recorded by the Sequencer's per-core speculative buffer
+    // (Sequencer::SBE) at Spec-GetS time. Carried so that, if a *different*
+    // load's Validate later finds this load's still-buffered data stale
+    // (see crossSquashTargets below), the LSQ can confirm the load it's
+    // about to squash is still the same instruction that originally
+    // occupied that buffer slot, not a different one that has since
+    // reused it.
+    InstSeqNum specSeqNum;
+
+    // [InvisiSpec] Sec. V-C2(b): populated by Sequencer::readCallback when
+    // this packet is a Validate response, for every *other* live,
+    // not-yet-resolved USL whose speculative-buffer copy of the same
+    // cache line the Sequencer found to mismatch the freshly-read data.
+    // Each entry is (LQ slot index, seqNum of the load that filled it).
+    // The receiving LSQUnit still re-checks both before acting, since the
+    // slot may have been reused by the time the response gets back.
+    std::vector<std::pair<int, InstSeqNum>> crossSquashTargets;
 
     /**
      * A virtual base opaque structure used to hold state associated
@@ -826,10 +847,22 @@ class Packet : public Printable
      * not be valid. The command must be supplied.
      */
     Packet(const RequestPtr _req, MemCmd _cmd)
-        :  cmd(_cmd), id((PacketId)_req), req(_req), data(nullptr), addr(0),
-           _isSecure(false), size(0), headerDelay(0), snoopDelay(0),
-           payloadDelay(0), srcIdx(-1), reqIdx(-1), reqEpoch(0), isSplit(false),
-           senderState(NULL)
+        : cmd(_cmd),
+          id((PacketId)_req),
+          req(_req),
+          data(nullptr),
+          addr(0),
+          _isSecure(false),
+          size(0),
+          headerDelay(0),
+          snoopDelay(0),
+          payloadDelay(0),
+          srcIdx(-1),
+          reqIdx(-1),
+          reqEpoch(0),
+          isSplit(false),
+          specSeqNum(0),
+          senderState(NULL)
     {
         if (req->hasPaddr()) {
             addr = req->getPaddr();
@@ -848,10 +881,21 @@ class Packet : public Printable
      * req.  this allows for overriding the size/addr of the req.
      */
     Packet(const RequestPtr _req, MemCmd _cmd, int _blkSize, PacketId _id = 0)
-        :  cmd(_cmd), id(_id ? _id : (PacketId)_req), req(_req), data(nullptr),
-           addr(0), _isSecure(false), headerDelay(0), snoopDelay(0),
-           payloadDelay(0), srcIdx(-1), reqIdx(-1), reqEpoch(0), isSplit(false),
-           senderState(NULL)
+        : cmd(_cmd),
+          id(_id ? _id : (PacketId)_req),
+          req(_req),
+          data(nullptr),
+          addr(0),
+          _isSecure(false),
+          headerDelay(0),
+          snoopDelay(0),
+          payloadDelay(0),
+          srcIdx(-1),
+          reqIdx(-1),
+          reqEpoch(0),
+          isSplit(false),
+          specSeqNum(0),
+          senderState(NULL)
     {
         if (req->hasPaddr()) {
             addr = req->getPaddr() & ~(_blkSize - 1);
@@ -870,18 +914,24 @@ class Packet : public Printable
      * packet should allocate its own data.
      */
     Packet(const PacketPtr pkt, bool clear_flags, bool alloc_data)
-        :  cmd(pkt->cmd), id(pkt->id), req(pkt->req),
-           data(nullptr),
-           addr(pkt->addr), _isSecure(pkt->_isSecure), size(pkt->size),
-           bytesValid(pkt->bytesValid),
-           headerDelay(pkt->headerDelay),
-           snoopDelay(0),
-           payloadDelay(pkt->payloadDelay),
-           srcIdx(pkt->srcIdx),
-           reqIdx(pkt->reqIdx),
-           reqEpoch(pkt->reqEpoch),
-           isSplit(pkt->isSplit),
-           senderState(pkt->senderState)
+        : cmd(pkt->cmd),
+          id(pkt->id),
+          req(pkt->req),
+          data(nullptr),
+          addr(pkt->addr),
+          _isSecure(pkt->_isSecure),
+          size(pkt->size),
+          bytesValid(pkt->bytesValid),
+          headerDelay(pkt->headerDelay),
+          snoopDelay(0),
+          payloadDelay(pkt->payloadDelay),
+          srcIdx(pkt->srcIdx),
+          reqIdx(pkt->reqIdx),
+          reqEpoch(pkt->reqEpoch),
+          isSplit(pkt->isSplit),
+          specSeqNum(pkt->specSeqNum),
+          crossSquashTargets(pkt->crossSquashTargets),
+          senderState(pkt->senderState)
     {
         if (!clear_flags)
             flags.set(pkt->flags & COPY_FLAGS);

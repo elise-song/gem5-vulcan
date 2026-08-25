@@ -33,6 +33,7 @@
 #include <unordered_map>
 #include <queue>
 
+#include "cpu/inst_seq.hh"
 #include "mem/protocol/MachineType.hh"
 #include "mem/protocol/RubyRequestType.hh"
 #include "mem/protocol/SequencerRequestType.hh"
@@ -66,6 +67,12 @@ struct SBB // SpecBufferBlock
 struct SBE // SpecBufferEntry
 {
   bool isSplit;
+  // [InvisiSpec] Sec. V-C2(b): seqNum of the load currently occupying
+  // this slot, set when its Spec-GetS fills the entry. Lets a later
+  // cross-slot staleness check (see readCallback's isValidate() branch)
+  // report exactly which instruction to squash, and lets the CPU verify
+  // that instruction still owns this slot before acting on it.
+  InstSeqNum seqNum;
   SBB blocks[2];
 };
 
@@ -102,7 +109,7 @@ class Sequencer : public RubyPort
     bool updateSBB(PacketPtr pkt, DataBlock& data, Addr dataAddress);
 
     void memInvalidate() ;
-  
+
     RequestStatus makeRequest(PacketPtr pkt);
     bool empty() const;
     int outstandingCount() const { return m_outstanding_count; }

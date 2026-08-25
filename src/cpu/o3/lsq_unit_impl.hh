@@ -156,6 +156,20 @@ LSQUnit<Impl>::completeDataAccess(PacketPtr pkt)
             completeStore(state->idx);
         }
 
+        // [InvisiSpec] Sec. V-C2(b): for a split (unaligned) Validate,
+        // the Sequencer may have found cross-squash candidates while
+        // processing either half independently; merge the first half's
+        // findings (state->mainPkt) into the packet completeValidate is
+        // about to read, so neither half's findings get dropped.
+        if (pkt->isValidate() && TheISA::HasUnalignedMemAcc &&
+            state->isSplit && state->mainPkt != pkt &&
+            !state->mainPkt->crossSquashTargets.empty()) {
+            pkt->crossSquashTargets.insert(
+                pkt->crossSquashTargets.end(),
+                state->mainPkt->crossSquashTargets.begin(),
+                state->mainPkt->crossSquashTargets.end());
+        }
+
         if (pkt->isValidate() || pkt->isExpose()) {
             completeValidate(inst, pkt);
         }
@@ -1761,6 +1775,44 @@ void
 LSQUnit<Impl>::completeValidate(DynInstPtr &inst, PacketPtr pkt)
 {
     iewStage->wakeCPU();
+
+    // [InvisiSpec] Sec. V-C2(b): the Sequencer already compared the
+    // fresh data it just fetched against every other live USL's stale
+    // speculative-buffer copy of the same line when this validate
+    // response was produced; act on any findings now, regardless of
+    // what subsequently happened to inst itself (checked below), since
+    // the comparison that produced them is independent of inst's own
+    // outcome.
+    if (pkt->isValidate()) {
+        for (auto &target : pkt->crossSquashTargets) {
+            int otherIdx = target.first;
+            InstSeqNum otherSeqNum = target.second;
+            if (otherIdx < 0 ||
+                otherIdx >= static_cast<int>(loadQueue.size())) {
+                continue;
+            }
+            DynInstPtr other = loadQueue[otherIdx];
+            // Re-verify everything: the slot may have been squashed and
+            // reused by a different instruction in the round-trip time
+            // since the Sequencer made this finding, and only a load
+            // that still needs validation and hasn't resolved yet
+            // should ever be squashed for this reason (mirrors the
+            // condition checkSnoop() uses for the same-load early
+            // squash in Sec. V-C2(a)).
+            if (other && other->seqNum == otherSeqNum &&
+                !other->isSquashed() && other->needPostFetch() &&
+                !other->needExposeOnly() && other->isExecuted() &&
+                !other->isExposeCompleted()) {
+                DPRINTF(LSQUnit,
+                        "Cross-squash: [sn:%lli] found stale by "
+                        "validation of [sn:%lli]\n",
+                        other->seqNum, inst->seqNum);
+                other->hitInvalidation(true);
+                other->fault = std::make_shared<ReExec>();
+            }
+        }
+    }
+
     // if instruction fault, no need to check value,
     // return directly
     //assert(!inst->needExposeOnly());

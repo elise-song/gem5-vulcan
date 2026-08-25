@@ -504,7 +504,7 @@ class LSQUnit {
 
     /** Whehter or not a validation is blocked due to the memory system. */
     bool isValidationBlocked;
-    
+
     /** Whether or not a store is in flight. */
     bool storeInFlight;
 
@@ -907,6 +907,9 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
         }
         fst_data_pkt->reqIdx = load_idx;
         fst_data_pkt->reqEpoch = curEpoch;
+        // [InvisiSpec] Sec. V-C2(b): let the Sequencer's spec buffer
+        // record which load owns this slot.
+        fst_data_pkt->specSeqNum = load_inst->seqNum;
     } else {
         // Create the split packets.
         if(sendSpecRead){
@@ -949,6 +952,10 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
         snd_data_pkt->reqIdx = load_idx;
         fst_data_pkt->reqEpoch = curEpoch;
         snd_data_pkt->reqEpoch = curEpoch;
+        // [InvisiSpec] Sec. V-C2(b): let the Sequencer's spec buffer
+        // record which load owns this slot.
+        fst_data_pkt->specSeqNum = load_inst->seqNum;
+        snd_data_pkt->specSeqNum = load_inst->seqNum;
 
         fst_data_pkt->isSplit = true;
         snd_data_pkt->isSplit = true;
@@ -1032,7 +1039,7 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
     Addr block_addr = req->getPaddr() & ~(Addr(64 - 1) );
     DPRINTF(Squashed, "Successfully sent out load request - PC %#x, SQ: [sn:%lli], Paddr %#x, Vaddr %#x, block addr %#x\n", load_inst->pcState().pc(), load_inst->seqNum, req->getPaddr(), req->getVaddr(), block_addr);
     RevizorIPC::logAccess(false, load_inst->pcState().pc(), req->getVaddr());
-    
+
     // Set everything ready for expose/validation after the read is
     // successfully sent out
     if(sendSpecRead){ // sending actual request

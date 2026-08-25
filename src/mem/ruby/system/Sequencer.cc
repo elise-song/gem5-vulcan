@@ -456,14 +456,14 @@ Sequencer::memInvalidate(){
     }
     else {
       DPRINTF(RubySystem,"Ruby-Seq:Caches: NULL\n");
-      assert(0 && "ERROR: Did not find Ruby Sequencer Caches for Invalidation.\n "); 
-      exit(1); 
+      assert(0 &&
+             "ERROR: Did not find Ruby Sequencer Caches for Invalidation.\n ");
+      exit(1);
     }
 
     // Invalidate Caches
     m_dataCache_ptr->memInvalidate();
     m_instCache_ptr->memInvalidate();
-    
 }
 
 // [InvisiSpec] Called by Ruby to send a response to CPU.
@@ -488,7 +488,7 @@ Sequencer::readCallback(Addr address, DataBlock& data,
            (request->m_type == RubyRequestType_SPEC_LD) ||
            (request->m_type == RubyRequestType_EXPOSE) ||
            (request->m_type == RubyRequestType_IFETCH));
-    
+
     PacketPtr pkt = request->pkt;
     if (pkt->isSpec()) {
         assert(!pkt->onlyAccessSpecBuff());
@@ -519,6 +519,48 @@ Sequencer::readCallback(Addr address, DataBlock& data,
             // data.print(os);
             // DPRINTFR(SpecBufferValidate, "%s\n", os.str());
             *(pkt->getPtr<uint8_t>()) = 0;
+        }
+
+        // [InvisiSpec] Sec. V-C2(b): we now hold the actual up-to-date
+        // line. Check every *other* live slot's speculatively-read copy
+        // of the same line -- if a different, not-yet-resolved USL read
+        // stale data here, its own validation is doomed to fail at its
+        // visibility point; report it now so the LSQ can squash it
+        // early instead of waiting. A slot that was never filled (or
+        // whose recorded block isn't for this line) simply can't match
+        // below, so no separate liveness flag is needed here -- the LSQ
+        // still re-verifies ownership via seqNum before acting.
+        for (int j = 0; j < static_cast<int>(m_specBuf.size()); j++) {
+            if (j == idx) {
+                continue;
+            }
+            SBE &other = m_specBuf[j];
+            bool mismatch = false;
+            int numBlocks = other.isSplit ? 2 : 1;
+            for (int k = 0; k < numBlocks; k++) {
+                SBB &otherBlk = other.blocks[k];
+                if (otherBlk.reqSize == 0 ||
+                    makeLineAddress(otherBlk.reqAddress) != address) {
+                    continue;
+                }
+                if (memcmp(
+                        otherBlk.data.getData(getOffset(otherBlk.reqAddress),
+                                              otherBlk.reqSize),
+                        data.getData(getOffset(otherBlk.reqAddress),
+                                     otherBlk.reqSize),
+                        otherBlk.reqSize)) {
+                    mismatch = true;
+                    break;
+                }
+            }
+            if (mismatch) {
+                DPRINTFR(SpecBuffer,
+                         "%10s Cross-squash candidate: slot %d "
+                         "[sn:%lli] has stale data for addr=%#x\n",
+                         curTick(), j, other.seqNum, printAddress(address));
+                pkt->crossSquashTargets.push_back(
+                    std::make_pair(j, other.seqNum));
+            }
         }
     }
 
@@ -681,6 +723,8 @@ Sequencer::makeRequest(PacketPtr pkt)
                  "than the SB supports)", idx);
         SBE& sbe = m_specBuf[idx];
         sbe.isSplit = pkt->isSplit;
+        // [InvisiSpec] Sec. V-C2(b): record which load now owns this slot.
+        sbe.seqNum = pkt->specSeqNum;
         int blkIdx = pkt->isFirst() ? 0 : 1;
         SBB& sbb = sbe.blocks[blkIdx];
         sbb.reqAddress = pkt->getAddr();
