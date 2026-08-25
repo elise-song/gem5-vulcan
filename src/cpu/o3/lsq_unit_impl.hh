@@ -587,8 +587,10 @@ LSQUnit<Impl>::checkSnoop(PacketPtr pkt)
         DPRINTF(LSQUnit, "-- inst [sn:%lli] load_addr: %#x to pktAddr:%#x\n",
                     ld_inst->seqNum, load_addr_low, invalidate_addr);
 
-        if ((load_addr_low == invalidate_addr
-             || load_addr_high == invalidate_addr) || force_squash) {
+        bool addr_match = (load_addr_low == invalidate_addr ||
+                           load_addr_high == invalidate_addr);
+
+        if (addr_match || force_squash) {
             if (needsTSO) {
                 // If we have a TSO system, as all loads must be ordered with
                 // all other loads, this load as well as *all* subsequent loads
@@ -608,7 +610,22 @@ LSQUnit<Impl>::checkSnoop(PacketPtr pkt)
                     ld_inst->clearL1HitLow();
                 }
             }
-            if (ld_inst->possibleLoadViolation() || force_squash) {
+
+            // [InvisiSpec] Sec. V-C2(a): a USL that needs validation and
+            // already has data in its SB (Performed) is squashed right
+            // away when an invalidation lands on the exact line it read,
+            // rather than waiting for its (near-certain-to-fail)
+            // validation at the visibility point. This applies whether
+            // or not TSO's force_squash cascade already covers this
+            // load -- it's keyed on this load's own address actually
+            // being hit, not on a younger-than-a-squashed-load position.
+            bool earlySquashValidation =
+                isInvisibleSpec && addr_match && ld_inst->needPostFetch() &&
+                !ld_inst->needExposeOnly() && ld_inst->isExecuted() &&
+                !ld_inst->isExposeCompleted();
+
+            if (ld_inst->possibleLoadViolation() || force_squash ||
+                earlySquashValidation) {
                 DPRINTF(LSQUnit, "Conflicting load at addr %#x [sn:%lli]\n",
                         pkt->getAddr(), ld_inst->seqNum);
 
