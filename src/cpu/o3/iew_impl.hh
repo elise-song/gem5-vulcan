@@ -1193,6 +1193,11 @@ DefaultIEW<Impl>::executeInsts()
     // send validations before execute load requests
     ldstQueue.exposeLoads();
 
+    // [InvisiSpec] Sec. VI-A2/VII: retry any spec reads held back
+    // because a younger load had an in-flight request to the same
+    // block.
+    ldstQueue.retryBlockedOnYounger();
+
     // Uncomment this if you want to see all available instructions.
     // @todo This doesn't actually work anymore, we should fix it.
     // printAvailableInsts();

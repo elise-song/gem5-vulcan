@@ -145,6 +145,10 @@ class LSQ {
     /** Same as above, but only for one thread. */
     int exposeLoads(ThreadID tid);
 
+    // [InvisiSpec] Sec. VI-A2/VII: re-attempt spec reads held back by
+    // youngerLoadInFlight() once the conflicting younger load resolves.
+    void retryBlockedOnYounger();
+
     /** [mengjia]
      * attempt to update FenceDelay state for load insts
      */
