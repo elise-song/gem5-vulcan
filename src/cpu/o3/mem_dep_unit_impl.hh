@@ -414,10 +414,7 @@ MemDepUnit<MemDepPred, Impl>::completed(DynInstPtr &inst)
     // Remove the instruction from the hash and the list.
     MemDepHashIt hash_it = memDepHash.find(inst->seqNum);
 
-    if (hash_it == memDepHash.end()) {
-        // Already completed once
-        return;
-    }
+    assert(hash_it != memDepHash.end());
 
     instList[tid].erase((*hash_it).second->listIt);
 

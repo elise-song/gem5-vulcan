@@ -1178,21 +1178,6 @@ DefaultCommit<Impl>::commitHead(DynInstPtr &head_inst, unsigned inst_num)
 
     ThreadID tid = head_inst->threadNumber;
 
-    // The LSQ has un-executed this load in place to selectively replay
-    // it (see LSQUnit::flagForReplay()) instead of squashing everything
-    // younger than it. It is still sitting at the ROB head with a stale
-    // !isExecuted() state; stall on it here rather than falling into
-    // the "not executed yet" handling below, which is for barriers and
-    // non-speculative instructions that were never sent to execute in
-    // the first place.
-    if (head_inst->isPendingReplay()) {
-        DPRINTF(Commit,
-                "[sn:%lli] PC %s: waiting on selective replay "
-                "before it can commit.\n",
-                head_inst->seqNum, head_inst->pcState());
-        return false;
-    }
-
     // If the instruction is not executed yet, then it will need extra
     // handling.  Signal backwards that it should be executed.
     if (!head_inst->isExecuted()) {
