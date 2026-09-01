@@ -313,8 +313,8 @@ LSQ<Impl>::writebackStores()
 }
 
 // [mengjia]
-template<class Impl>
-int 
+template <class Impl>
+int
 LSQ<Impl>::exposeLoads()
 {
     list<ThreadID>::iterator threads = activeThreads->begin();
@@ -334,6 +334,20 @@ LSQ<Impl>::exposeLoads()
     return exposedLoads;
 }
 
+// [InvisiSpec] Sec. VI-A2/VII
+template <class Impl>
+void
+LSQ<Impl>::retryBlockedOnYounger()
+{
+    list<ThreadID>::iterator threads = activeThreads->begin();
+    list<ThreadID>::iterator end = activeThreads->end();
+
+    while (threads != end) {
+        ThreadID tid = *threads++;
+
+        thread[tid].retryBlockedOnYounger();
+    }
+}
 
 // [mengjia]
 template<class Impl>

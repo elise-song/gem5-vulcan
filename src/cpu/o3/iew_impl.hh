@@ -1186,13 +1186,18 @@ DefaultIEW<Impl>::executeInsts()
         fetchRedirect[tid] = false;
     }
 
-    // [mengjia] Validate/Expose any loads which are ready last cycle 
+    // [mengjia] Validate/Expose any loads which are ready last cycle
     // very tricky, need make the state consistent
-    // if we successfully commit sth, then we need to activate the stage or somehow
-    // problems happen when interacting with squash
-    // NOTE: we always send validations before execute load requests 
+    // if we successfully commit sth, then we need to activate the stage or
+    // somehow problems happen when interacting with squash NOTE: we always
+    // send validations before execute load requests
     ldstQueue.exposeLoads();
-    
+
+    // [InvisiSpec] Sec. VI-A2/VII: retry any spec reads held back
+    // because a younger load had an in-flight request to the same
+    // block.
+    ldstQueue.retryBlockedOnYounger();
+
     // Uncomment this if you want to see all available instructions.
     // @todo This doesn't actually work anymore, we should fix it.
     // printAvailableInsts();
@@ -1271,7 +1276,7 @@ DefaultIEW<Impl>::executeInsts()
                     instQueue.deferMemInst(inst);
                     continue;
                 }
-                
+
                 if ((inst->specTLBMiss() ) &&
                     fault == NoFault) {
                     DPRINTF(IEW, "Execute: Speculative load gets a TLB miss,"
@@ -1410,11 +1415,11 @@ DefaultIEW<Impl>::executeInsts()
                 ++memOrderViolationEvents;
             }
         }
-    } 
+    }
 
     // Update and record activity if we processed any instructions.
     if (inst_num) {
-        
+
         if (exeStatus == Idle) {
             exeStatus = Running;
         }
@@ -1510,14 +1515,14 @@ DefaultIEW<Impl>::tick()
 
     if (exeStatus != Squashing) {
         executeInsts();
- 
+
         writebackInsts();
 
         // Have the instruction queue try to schedule any ready instructions.
         // (In actuality, this scheduling is for instructions that will
         // be executed next cycle.)
         instQueue.scheduleReadyInsts();
- 
+
         // Also should advance its own time buffers if the stage ran.
         // Not the best place for it, but this works (hopefully).
         issueToExecQueue.advance();
@@ -1534,7 +1539,6 @@ DefaultIEW<Impl>::tick()
 
     // Writeback any stores using any leftover bandwidth.
     ldstQueue.writebackStores();
-   
 
     // Check the committed load/store signals to see if there's a load
     // or store to commit.  Also check if it's being told to execute a

@@ -778,7 +778,86 @@ LSQUnit<Impl>::checkSpecBuffHit(RequestPtr req, int req_idx)
     return -1;
 }
 
+template <class Impl>
+bool
+LSQUnit<Impl>::youngerLoadInFlight(DynInstPtr &load_inst)
+{
+    if (!load_inst->effAddrValid()) {
+        return false;
+    }
 
+    Addr req_eff_addr1 = load_inst->physEffAddrLow & cacheBlockMask;
+    Addr req_eff_addr2 = load_inst->physEffAddrHigh & cacheBlockMask;
+
+    int load_idx = load_inst->lqIdx;
+    incrLdIdx(load_idx);
+    while (load_idx != loadTail) {
+        DynInstPtr ld_inst = loadQueue[load_idx];
+        if (ld_inst && !ld_inst->isSquashed() && ld_inst->hasRequest() &&
+            !ld_inst->isExecuted() && ld_inst->effAddrValid()) {
+            Addr ld_eff_addr1 = ld_inst->physEffAddrLow & cacheBlockMask;
+            Addr ld_eff_addr2 = ld_inst->physEffAddrHigh & cacheBlockMask;
+
+            if (req_eff_addr1 == ld_eff_addr1 ||
+                (ld_eff_addr2 != 0 && req_eff_addr1 == ld_eff_addr2) ||
+                (req_eff_addr2 != 0 && req_eff_addr2 == ld_eff_addr1) ||
+                (req_eff_addr2 != 0 && ld_eff_addr2 != 0 &&
+                 req_eff_addr2 == ld_eff_addr2)) {
+                DPRINTF(LSQUnit,
+                        "Detected younger in-flight load "
+                        "[sn:%lli] blocking [sn:%lli] at address %#x\n",
+                        ld_inst->seqNum, load_inst->seqNum, req_eff_addr1);
+                return true;
+            }
+        }
+        incrLdIdx(load_idx);
+    }
+    return false;
+}
+
+template <class Impl>
+void
+LSQUnit<Impl>::retryBlockedOnYounger()
+{
+    auto it = blockedOnYoungerLoad.begin();
+    while (it != blockedOnYoungerLoad.end()) {
+        DynInstPtr &load_inst = it->inst;
+
+        // Bail out if the instruction was squashed, or its LQ slot no
+        // longer holds it (shouldn't normally happen while it's still
+        // un-executed, but check defensively rather than operate on
+        // whatever now sits at that index).
+        if (load_inst->isSquashed() || loadQueue[it->loadIdx] != load_inst) {
+            delete it->req;
+            if (it->sreqLow) {
+                delete it->sreqLow;
+                delete it->sreqHigh;
+            }
+            it = blockedOnYoungerLoad.erase(it);
+            continue;
+        }
+
+        if (youngerLoadInFlight(load_inst)) {
+            ++it;
+            continue;
+        }
+
+        BlockedSpecLoad held = *it;
+        it = blockedOnYoungerLoad.erase(it);
+        Fault fault =
+            read(held.req, held.sreqLow, held.sreqHigh, held.loadIdx);
+        if (fault != NoFault) {
+            // Mirror executeLoad()'s own handling: a fault (e.g. the
+            // strictly-ordered/LLSC path in read()) has to reach commit
+            // even though we're driving this retry ourselves rather
+            // than through the normal executeLoad() call.
+            held.inst->fault = fault;
+            held.inst->setExecuted();
+            iewStage->instToCommit(held.inst);
+            iewStage->activityThisCycle();
+        }
+    }
+}
 
 template <class Impl>
 Fault
