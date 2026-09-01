@@ -84,9 +84,11 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cerrno>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "arch/generic/tlb.hh"
 #include "base/intmath.hh"
@@ -348,6 +350,126 @@ SyscallReturn setsockoptFunc(SyscallDesc *desc, ThreadContext *tc,
 SyscallReturn getcpuFunc(SyscallDesc *desc, ThreadContext *tc,
                          VPtr<uint32_t> cpu, VPtr<uint32_t> node,
                          VPtr<uint32_t> tcache);
+
+/**
+ * Locate an active SE-mode task using Linux's sched_*affinity PID rules.
+ * A PID of zero denotes the calling task; positive values are task IDs.
+ */
+static inline Process *
+affinityTarget(ThreadContext *tc, int pid)
+{
+    if (pid == 0)
+        return tc->getProcessPtr();
+    if (pid < 0)
+        return nullptr;
+
+    for (auto *candidate_tc : tc->getSystemPtr()->threads) {
+        if (candidate_tc->status() == ThreadContext::Halted ||
+            candidate_tc->status() == ThreadContext::Halting) {
+            continue;
+        }
+
+        Process *candidate = candidate_tc->getProcessPtr();
+        if (candidate && candidate->pid() == static_cast<uint64_t>(pid))
+            return candidate;
+    }
+
+    return nullptr;
+}
+
+/** Target sched_setaffinity(2) handler for syscall-emulation mode. */
+template <class OS>
+SyscallReturn
+schedSetaffinityFunc(SyscallDesc *desc, ThreadContext *tc, int pid,
+                     typename OS::size_t cpusetsize, Addr mask_ptr)
+{
+    if (pid < 0)
+        return -EINVAL;
+
+    Process *target = affinityTarget(tc, pid);
+    if (!target)
+        return -ESRCH;
+
+    Process *caller = tc->getProcessPtr();
+    if (target != caller && caller->euid() != target->uid() &&
+        caller->euid() != target->euid()) {
+        return -EPERM;
+    }
+
+    const size_t num_cpus = tc->getSystemPtr()->threads.size();
+    const size_t mask_bytes = (num_cpus + 7) / 8;
+    const size_t word_bytes = sizeof(typename OS::size_t);
+    const size_t kernel_mask_bytes =
+        ((num_cpus + word_bytes * 8 - 1) / (word_bytes * 8)) * word_bytes;
+    std::vector<uint8_t> user_mask(kernel_mask_bytes, 0);
+
+    // Linux ignores mask bits beyond the configured CPU set. Reading only
+    // the kernel-sized portion also prevents an untrusted guest size from
+    // causing an unnecessarily large simulator allocation.
+    const size_t bytes_to_copy =
+        std::min<size_t>(cpusetsize, kernel_mask_bytes);
+    if (bytes_to_copy != 0 &&
+        !tc->getVirtProxy().tryReadBlob(
+            mask_ptr, user_mask.data(), bytes_to_copy)) {
+        return -EFAULT;
+    }
+
+    std::vector<uint8_t> affinity(mask_bytes, 0);
+    std::copy_n(user_mask.begin(), mask_bytes, affinity.begin());
+    if (num_cpus % 8 != 0)
+        affinity.back() &= (1U << (num_cpus % 8)) - 1;
+
+    bool any_cpu = false;
+    for (uint8_t byte : affinity)
+        any_cpu |= byte != 0;
+    if (!any_cpu)
+        return -EINVAL;
+
+    // SE mode dedicates each software task to a ThreadContext and has no
+    // kernel scheduler at which to migrate it. Preserve the kernel-visible
+    // policy here; sched_getaffinity and future SE schedulers consume it.
+    target->cpuAffinity(affinity);
+    return 0;
+}
+
+/** Target sched_getaffinity(2) handler for syscall-emulation mode. */
+template <class OS>
+SyscallReturn
+schedGetaffinityFunc(SyscallDesc *desc, ThreadContext *tc, int pid,
+                     typename OS::size_t cpusetsize, Addr mask_ptr)
+{
+    if (pid < 0)
+        return -EINVAL;
+
+    Process *target = affinityTarget(tc, pid);
+    if (!target)
+        return -ESRCH;
+
+    const size_t num_cpus = tc->getSystemPtr()->threads.size();
+    const size_t word_bytes = sizeof(typename OS::size_t);
+    const size_t result_bytes =
+        ((num_cpus + word_bytes * 8 - 1) / (word_bytes * 8)) * word_bytes;
+    if (cpusetsize < result_bytes)
+        return -EINVAL;
+
+    std::vector<uint8_t> result(result_bytes, 0);
+    const auto &affinity = target->cpuAffinity();
+    if (affinity.empty()) {
+        for (size_t cpu = 0; cpu < num_cpus; ++cpu)
+            result[cpu / 8] |= 1U << (cpu % 8);
+    } else {
+        std::copy_n(affinity.begin(),
+                    std::min(affinity.size(), result.size()), result.begin());
+    }
+
+    if (result_bytes != 0 &&
+        !tc->getVirtProxy().tryWriteBlob(
+            mask_ptr, result.data(), result_bytes)) {
+        return -EFAULT;
+    }
+
+    return result_bytes;
+}
 
 // Target getsockname() handler.
 SyscallReturn getsocknameFunc(SyscallDesc *desc, ThreadContext *tc,
@@ -2474,9 +2596,12 @@ execveFunc(SyscallDesc *desc, ThreadContext *tc,
     }
 
     *new_p->sigchld = true;
+    const auto old_affinity = p->cpuAffinity();
 
     tc->clearArchRegs();
     tc->setProcessPtr(new_p);
+    // CPU affinity is a task attribute and survives execve(2).
+    new_p->cpuAffinity(old_affinity);
     new_p->assignThreadContext(tc->contextId());
     new_p->init();
     new_p->initState();

@@ -254,9 +254,8 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
         np->exitGroup = exitGroup;
     }
 
-    if (CLONE_VFORK & flags) {
-        np->vforkContexts.push_back(otc->contextId());
-    }
+    // Linux tasks inherit their creator's CPU affinity across clone/fork.
+    np->_cpuAffinity = _cpuAffinity;
 
     np->argv.insert(np->argv.end(), argv.begin(), argv.end());
     np->envp.insert(np->envp.end(), envp.begin(), envp.end());
@@ -412,8 +411,7 @@ Process::serialize(CheckpointOut &cp) const
 {
     memState->serialize(cp);
     pTable->serialize(cp);
-    fds->serialize(cp);
-
+    SERIALIZE_CONTAINER(_cpuAffinity);
     /**
      * Checkpoints for pipes, device drivers or sockets currently
      * do not work. Need to come back and fix them at a later date.
@@ -427,8 +425,13 @@ Process::unserialize(CheckpointIn &cp)
 {
     memState->unserialize(cp);
     pTable->unserialize(cp);
-    fds->unserialize(cp, this);
 
+    // Keep checkpoints made before affinity support backward compatible.
+    std::string serialized_affinity;
+    if (cp.find(Serializable::currentSection(), "_cpuAffinity",
+                serialized_affinity)) {
+        UNSERIALIZE_CONTAINER(_cpuAffinity);
+    }
     /**
      * Checkpoints for pipes, device drivers or sockets currently
      * do not work. Need to come back and fix them at a later date.

@@ -88,6 +88,15 @@ class Process : public SimObject
     inline void pgid(uint64_t pgid) { _pgid = pgid; }
     inline uint64_t tgid() { return _tgid; }
 
+    /**
+     * Return the task's SE-mode CPU affinity mask. An empty mask means that
+     * every ThreadContext in the system is allowed. The mask uses Linux's
+     * byte-oriented cpu_set_t representation (bit N selects context N).
+     */
+    const std::vector<uint8_t> &cpuAffinity() const { return _cpuAffinity; }
+
+    void cpuAffinity(const std::vector<uint8_t> &mask) { _cpuAffinity = mask; }
+
     const char *progName() const { return executable.c_str(); }
 
     /**
@@ -290,6 +299,9 @@ class Process : public SimObject
     uint64_t _ppid;
     uint64_t _pgid;
     uint64_t _tgid;
+
+    // Per-task CPU affinity used by sched_{set,get}affinity in SE mode.
+    std::vector<uint8_t> _cpuAffinity;
 
     // Emulated drivers available to this process
     std::vector<EmulatedDriver *> drivers;
