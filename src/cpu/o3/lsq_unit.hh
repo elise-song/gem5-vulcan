@@ -47,7 +47,6 @@
 
 #include <algorithm>
 #include <cstring>
-#include <list>
 #include <map>
 #include <queue>
 #include <sstream>
@@ -144,18 +143,6 @@ class LSQUnit {
     // spec buffer or not
     int checkSpecBuffHit(const RequestPtr req, const int req_idx);
     void setSpecBuffState(const RequestPtr req);
-
-    // [InvisiSpec] Sec. VI-A2/VII: true if a younger (later in program
-    // order), not-yet-completed load already has a request outstanding
-    // to the same cache block as load_inst. Reusing that load's
-    // in-flight request would let load_inst's completion depend on
-    // whether that younger, possibly-squashed load actually executed --
-    // exactly the "speeding up" covert channel Sec. VII rules out.
-    bool youngerLoadInFlight(DynInstPtr &load_inst);
-
-    // [InvisiSpec] Sec. VI-A2/VII: re-attempt any spec reads that were
-    // held back by youngerLoadInFlight() once that conflict clears.
-    void retryBlockedOnYounger();
 
     bool checkPrevLoadsExecuted(const int req_idx);
     /** Executes a load instruction. */
@@ -432,19 +419,6 @@ class LSQUnit {
 
     /** The load queue. */
     std::vector<DynInstPtr> loadQueue;
-
-    // [InvisiSpec] Sec. VI-A2/VII: spec reads held back by
-    // youngerLoadInFlight(), waiting for the conflicting younger load
-    // to resolve so this load can get its own independent request.
-    struct BlockedSpecLoad
-    {
-        Request *req;
-        Request *sreqLow;
-        Request *sreqHigh;
-        int loadIdx;
-        DynInstPtr inst;
-    };
-    std::list<BlockedSpecLoad> blockedOnYoungerLoad;
 
     /** The number of LQ entries, plus a sentinel entry (circular queue).
      *  @todo: Consider having var that records the true number of LQ entries.
@@ -899,21 +873,6 @@ LSQUnit<Impl>::read(Request *req, Request *sreqLow, Request *sreqHigh,
 
     assert( !(sendSpecRead && load_inst->isSpecCompleted()) &&
             "Sending specRead twice for the same load insts");
-
-    if (sendSpecRead && youngerLoadInFlight(load_inst)) {
-        // [InvisiSpec] Sec. VI-A2/VII: don't let this older load's
-        // request piggyback on a younger, still in-flight (and
-        // possibly still-squashable) load's request to the same
-        // block -- hold it until that load resolves, so this load
-        // gets its own independent request instead.
-        DPRINTF(LSQUnit,
-                "Holding spec read for inst [sn:%lli]: younger "
-                "load has an in-flight request to the same block\n",
-                load_inst->seqNum);
-        blockedOnYoungerLoad.push_back(
-            {req, sreqLow, sreqHigh, load_idx, load_inst});
-        return NoFault;
-    }
 
     if (sendSpecRead) {
         data_pkt = Packet::createReadSpec(req);
