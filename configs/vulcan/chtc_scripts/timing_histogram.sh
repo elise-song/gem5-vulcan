@@ -23,3 +23,5 @@ elif [ "$1" == "flush" ]; then
 else
     echo "Invalid argument. Please use 'read', 'write', or 'flush'."
 fi
+
+mv m5out/stats.txt stats_$1.txt
