@@ -111,6 +111,14 @@
 #define NUM_CALIBRE_SINGLE 22
 #endif
 
+// Only these ord_calibre values (1-indexed: {1-3}, {7-9}, {13}) are run.
+// The other 15 categories depend on migrating to CPU 3 (test_delay()'s
+// sched_setaffinity calls), which doesn't exist under this repo's 2-core
+// gem5 config, so their timings don't reflect genuine cross-core coherence
+// behavior. Columns for skipped categories are left at 0 in the output.
+const int valid_calibres[] = {0, 1, 2, 6, 7, 8, 12};
+#define NUM_VALID_CALIBRES (sizeof(valid_calibres) / sizeof(valid_calibres[0]))
+
 #define MAX_CYCLE 2500
 
 const int l1_way_size=L1_CACHE_SET*L1_ASSOC;
@@ -434,7 +442,7 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
       }
 
 
-      for(int i=1;i<9;i++){         
+      for(int i=1;i<65;i++){         
          asm __volatile__ (
            "lfence              \n" 
            "movq (%%rcx),  %%rax     \n"
@@ -685,8 +693,10 @@ int main(int argc, char *argv[]) {
   //calibration
   // READ
 #if DO_READ
-  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
+  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
   {
+    int ord_calibre = valid_calibres[vc];
+    counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
     for(int j=0;j <100;j++){
@@ -707,14 +717,15 @@ int main(int argc, char *argv[]) {
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
-    counter_hist++;
   }
 #endif
 
   // WRITE
 #if DO_WRITE
-  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
+  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
   {
+    int ord_calibre = valid_calibres[vc];
+    counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
     for(int j=0;j <100;j++){
@@ -735,14 +746,15 @@ int main(int argc, char *argv[]) {
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
-    counter_hist++;
   }
 #endif 
 
   // FLUSH
 #if DO_FLUSH
-  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre)
+  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
   {
+    int ord_calibre = valid_calibres[vc];
+    counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
     for(int j=0;j <100;j++){
@@ -763,7 +775,6 @@ int main(int argc, char *argv[]) {
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
-    counter_hist++;
   }
 #endif
 
