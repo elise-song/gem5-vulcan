@@ -1172,6 +1172,39 @@ DefaultIEW<Impl>::printAvailableInsts()
 }
 
 template <class Impl>
+bool
+DefaultIEW<Impl>::issueLoadAccess(DynInstPtr &inst)
+{
+    if (inst->fenceDelay()) {
+        DPRINTF(IEW, "Deferring load due to virtual fence.\n");
+        inst->onlyWaitForFence(true);
+        instQueue.deferMemInst(inst);
+        return true;
+    }
+
+    Fault fault = ldstQueue.executeLoad(inst);
+
+    if (inst->isTranslationDelayed() && fault == NoFault) {
+        DPRINTF(IEW, "Execute: Delayed translation,  deferring load.\n");
+        instQueue.deferMemInst(inst);
+        return true;
+    }
+
+    if (inst->specTLBMiss() && fault == NoFault) {
+        DPRINTF(IEW, "Execute: Speculative load gets a TLB miss,"
+                     " deferring load.\n");
+        instQueue.deferMemInst(inst);
+        return true;
+    }
+
+    if (inst->isDataPrefetch() || inst->isInstPrefetch()) {
+        inst->fault = NoFault;
+    }
+
+    return false;
+}
+
+template <class Impl>
 void
 DefaultIEW<Impl>::executeInsts()
 {
@@ -1186,13 +1219,18 @@ DefaultIEW<Impl>::executeInsts()
         fetchRedirect[tid] = false;
     }
 
-    // [mengjia] Validate/Expose any loads which are ready last cycle 
+    // [mengjia] Validate/Expose any loads which are ready last cycle
     // very tricky, need make the state consistent
-    // if we successfully commit sth, then we need to activate the stage or somehow
-    // problems happen when interacting with squash
-    // NOTE: we always send validations before execute load requests 
+    // if we successfully commit sth, then we need to activate the stage or
+    // somehow problems happen when interacting with squash NOTE: we always
+    // send validations before execute load requests
     ldstQueue.exposeLoads();
-    
+
+    // Re-drive any loads the LSQ selectively flagged for replay (a load
+    // whose data turned out stale/invalidated after it already
+    // executed) before this cycle's normal issue-to-execute traffic.
+    ldstQueue.processReplays();
+
     // Uncomment this if you want to see all available instructions.
     // @todo This doesn't actually work anymore, we should fix it.
     // printAvailableInsts();
@@ -1247,41 +1285,8 @@ DefaultIEW<Impl>::executeInsts()
             if (inst->isLoad()) {
                 // Loads will mark themselves as executed, and their writeback
                 // event adds the instruction to the queue to commit
-
-                // [InvisiSpec] a lifetime of a load
-                // always let it translate --> translation not complete, defer
-                // if !loadInExec, need to check whether there
-                // is a virtual fence ahead
-                // --> if existing virtual fence, defer
-                if (inst->fenceDelay()){
-                    DPRINTF(IEW, "Deferring load due to virtual fence.\n");
-                    inst->onlyWaitForFence(true);
-                    instQueue.deferMemInst(inst);
+                if (issueLoadAccess(inst)) {
                     continue;
-                }
-
-                fault = ldstQueue.executeLoad(inst);
-
-                // [InvisiSpec] delay the load if there is a virtual fence ahead
-                if ((inst->isTranslationDelayed() ) &&
-                    fault == NoFault) {
-                    // A hw page table walk is currently going on; the
-                    // instruction must be deferred.
-                    DPRINTF(IEW, "Execute: Delayed translation,  deferring load.\n");
-                    instQueue.deferMemInst(inst);
-                    continue;
-                }
-                
-                if ((inst->specTLBMiss() ) &&
-                    fault == NoFault) {
-                    DPRINTF(IEW, "Execute: Speculative load gets a TLB miss,"
-                            " deferring load.\n");
-                    instQueue.deferMemInst(inst);
-                    continue;
-                }
-
-                if (inst->isDataPrefetch() || inst->isInstPrefetch()) {
-                    inst->fault = NoFault;
                 }
             } else if (inst->isStore()) {
                 fault = ldstQueue.executeStore(inst);
@@ -1410,11 +1415,11 @@ DefaultIEW<Impl>::executeInsts()
                 ++memOrderViolationEvents;
             }
         }
-    } 
+    }
 
     // Update and record activity if we processed any instructions.
     if (inst_num) {
-        
+
         if (exeStatus == Idle) {
             exeStatus = Running;
         }
@@ -1510,14 +1515,14 @@ DefaultIEW<Impl>::tick()
 
     if (exeStatus != Squashing) {
         executeInsts();
- 
+
         writebackInsts();
 
         // Have the instruction queue try to schedule any ready instructions.
         // (In actuality, this scheduling is for instructions that will
         // be executed next cycle.)
         instQueue.scheduleReadyInsts();
- 
+
         // Also should advance its own time buffers if the stage ran.
         // Not the best place for it, but this works (hopefully).
         issueToExecQueue.advance();
@@ -1534,7 +1539,6 @@ DefaultIEW<Impl>::tick()
 
     // Writeback any stores using any leftover bandwidth.
     ldstQueue.writebackStores();
-   
 
     // Check the committed load/store signals to see if there's a load
     // or store to commit.  Also check if it's being told to execute a

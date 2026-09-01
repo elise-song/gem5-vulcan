@@ -145,6 +145,13 @@ class LSQ {
     /** Same as above, but only for one thread. */
     int exposeLoads(ThreadID tid);
 
+    /**
+     * Re-drives every load that LSQUnit::flagForReplay() has queued for
+     * selective replay through issue again. Called once per cycle from
+     * IEW::executeInsts().
+     */
+    void processReplays();
+
     /** [mengjia]
      * attempt to update FenceDelay state for load insts
      */

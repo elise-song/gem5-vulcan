@@ -648,8 +648,10 @@ LSQUnit<Impl>::checkSnoop(PacketPtr pkt)
                 if (pkt->isExternalEviction()){
                     ld_inst->hitExternalEviction(true);
                 }
-                // Mark the load for re-execution
-                ld_inst->fault = std::make_shared<ReExec>();
+                // Replay only this load instead of squashing everything
+                // after it in program order -- see flagForReplay()'s
+                // comment for what this does and does not guarantee.
+                flagForReplay(ld_inst);
             } else {
                 DPRINTF(LSQUnit, "HitExternal Snoop for addr %#x [sn:%lli]\n",
                         pkt->getAddr(), ld_inst->seqNum);
@@ -669,6 +671,45 @@ LSQUnit<Impl>::checkSnoop(PacketPtr pkt)
         incrLdIdx(load_idx);
     }
     return;
+}
+
+template <class Impl>
+void
+LSQUnit<Impl>::flagForReplay(DynInstPtr &inst)
+{
+    if (inst->isPendingReplay()) {
+        // Already queued by an earlier hazard this same cycle (e.g. one
+        // snoop invalidation triggering both the TSO cascade and the
+        // early-squash-validation check on the same load); nothing more
+        // to do, don't undo its execution state a second time or queue
+        // a duplicate replay.
+        return;
+    }
+
+    if (!inst->isExecuted()) {
+        // The load's request is outstanding (translated/sent, but no
+        // response yet)
+        DPRINTF(LSQUnit,
+                "[sn:%lli] flagged for replay before its access "
+                "completed; falling back to a full squash.\n",
+                inst->seqNum);
+        inst->fault = std::make_shared<ReExec>();
+        return;
+    }
+
+    DPRINTF(LSQUnit,
+            "Selectively replaying load [sn:%lli] instead of "
+            "squashing younger instructions.\n",
+            inst->seqNum);
+
+    // Un-execute in place: inst keeps its ROB/IQ/LSQ slot, it just
+    // stops looking executed until processReplays() re-drives it.
+    inst->undoExecution();
+    inst->setPendingReplay();
+
+    replayQueue.push(inst);
+
+    iewStage->activityThisCycle();
 }
 
 template <class Impl>
@@ -911,6 +952,8 @@ LSQUnit<Impl>::executeLoad(DynInstPtr &inst)
         if (!(inst->hasRequest() && inst->strictlyOrdered()) ||
             inst->isAtCommit()) {
             inst->setExecuted();
+            // Mirrors the same clear in writeback()
+            inst->clearPendingReplay();
         }
         iewStage->instToCommit(inst);
         iewStage->activityThisCycle();
@@ -1141,6 +1184,10 @@ LSQUnit<Impl>::exposeLoads()
         loadQueue[loadVLDIdx]) {
 
         if (loadQueue[loadVLDIdx]->isSquashed()){
+            incrLdIdx(loadVLDIdx);
+            continue;
+        }
+        if (loadQueue[loadVLDIdx]->isPendingReplay()) {
             incrLdIdx(loadVLDIdx);
             continue;
         }
@@ -1402,8 +1449,29 @@ LSQUnit<Impl>::exposeLoads()
     return old_loadsToVLD-loadsToVLD;
 }
 
+template <class Impl>
+void
+LSQUnit<Impl>::processReplays()
+{
+    while (!replayQueue.empty()) {
+        DynInstPtr inst = replayQueue.front();
+        replayQueue.pop();
 
+        if (inst->isSquashed()) {
+            // Already discarded by an unrelated squash; nothing left
+            // to redo, and no consumer left downstream to protect.
+            inst->clearPendingReplay();
+            continue;
+        }
 
+        DPRINTF(LSQUnit,
+                "Re-driving replayed load [sn:%lli] through "
+                "issue.\n",
+                inst->seqNum);
+
+        iewStage->issueLoadAccess(inst);
+    }
+}
 
 template <class Impl>
 void
@@ -1808,7 +1876,9 @@ LSQUnit<Impl>::completeValidate(DynInstPtr &inst, PacketPtr pkt)
                         "validation of [sn:%lli]\n",
                         other->seqNum, inst->seqNum);
                 other->hitInvalidation(true);
-                other->fault = std::make_shared<ReExec>();
+                // See checkSnoop()'s matching call for what this does
+                // and does not guarantee.
+                flagForReplay(other);
             }
         }
     }
@@ -1831,12 +1901,12 @@ LSQUnit<Impl>::completeValidate(DynInstPtr &inst, PacketPtr pkt)
             validation_fail = true;
         }
     }
-    if (validation_fail){
-        // Mark the load for re-execution
-        inst->fault = std::make_shared<ReExec>();
+    if (validation_fail) {
         inst->validationFail(true);
         DPRINTF(LSQUnit, "Validation failed.\n",
         inst->seqNum);
+        flagForReplay(inst);
+        return;
     }
 
     inst->setExposeCompleted();
@@ -1873,6 +1943,7 @@ LSQUnit<Impl>::writeback(DynInstPtr &inst, PacketPtr pkt)
 
     if (!inst->isExecuted()) {
         inst->setExecuted();
+        inst->clearPendingReplay();
 
         if (inst->fault == NoFault) {
             // Complete access to copy data to proper place.

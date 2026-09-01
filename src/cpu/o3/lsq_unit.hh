@@ -139,6 +139,16 @@ class LSQUnit {
      */
     void checkSnoop(PacketPtr pkt);
 
+    /**
+     * Selectively replay a single load that already executed with data
+     * that has turned out to be stale/invalidated, instead of squashing
+     * every younger instruction. Un-executes inst in place (it keeps
+     * its ROB/IQ/LSQ slot) and queues it to be re-driven through
+     * translation, issue, and memory access on a later cycle; see
+     * processReplays().
+     */
+    void flagForReplay(DynInstPtr &inst);
+
     // [InvisiSpec] check whether current request will hit in the
     // spec buffer or not
     int checkSpecBuffHit(const RequestPtr req, const int req_idx);
@@ -165,6 +175,14 @@ class LSQUnit {
 
     /** [mengjia] Validate loads. */
     int exposeLoads();
+
+    /**
+     * Drains flagForReplay()'s queue, re-driving each still-live load
+     * through IEW's normal load-issue path (translation + memory
+     * access) as if it were newly ready. Called once per cycle from
+     * IEW::executeInsts(), mirroring exposeLoads() above.
+     */
+    void processReplays();
 
     /** [mengjia] Update Visbible State.
      * In the mode defence relying on fence: setup fenceDelay state.
@@ -419,6 +437,14 @@ class LSQUnit {
 
     /** The load queue. */
     std::vector<DynInstPtr> loadQueue;
+
+    /**
+     * Loads that flagForReplay() has un-executed and is waiting to
+     * re-drive through issue/translation/access. These instructions
+     * stay in loadQueue (and the ROB/IQ) at their original position;
+     * this is purely a worklist for processReplays().
+     */
+    std::queue<DynInstPtr> replayQueue;
 
     /** The number of LQ entries, plus a sentinel entry (circular queue).
      *  @todo: Consider having var that records the true number of LQ entries.

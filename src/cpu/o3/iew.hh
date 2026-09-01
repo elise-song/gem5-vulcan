@@ -232,6 +232,16 @@ class DefaultIEW
     /** Check misprediction  */
     void checkMisprediction(DynInstPtr &inst);
 
+    /**
+     * Issues a load's memory access -- translation, then the actual
+     * request -- exactly the same call executeInsts() uses for a load
+     * issuing for the first time. Also used by LSQUnit::processReplays()
+     * to re-drive a selectively-replayed load through the identical
+     * path, so a re-issued load gets the same translation/fence/TLB-miss
+     * deferral handling as a freshly-issued one.
+     */
+    bool issueLoadAccess(DynInstPtr &inst);
+
   private:
     /** Sends commit proper information for a squash due to a branch
      * mispredict.

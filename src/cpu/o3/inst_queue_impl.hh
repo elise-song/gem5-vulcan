@@ -1126,6 +1126,11 @@ template <class Impl>
 void
 InstructionQueue<Impl>::completeMemInst(DynInstPtr &completed_inst)
 {
+    if (completed_inst->memOpDone()) {
+        // Already completed once
+        return;
+    }
+
     ThreadID tid = completed_inst->threadNumber;
 
     DPRINTF(IQ, "Completing mem instruction PC: %s [sn:%lli]\n",
@@ -1179,10 +1184,10 @@ InstructionQueue<Impl>::getDeferredMemInstToExecute()
         // 2. virtual fence ahead
         // 3. not ready to expose and gets a TLB miss
         // for both (2, 3) we need to restart the translation
-        if ( (*it)->translationCompleted() 
-                || ((*it)->onlyWaitForFence() && !(*it)->fenceDelay())
-                || ((*it)->onlyWaitForExpose() && (*it)->readyToExpose())
-                || (*it)->isSquashed()) {
+        if ((*it)->translationCompleted() ||
+            ((*it)->onlyWaitForFence() && !(*it)->fenceDelay()) ||
+            ((*it)->onlyWaitForExpose() && (*it)->readyToExpose()) ||
+            (*it)->isSquashed()) {
             DynInstPtr mem_inst = *it;
             mem_inst->onlyWaitForFence(false);
             mem_inst->onlyWaitForExpose(false);
@@ -1265,9 +1270,23 @@ InstructionQueue<Impl>::doSquash(ThreadID tid)
             continue;
         }
 
-        if (!squashed_inst->isIssued() ||
-            (squashed_inst->isMemRef() &&
-             !squashed_inst->memOpDone())) {
+        // For a mem-ref, whether its IQ slot still needs freeing here is
+        // decided by memOpDone() alone, not isIssued(): a load that
+        // LSQUnit::flagForReplay() is selectively replaying can have
+        // isIssued() cleared by an unrelated retry path (e.g.
+        // IEW::blockMemInst(), when its re-driven access hits a blocked
+        // cache port) despite having already freed this same slot once,
+        // for real, via completeMemInst() on its original completion.
+        // Falling through to the plain !isIssued() check below for a
+        // mem-ref would then free that already-freed slot a second
+        // time, walking count[tid] permanently negative (caught by
+        // FullO3CPU::removeThread()'s instQueue.getCount(tid)==0 assert
+        // at simulation end, once nothing squashes far enough to null
+        // it out again). memOpDone() has no such false-negative: it is
+        // set exactly once, by the one completeMemInst() call that ever
+        // runs for a given instruction, replayed or not.
+        if (!squashed_inst->isMemRef() ? !squashed_inst->isIssued()
+                                       : !squashed_inst->memOpDone()) {
 
             DPRINTF(IQ, "[tid:%i]: Instruction [sn:%lli] PC %s squashed.\n",
                     tid, squashed_inst->seqNum, squashed_inst->pcState());

@@ -97,29 +97,30 @@ class BaseDynInst : public ExecContext, public RefCounted
     };
 
   protected:
-    enum Status {
-        IqEntry,                 /// Instruction is in the IQ
-        RobEntry,                /// Instruction is in the ROB
-        LsqEntry,                /// Instruction is in the LSQ
-        Completed,               /// Instruction has completed
-        ResultReady,             /// Instruction has its result
-        CanIssue,                /// Instruction can issue and execute
-        Issued,                  /// Instruction has issued
-        Executed,                /// Instruction has executed
-        CanCommit,               /// Instruction can commit
-        AtCommit,                /// Instruction has reached commit
-        Committed,               /// Instruction has committed
-        Squashed,                /// Instruction is squashed
-        SquashedInIQ,            /// Instruction is squashed in the IQ
-        SquashedInLSQ,           /// Instruction is squashed in the LSQ
-        SquashedInROB,           /// Instruction is squashed in the ROB
-        RecoverInst,             /// Is a recover instruction
-        BlockingInst,            /// Is a blocking instruction
-        ThreadsyncWait,          /// Is a thread synchronization instruction
-        SerializeBefore,         /// Needs to serialize on
-                                 /// instructions ahead of it
-        SerializeAfter,          /// Needs to serialize instructions behind it
-        SerializeHandled,        /// Serialization has been handled
+    enum Status
+    {
+        IqEntry,          /// Instruction is in the IQ
+        RobEntry,         /// Instruction is in the ROB
+        LsqEntry,         /// Instruction is in the LSQ
+        Completed,        /// Instruction has completed
+        ResultReady,      /// Instruction has its result
+        CanIssue,         /// Instruction can issue and execute
+        Issued,           /// Instruction has issued
+        Executed,         /// Instruction has executed
+        CanCommit,        /// Instruction can commit
+        AtCommit,         /// Instruction has reached commit
+        Committed,        /// Instruction has committed
+        Squashed,         /// Instruction is squashed
+        SquashedInIQ,     /// Instruction is squashed in the IQ
+        SquashedInLSQ,    /// Instruction is squashed in the LSQ
+        SquashedInROB,    /// Instruction is squashed in the ROB
+        RecoverInst,      /// Is a recover instruction
+        BlockingInst,     /// Is a blocking instruction
+        ThreadsyncWait,   /// Is a thread synchronization instruction
+        SerializeBefore,  /// Needs to serialize on
+                          /// instructions ahead of it
+        SerializeAfter,   /// Needs to serialize instructions behind it
+        SerializeHandled, /// Serialization has been handled
 
         SpecCompleted,
         // [mengjia] indicates whether received specReadResp
@@ -142,6 +143,11 @@ class BaseDynInst : public ExecContext, public RefCounted
         SpecBuffObsoleteHigh,
         SpecBuffObsoleteLow,
         // [InvisiSpec] it hits in L1 and is open to invalidations
+        PendingReplay,
+        // Load has been un-executed and is waiting in the LSQUnit's
+        // replay queue to be re-driven through translation/issue/access;
+        // commit must stall on it rather than trying to commit a
+        // not-yet-executed plain load.
         NumStatus
     };
 
@@ -880,6 +886,77 @@ class BaseDynInst : public ExecContext, public RefCounted
 
     /** Returns whether or not this instruction has executed. */
     bool isExecuted() const { return status[Executed]; }
+
+    /** Marks this load as queued for selective replay: it stays in its
+     *  ROB/IQ/LSQ slot, but commit must not try to commit it while this
+     *  is set. */
+    void
+    setPendingReplay()
+    {
+        status.set(PendingReplay);
+    }
+
+    /** Clears the pending-replay marker once the replayed access has
+     *  written back a fresh result. */
+    void
+    clearPendingReplay()
+    {
+        status.reset(PendingReplay);
+    }
+
+    /** Returns whether or not this instruction is waiting on a
+     *  selective replay of its memory access. */
+    bool
+    isPendingReplay() const
+    {
+        return status[PendingReplay];
+    }
+
+    /**
+     * Reverts an already-executed load to a pre-execution state so the
+     * LSQUnit can re-drive it through translation, issue, and memory
+     * access as if it were newly ready -- without removing it from the
+     * ROB, IQ, or LSQ. Used for selective replay of a load that
+     * executed with data that turned out to be stale/invalidated: it
+     * only undoes this instruction's own progress. Anything younger
+     * that already consumed the stale result via the physical-register
+     * bypass network before this runs keeps that stale value -- undoing
+     * this instruction cannot retroactively fix its consumers, unlike a
+     * full squash.
+     */
+    void
+    undoExecution()
+    {
+        status.reset(Executed);
+        status.reset(Completed);
+        status.reset(ResultReady);
+        status.reset(SpecCompleted);
+        status.reset(ValidationCompleted);
+        status.reset(ExposeCompleted);
+        status.reset(ExposeSent);
+        status.reset(L1HitHigh);
+        status.reset(L1HitLow);
+
+        // Reset DTB translation state and drop the stale saved
+        // request so the next initiateAcc() re-translates and issues a
+        // brand new memory request, rather than replaying the one that
+        // already (mis)completed.
+        instFlags[TranslationStarted] = false;
+        instFlags[TranslationCompleted] = false;
+        instFlags[ReqMade] = false;
+        savedReq = nullptr;
+        savedSreqLow = nullptr;
+        savedSreqHigh = nullptr;
+        postReq = nullptr;
+        postSreqLow = nullptr;
+        postSreqHigh = nullptr;
+
+        while (!instResult.empty()) {
+            instResult.pop();
+        }
+
+        fault = NoFault;
+    }
 
     /** Sets this instruction as ready to commit. */
     void setCanCommit() { status.set(CanCommit); }
