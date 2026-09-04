@@ -9,9 +9,9 @@ git checkout elise
 scons build/ALL/gem5.opt -j$(nproc) 
 
 cd configs/vulcan/amber_cache
-gcc timing_histogram.c -std=gnu99 -DDO_READ=1 -o timing_histogram_read
-gcc timing_histogram.c -std=gnu99 -DDO_WRITE=1 -o timing_histogram_write
-gcc timing_histogram.c -std=gnu99 -DDO_FLUSH=1 -o timing_histogram_flush
+gcc timing_histogram.c -std=gnu99 -pthread -DDO_READ=1 -o timing_histogram_read
+gcc timing_histogram.c -std=gnu99 -pthread -DDO_WRITE=1 -o timing_histogram_write
+gcc timing_histogram.c -std=gnu99 -pthread -DDO_FLUSH=1 -o timing_histogram_flush
 
 cd ../../..
 if [ "$1" == "read" ]; then

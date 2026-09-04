@@ -21,9 +21,9 @@
 *
 */
 
-// gcc timing_histogram.c -std=gnu99 -DDO_READ=1 -o timing_histogram_read
-// gcc timing_histogram.c -std=gnu99 -DDO_WRITE=1 -o timing_histogram_write
-// gcc timing_histogram.c -std=gnu99 -DDO_FLUSH=1 -o timing_histogram_flush
+// gcc timing_histogram.c -std=gnu99 -pthread -DDO_READ=1 -o timing_histogram_read
+// gcc timing_histogram.c -std=gnu99 -pthread -DDO_WRITE=1 -o timing_histogram_write
+// gcc timing_histogram.c -std=gnu99 -pthread -DDO_FLUSH=1 -o timing_histogram_flush
 
 
 #define _GNU_SOURCE
@@ -37,7 +37,7 @@
 #include <immintrin.h>
 #include <x86intrin.h>
 #include <dlfcn.h>
-#include <sched.h>
+#include <pthread.h>
 #include <time.h>
 
 #ifndef DO_READ
@@ -111,14 +111,6 @@
 #define NUM_CALIBRE_SINGLE 22
 #endif
 
-// Only these ord_calibre values (1-indexed: {1-3}, {7-9}, {13}) are run.
-// The other 15 categories depend on migrating to CPU 3 (test_delay()'s
-// sched_setaffinity calls), which doesn't exist under this repo's 2-core
-// gem5 config, so their timings don't reflect genuine cross-core coherence
-// behavior. Columns for skipped categories are left at 0 in the output.
-const int valid_calibres[] = {0, 1, 2, 6, 7, 8, 12};
-#define NUM_VALID_CALIBRES (sizeof(valid_calibres) / sizeof(valid_calibres[0]))
-
 #define MAX_CYCLE 2500
 
 const int l1_way_size=L1_CACHE_SET*L1_ASSOC;
@@ -137,8 +129,6 @@ int coarse_histogram[NUM_CALIBRE][MAX_CYCLE/10]={0};
 
 char* start[320*8+1];
 
-cpu_set_t mycpuset;
-
 int threadshold = 200;
 
 char* conflict_set[320*8];
@@ -147,6 +137,39 @@ char* lines[8*320];
 int t=0;
 
 int conflict_bar = 0;
+
+// --- "Remote core" worker thread -------------------------------------
+//
+// The REMOTE_* / L*_REMOTE_L*_HIT_CLEAN categories need one of the cache
+// touches to genuinely happen on a different core than the one that later
+// measures the access. gem5 SE mode has no kernel scheduler, so
+// sched_setaffinity() can't migrate an already-running thread between
+// cores -- it only records bookkeeping. Instead, a persistent pthread is
+// spawned once at startup. Under gem5 SE mode, pthread_create() (via
+// clone()) is handed the first idle (Halted) ThreadContext in the system,
+// so as long as the board only starts one core active, this worker is
+// pinned to a genuinely different core for its entire lifetime -- no
+// migration required. See the matching timing_histogram.py, which leaves
+// every core but the first Halted for exactly this reason.
+
+enum {
+  WORKER_IDLE = 0,
+  WORKER_TOUCH_CLEAN,
+  WORKER_TOUCH_DIRTY,
+  WORKER_EVICT_L1,
+  WORKER_EVICT_L2_FULL,
+  WORKER_EVICT_CONFLICT,
+  WORKER_EXIT,
+};
+
+typedef struct {
+  volatile int cmd;
+  volatile unsigned req_seq;
+  volatile unsigned ack_seq;
+} worker_channel_t;
+
+static worker_channel_t worker_channel = {WORKER_IDLE, 0, 0};
+static pthread_t worker_tid;
 
 void shuffle(char **array, int n, int length){
   long i, j;
@@ -163,7 +186,7 @@ void shuffle(char **array, int n, int length){
 int probe_array(char **set, int size, char *candidate){
   //read candidate
   asm __volatile__ (
-       "lfence              \n" 
+       "lfence              \n"
        "movq (%%rcx),  %%rax     \n"
        "movq 64(%%rcx), %%rax     \n"
        "movq 448(%%rcx),%%rax     \n"
@@ -173,7 +196,7 @@ int probe_array(char **set, int size, char *candidate){
        "movq 192(%%rcx),%%rax     \n"
        "movq 128(%%rcx),%%rax     \n"
        "lfence              \n"
-       : 
+       :
        : "c" (candidate)
        : "%esi", "%edx");
 
@@ -181,7 +204,7 @@ int probe_array(char **set, int size, char *candidate){
   for (int i = 0; i < size; ++i)
   {
     asm __volatile__ (
-       "lfence              \n" 
+       "lfence              \n"
        "movq (%%rcx),  %%rax     \n"
        "movq 64(%%rcx), %%rax     \n"
        "movq 448(%%rcx),%%rax     \n"
@@ -191,7 +214,7 @@ int probe_array(char **set, int size, char *candidate){
        "movq 192(%%rcx),%%rax     \n"
        "movq 128(%%rcx),%%rax     \n"
        "lfence              \n"
-       : 
+       :
        : "c" (set[i])
        : "%esi", "%edx");
   }
@@ -199,24 +222,24 @@ int probe_array(char **set, int size, char *candidate){
   // measure time to read candidate
 
   asm __volatile__ (
-       "lfence              \n" 
+       "lfence              \n"
        "rdtsc               \n"
        "movl %%eax, %%esi   \n"
        "movq (%%rcx),  %%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 64(%%rcx), %%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 448(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 256(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 384(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 320(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 192(%%rcx),%%rax     \n"
-       "lfence              \n" 
-       "movq 128(%%rcx),%%rax     \n"    
+       "lfence              \n"
+       "movq 128(%%rcx),%%rax     \n"
        "lfence              \n"
        "rdtsc               \n"
        "subl %%esi, %%eax   \n"
@@ -227,15 +250,14 @@ int probe_array(char **set, int size, char *candidate){
   return (t > threadshold );
 }
 
+// --- Shared cache-touch primitives ------------------------------------
+// Used both locally (by the measuring thread) and remotely (dispatched to
+// the worker thread), so the "local" and "remote" variants of each
+// category run identical code -- only which core executes it differs.
 
-
-unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
-
-  unsigned long t=0;
-
-  if(sec==L1_REMOTE_L1_HIT_CLEAN||sec==L1_REMOTE_L2_HIT_CLEAN||sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
-    asm __volatile__ (
-       "lfence              \n" 
+static inline void touch_clean(char *p) {
+  asm __volatile__ (
+       "lfence              \n"
        "movq (%%rcx),  %%rax     \n"
        "movq 64(%%rcx), %%rax     \n"
        "movq 448(%%rcx),%%rax     \n"
@@ -245,157 +267,14 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
        "movq 192(%%rcx),%%rax     \n"
        "movq 128(%%rcx),%%rax     \n"
        "lfence              \n"
-       : 
-       : "c" (start[0])
+       :
+       : "c" (p)
        : "%esi", "%edx");
-  }
+}
 
-  if(sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN){
-    for(int i=1;i<9;i++){         
-         asm __volatile__ (
-           "lfence              \n" 
-           "movq (%%rcx),  %%rax     \n"
-           "movq 64(%%rcx), %%rax     \n"
-           "movq 448(%%rcx),%%rax     \n"
-           "movq 256(%%rcx),%%rax     \n"
-           "movq 384(%%rcx),%%rax     \n"
-           "movq 320(%%rcx),%%rax     \n"
-           "movq 192(%%rcx),%%rax     \n"
-           "movq 128(%%rcx),%%rax     \n"
-           "lfence              \n"
-           : 
-           : "c" (start[i])
-           : "%esi", "%edx");
-       }
-  }
-
-
-  if(sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
-    for (int i = 0; i < conflict_bar; ++i)
-        {
-          asm __volatile__ (
-             "lfence              \n" 
-             "movq (%%rcx),  %%rax     \n"
-             "movq 64(%%rcx), %%rax     \n"
-             "movq 448(%%rcx),%%rax     \n"
-             "movq 256(%%rcx),%%rax     \n"
-             "movq 384(%%rcx),%%rax     \n"
-             "movq 320(%%rcx),%%rax     \n"
-             "movq 192(%%rcx),%%rax     \n"
-             "movq 128(%%rcx),%%rax     \n"
-             "lfence              \n"
-             : 
-             : "c" (conflict_set[i])
-             : "%esi", "%edx");
-        }
-      }
-
-  if(sec==L1_REMOTE_L1_HIT_CLEAN||sec==L1_REMOTE_L2_HIT_CLEAN||sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
-
-    CPU_ZERO(&mycpuset); 
-      CPU_SET(3, &mycpuset);
-      if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-            perror("sched_setaffinity");
-        }
-      
-
-    asm __volatile__ (
-       "lfence              \n" 
-       "movq (%%rcx),  %%rax     \n"
-       "movq 64(%%rcx), %%rax     \n"
-       "movq 448(%%rcx),%%rax     \n"
-       "movq 256(%%rcx),%%rax     \n"
-       "movq 384(%%rcx),%%rax     \n"
-       "movq 320(%%rcx),%%rax     \n"
-       "movq 192(%%rcx),%%rax     \n"
-       "movq 128(%%rcx),%%rax     \n"
-       "lfence              \n"
-       : 
-       : "c" (start[0])
-       : "%esi", "%edx");
-
-  }
-
-
-  if(sec==L1_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN){
-    for(int i=1;i<9;i++){         
-         asm __volatile__ (
-           "lfence              \n" 
-           "movq (%%rcx),  %%rax     \n"
-           "movq 64(%%rcx), %%rax     \n"
-           "movq 448(%%rcx),%%rax     \n"
-           "movq 256(%%rcx),%%rax     \n"
-           "movq 384(%%rcx),%%rax     \n"
-           "movq 320(%%rcx),%%rax     \n"
-           "movq 192(%%rcx),%%rax     \n"
-           "movq 128(%%rcx),%%rax     \n"
-           "lfence              \n"
-           : 
-           : "c" (start[i])
-           : "%esi", "%edx");
-       }
-  }
-
-  if(sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
-    for (int i = 0; i < conflict_bar; ++i)
-        {
-          asm __volatile__ (
-             "lfence              \n" 
-             "movq (%%rcx),  %%rax     \n"
-             "movq 64(%%rcx), %%rax     \n"
-             "movq 448(%%rcx),%%rax     \n"
-             "movq 256(%%rcx),%%rax     \n"
-             "movq 384(%%rcx),%%rax     \n"
-             "movq 320(%%rcx),%%rax     \n"
-             "movq 192(%%rcx),%%rax     \n"
-             "movq 128(%%rcx),%%rax     \n"
-             "lfence              \n"
-             : 
-             : "c" (conflict_set[i])
-             : "%esi", "%edx");
-        }
-      }
-
-
-  if(sec==L1_REMOTE_L1_HIT_CLEAN||sec==L1_REMOTE_L2_HIT_CLEAN||sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
-
-    CPU_ZERO(&mycpuset); 
-      CPU_SET(1, &mycpuset);
-      if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-            perror("sched_setaffinity");
-        }
-      }
-
-
-
-
-
-  if (sec==REMOTE_L1_HIT_CLEAN||sec==REMOTE_L1_HIT_DIRTY||sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY||sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
-      CPU_ZERO(&mycpuset); 
-      CPU_SET(3, &mycpuset);
-      if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-            perror("sched_setaffinity");
-        }
-  }
-
-  if(sec==L1_HIT_CLEAN||sec==L2_HIT_CLEAN||sec==L3_HIT_CLEAN||sec==REMOTE_L1_HIT_CLEAN||sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L3_HIT_CLEAN||sec==DRAM_HIT){
-      asm __volatile__ (
-       "lfence              \n" 
-       "movq (%%rcx),  %%rax     \n"
-       "movq 64(%%rcx), %%rax     \n"
-       "movq 448(%%rcx),%%rax     \n"
-       "movq 256(%%rcx),%%rax     \n"
-       "movq 384(%%rcx),%%rax     \n"
-       "movq 320(%%rcx),%%rax     \n"
-       "movq 192(%%rcx),%%rax     \n"
-       "movq 128(%%rcx),%%rax     \n"
-       "lfence              \n"
-       : 
-       : "c" (start[0])
-       : "%esi", "%edx");
-  }else if(sec==L1_HIT_DIRTY||sec==L2_HIT_DIRTY||sec==L3_HIT_DIRTY||sec==REMOTE_L1_HIT_DIRTY||sec==REMOTE_L2_HIT_DIRTY||sec==REMOTE_L3_HIT_DIRTY){
-      asm __volatile__ (
-           "sfence              \n" 
+static inline void touch_dirty(char *p) {
+  asm __volatile__ (
+           "sfence              \n"
            "movq %%rcx, (%%rcx)       \n"
            "sfence              \n"
            "movq %%rcx, 64(%%rcx)     \n"
@@ -412,100 +291,119 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
            "sfence              \n"
            "movq %%rcx, 128(%%rcx)     \n"
            "sfence              \n"
-           : 
-           : "c" (start[0])
+           :
+           : "c" (p)
            : "%esi", "%edx");
+}
+
+// Evict a line from L1 (touch the other L1_ASSOC-1 ways of its set).
+static inline void evict_l1(char **start_arr) {
+  for (int i = 1; i < 9; ++i) touch_clean(start_arr[i]);
+}
+
+// Evict a line from L2 (touch enough conflicting lines to fill the set
+// across every core sharing it, ratio*L2_ASSOC ways' worth).
+static inline void evict_l2_full(char **start_arr) {
+  for (int i = 1; i < 65; ++i) touch_clean(start_arr[i]);
+}
+
+// Evict a line from L2 into L3 (touch the precomputed L3 eviction set).
+static inline void evict_conflict(void) {
+  for (int i = 0; i < conflict_bar; ++i) touch_clean(conflict_set[i]);
+}
+
+// --- Worker thread request/response -----------------------------------
+
+static void worker_request(int cmd) {
+  worker_channel.cmd = cmd;
+  __atomic_thread_fence(__ATOMIC_RELEASE);
+  unsigned seq = ++worker_channel.req_seq;
+  while (worker_channel.ack_seq != seq) {
+    __asm__ __volatile__("pause" ::: "memory");
   }
-       
-     
+}
 
-
-  if (sec==REMOTE_L1_HIT_CLEAN||sec==REMOTE_L1_HIT_DIRTY||sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY||sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
-      CPU_ZERO(&mycpuset); 
-      CPU_SET(1, &mycpuset);
-      if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-            perror("sched_setaffinity");
-        }
+static void *worker_thread_fn(void *arg) {
+  unsigned last_seq = 0;
+  for (;;) {
+    while (worker_channel.req_seq == last_seq) {
+      __asm__ __volatile__("pause" ::: "memory");
     }
+    last_seq = worker_channel.req_seq;
+    int cmd = worker_channel.cmd;
+    int should_exit = (cmd == WORKER_EXIT);
+    switch (cmd) {
+      case WORKER_TOUCH_CLEAN:    touch_clean(start[0]);   break;
+      case WORKER_TOUCH_DIRTY:    touch_dirty(start[0]);   break;
+      case WORKER_EVICT_L1:       evict_l1(start);         break;
+      case WORKER_EVICT_L2_FULL:  evict_l2_full(start);    break;
+      case WORKER_EVICT_CONFLICT: evict_conflict();        break;
+      default: break;
+    }
+    __atomic_thread_fence(__ATOMIC_RELEASE);
+    worker_channel.ack_seq = last_seq;
+    if (should_exit) return NULL;
+  }
+}
 
-  
+
+
+unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
+
+  unsigned long t=0;
+
+  if(sec==L1_REMOTE_L1_HIT_CLEAN||sec==L1_REMOTE_L2_HIT_CLEAN||sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
+    touch_clean(start[0]);
+  }
+
+  if(sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN){
+    evict_l1(start);
+  }
+
+
+  if(sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
+    evict_conflict();
+  }
+
+  // From here on, "remote" work is dispatched to the worker thread
+  // (pinned to a different core for its whole lifetime) instead of
+  // migrating this thread.
+  if(sec==L1_REMOTE_L1_HIT_CLEAN||sec==L1_REMOTE_L2_HIT_CLEAN||sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L1_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L1_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
+    worker_request(WORKER_TOUCH_CLEAN);
+  }
+
+  if(sec==L1_REMOTE_L2_HIT_CLEAN||sec==L2_REMOTE_L2_HIT_CLEAN||sec==L3_REMOTE_L2_HIT_CLEAN){
+    worker_request(WORKER_EVICT_L1);
+  }
+
+  if(sec==L1_REMOTE_L3_HIT_CLEAN||sec==L2_REMOTE_L3_HIT_CLEAN||sec==L3_REMOTE_L3_HIT_CLEAN){
+    worker_request(WORKER_EVICT_CONFLICT);
+  }
+
+
+  if(sec==L1_HIT_CLEAN||sec==L2_HIT_CLEAN||sec==L3_HIT_CLEAN||sec==DRAM_HIT){
+      touch_clean(start[0]);
+  }else if(sec==REMOTE_L1_HIT_CLEAN||sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L3_HIT_CLEAN){
+      worker_request(WORKER_TOUCH_CLEAN);
+  }else if(sec==L1_HIT_DIRTY||sec==L2_HIT_DIRTY||sec==L3_HIT_DIRTY){
+      touch_dirty(start[0]);
+  }else if(sec==REMOTE_L1_HIT_DIRTY||sec==REMOTE_L2_HIT_DIRTY||sec==REMOTE_L3_HIT_DIRTY){
+      worker_request(WORKER_TOUCH_DIRTY);
+  }
+
 
     // possible eviction to certain level of cache
-  if(sec==L2_HIT_CLEAN||sec==L2_HIT_DIRTY||sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY){
-
-      if (sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY){
-          CPU_ZERO(&mycpuset); 
-          CPU_SET(3, &mycpuset);
-          if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-                perror("sched_setaffinity");
-            }
-      }
-
-
-      for(int i=1;i<65;i++){         
-         asm __volatile__ (
-           "lfence              \n" 
-           "movq (%%rcx),  %%rax     \n"
-           "movq 64(%%rcx), %%rax     \n"
-           "movq 448(%%rcx),%%rax     \n"
-           "movq 256(%%rcx),%%rax     \n"
-           "movq 384(%%rcx),%%rax     \n"
-           "movq 320(%%rcx),%%rax     \n"
-           "movq 192(%%rcx),%%rax     \n"
-           "movq 128(%%rcx),%%rax     \n"
-           "lfence              \n"
-           : 
-           : "c" (start[i])
-           : "%esi", "%edx");
-       }
-
-       if (sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY){
-          CPU_ZERO(&mycpuset); 
-          CPU_SET(1, &mycpuset);
-          if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-                perror("sched_setaffinity");
-            }
-      }
-      
-  }  else if(sec==L3_HIT_CLEAN||sec==L3_HIT_DIRTY||sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
-
-      if (sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
-          CPU_ZERO(&mycpuset); 
-          CPU_SET(3, &mycpuset);
-          if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-                perror("sched_setaffinity");
-            }
-      }
-
-       for (int i = 0; i < conflict_bar; ++i)
-        {
-          asm __volatile__ (
-             "lfence              \n" 
-             "movq (%%rcx),  %%rax     \n"
-             "movq 64(%%rcx), %%rax     \n"
-             "movq 448(%%rcx),%%rax     \n"
-             "movq 256(%%rcx),%%rax     \n"
-             "movq 384(%%rcx),%%rax     \n"
-             "movq 320(%%rcx),%%rax     \n"
-             "movq 192(%%rcx),%%rax     \n"
-             "movq 128(%%rcx),%%rax     \n"
-             "lfence              \n"
-             : 
-             : "c" (conflict_set[i])
-             : "%esi", "%edx");
-        }
-
-       if (sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
-          CPU_ZERO(&mycpuset); 
-          CPU_SET(1, &mycpuset);
-          if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-                perror("sched_setaffinity");
-            }
-      }
-      
-  } else if (sec==DRAM_HIT){  
+  if(sec==L2_HIT_CLEAN||sec==L2_HIT_DIRTY){
+      evict_l2_full(start);
+  } else if(sec==REMOTE_L2_HIT_CLEAN||sec==REMOTE_L2_HIT_DIRTY){
+      worker_request(WORKER_EVICT_L2_FULL);
+  } else if(sec==L3_HIT_CLEAN||sec==L3_HIT_DIRTY){
+      evict_conflict();
+  } else if(sec==REMOTE_L3_HIT_CLEAN||sec==REMOTE_L3_HIT_DIRTY){
+      worker_request(WORKER_EVICT_CONFLICT);
+  } else if (sec==DRAM_HIT){
         asm __volatile__ (
-           "mfence              \n" 
+           "mfence              \n"
            "clflush (%%rcx)     \n"
            "clflush 64(%%rcx)     \n"
            "clflush 448(%%rcx)     \n"
@@ -515,34 +413,34 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
            "clflush 192(%%rcx)     \n"
            "clflush 128(%%rcx)     \n"
            "mfence              \n"
-           : 
+           :
            : "c" (start[0])
            : "%esi", "%edx");
   }
 
-  
+
   //measure latency
-  if (mea_type==READ){  
-      
+  if (mea_type==READ){
+
      asm __volatile__ (
-       "lfence              \n" 
+       "lfence              \n"
        "rdtsc               \n"
        "movl %%eax, %%esi   \n"
        "movq (%%rcx),  %%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 64(%%rcx), %%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 448(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 256(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 384(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 320(%%rcx),%%rax     \n"
-       "lfence              \n" 
+       "lfence              \n"
        "movq 192(%%rcx),%%rax     \n"
-       "lfence              \n" 
-       "movq 128(%%rcx),%%rax     \n"    
+       "lfence              \n"
+       "movq 128(%%rcx),%%rax     \n"
        "lfence              \n"
        "rdtsc               \n"
        "subl %%esi, %%eax   \n"
@@ -551,13 +449,13 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
        : "%esi", "%edx");
 
 
-  } else if (mea_type==WRITE){      
-  
+  } else if (mea_type==WRITE){
+
 
      asm __volatile__ (
-       "mfence              \n" 
-       "rdtsc               \n" 
-       "movl %%eax, %%esi   \n" 
+       "mfence              \n"
+       "rdtsc               \n"
+       "movl %%eax, %%esi   \n"
        "movq %%rcx, (%%rcx)       \n"
        "mfence              \n"
        "movq %%rcx, 64(%%rcx)     \n"
@@ -577,7 +475,7 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
        "rdtsc               \n"
        "subl %%esi, %%eax   \n"
        : "=a" (t)
-       : "c" (start[0]) 
+       : "c" (start[0])
        : "%esi", "%edx");
 
 
@@ -585,24 +483,24 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
 
 
       asm __volatile__ (
-       "lfence              \n" 
+       "lfence              \n"
        "rdtsc               \n"
        "movl %%eax, %%esi   \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush (%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 64(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 448(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 256(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 384(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 320(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 192(%%rcx)     \n"
-       "mfence              \n" 
+       "mfence              \n"
        "clflush 128(%%rcx)     \n"
        "mfence              \n"
        "rdtsc               \n"
@@ -611,7 +509,7 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
        : "c" (start[0])
        : "%esi", "%edx");
   }
-  
+
   return t;
 
 }
@@ -619,14 +517,6 @@ unsigned long test_delay(char** start, char* chain_tar, int sec, int mea_type) {
 
 
 int main(int argc, char *argv[]) {
-
-  
-  // get our CPU 
-  CPU_ZERO(&mycpuset); 
-  CPU_SET(1, &mycpuset);
-  if (sched_setaffinity(getpid(), sizeof(cpu_set_t), &mycpuset) == -1) {
-        perror("sched_setaffinity");
-    }
 
   char file_long[100];
   sprintf(file_long, "histogram_%s.out", argv[1]);
@@ -642,15 +532,15 @@ int main(int argc, char *argv[]) {
   long long ave_time_cycle_arr[NUM_CALIBRE] =  {0};
 
   volatile pid_t *maintain_arr;
-    
+
   int test_cnt=10000;
- 
+
   //probe_arr
   for (int i = 0; i < 16*L3_CACHE_SIZE; ++i)
   {
     probe_arr[i] = i;
   }
-   
+
   probe = probe_arr;
 
   for(int i=0;i< sizeof(start)/sizeof(start[0]) ;i++){// 8 way cache
@@ -685,17 +575,23 @@ int main(int argc, char *argv[]) {
     //printf("conflict_set[%d]=%p\n", i, conflict_set[i]);
   }
 
-
+  // Spawn the persistent "remote core" worker. Under gem5 SE mode this
+  // pthread is handed the first idle ThreadContext in the system (see
+  // timing_histogram.py), so it stays pinned to a genuinely different
+  // core than this (the measuring) thread for the rest of the run.
+  if (pthread_create(&worker_tid, NULL, worker_thread_fn, NULL) != 0) {
+    perror("pthread_create");
+    return 1;
+  }
 
   int counter_hist=0;
   int ord_calibre;
-  
+
   //calibration
   // READ
 #if DO_READ
-  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
+  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE; ++ord_calibre)
   {
-    int ord_calibre = valid_calibres[vc];
     counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
@@ -703,17 +599,17 @@ int main(int argc, char *argv[]) {
         t=test_delay(start,chain,ord_calibre, READ);
         for (int i = 0; i < 1000000; ++i){
               t+=i;
-        } 
-    }  
+        }
+    }
     for(int i=0;i<test_cnt;i++){
       t=test_delay(start,chain,ord_calibre, READ);
       ave_time_cycle_arr[counter_hist] += t;
-      if(t<MAX_CYCLE){      
+      if(t<MAX_CYCLE){
         histogram[counter_hist][t]++;
         coarse_histogram[counter_hist][t/10]++;
       }
       else {
-        histogram[counter_hist][MAX_CYCLE-1]++; 
+        histogram[counter_hist][MAX_CYCLE-1]++;
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
@@ -722,9 +618,8 @@ int main(int argc, char *argv[]) {
 
   // WRITE
 #if DO_WRITE
-  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
+  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE; ++ord_calibre)
   {
-    int ord_calibre = valid_calibres[vc];
     counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
@@ -732,28 +627,27 @@ int main(int argc, char *argv[]) {
         t=test_delay(start,chain,ord_calibre, WRITE);
         for (int i = 0; i < 1000000; ++i){
               t+=i;
-        } 
-    }  
+        }
+    }
     for(int i=0;i<test_cnt;i++){
       t=test_delay(start,chain,ord_calibre, WRITE);
       ave_time_cycle_arr[counter_hist] += t;
-      if(t<MAX_CYCLE){      
+      if(t<MAX_CYCLE){
         histogram[counter_hist][t]++;
         coarse_histogram[counter_hist][t/10]++;
       }
       else {
-        histogram[counter_hist][MAX_CYCLE-1]++; 
+        histogram[counter_hist][MAX_CYCLE-1]++;
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
   }
-#endif 
+#endif
 
   // FLUSH
 #if DO_FLUSH
-  for (int vc = 0; vc < NUM_VALID_CALIBRES; ++vc)
+  for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE; ++ord_calibre)
   {
-    int ord_calibre = valid_calibres[vc];
     counter_hist = ord_calibre;
     printf("Generating histogram for timing type %d ...\n", counter_hist+1);
     //add dummy computation to make sure the data load into L1/L2 from memory
@@ -761,38 +655,40 @@ int main(int argc, char *argv[]) {
         t=test_delay(start,chain,ord_calibre, CLFLUSH);
         for (int i = 0; i < 1000000; ++i){
               t+=i;
-        } 
-    }  
+        }
+    }
     for(int i=0;i<test_cnt;i++){
       t=test_delay(start,chain,ord_calibre, CLFLUSH);
       ave_time_cycle_arr[counter_hist] += t;
-      if(t<MAX_CYCLE){      
+      if(t<MAX_CYCLE){
         histogram[counter_hist][t]++;
         coarse_histogram[counter_hist][t/10]++;
       }
       else {
-        histogram[counter_hist][MAX_CYCLE-1]++; 
+        histogram[counter_hist][MAX_CYCLE-1]++;
         coarse_histogram[counter_hist][MAX_CYCLE/10-1]++;
       }
     }
   }
 #endif
 
+  worker_request(WORKER_EXIT);
+  pthread_join(worker_tid, NULL);
 
   int min_time_diff = MAX_CYCLE;
   int min_time_cycle_arr[NUM_CALIBRE] =  {0};
   int min_time_fre_arr[NUM_CALIBRE] = {0};
-  
+
 
   for(int i=0;i<MAX_CYCLE;i++){
   	for (int j = 0; j < NUM_CALIBRE; ++j)
   	{
   		fprintf(fp, "%d\t", histogram[j][i]);
   	}
-  	fprintf(fp, "\n");	
+  	fprintf(fp, "\n");
 
-        
-         
+
+
     for (int j = 0; j < NUM_CALIBRE; ++j)
     {
       if (histogram[j][i]>min_time_fre_arr[j]){
@@ -801,12 +697,12 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  for(int i=0;i<MAX_CYCLE/10;i++){  
+  for(int i=0;i<MAX_CYCLE/10;i++){
   	for (int j = 0; j < NUM_CALIBRE; ++j)
   	{
   		fprintf(fp_coarse, "%d\t", coarse_histogram[j][i]);
   	}
-  	fprintf(fp_coarse, "\n");	
+  	fprintf(fp_coarse, "\n");
   }
   for (int j = 0; j < NUM_CALIBRE; ++j)
   {
@@ -819,14 +715,14 @@ int main(int argc, char *argv[]) {
   	{
   		printf("%d,", min_time_cycle_arr[j]);
   	}
-  	printf("\n");	
+  	printf("\n");
 
   printf("The average cycle number of 66 types of timings are given below \n");
   for (int j = 0; j < NUM_CALIBRE; ++j)
   	{
   		printf("%lld,", ave_time_cycle_arr[j]);
   	}
-  	printf("\n");	
+  	printf("\n");
 
 
   for (int i = 0; i < NUM_CALIBRE; ++i)
@@ -834,11 +730,11 @@ int main(int argc, char *argv[]) {
     tmp_min_cycle_arr[i]=min_time_cycle_arr[i];
   }
 
-  for (int i = 0; i < NUM_CALIBRE; ++i) 
+  for (int i = 0; i < NUM_CALIBRE; ++i)
   {
     for (int j = 0; j < NUM_CALIBRE; ++j)
     {
-      if (tmp_min_cycle_arr[i] < tmp_min_cycle_arr[j]) 
+      if (tmp_min_cycle_arr[i] < tmp_min_cycle_arr[j])
         {
         a =  tmp_min_cycle_arr[i];
         tmp_min_cycle_arr[i] = tmp_min_cycle_arr[j];
@@ -851,6 +747,6 @@ int main(int argc, char *argv[]) {
 
   fclose(fp);
   fclose(fp_coarse);
-    
+
   return 0;
 }

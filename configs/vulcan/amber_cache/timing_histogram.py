@@ -26,17 +26,33 @@
 
 """
 
-This script runs the 'timing_histogram' SE-mode binary (a simple
-multi-threaded application with false sharing used to stress the cache
-hierarchy) on a 2-core X86 O3 processor with a MESI_Three_Level Ruby cache
-hierarchy (private L1/L2 per core, shared L3).
+This script runs the 'timing_histogram' SE-mode binary (a cache-hierarchy
+timing probe that models a "remote core" via a pthread worker) on a
+2-core X86 O3 processor with a MESI_Three_Level Ruby cache hierarchy
+(private L1/L2 per core, shared L3).
+
+`board.set_se_binary_workload()` assigns the same `Process` object to
+every core's `core.workload` (needed since `BaseCPU` requires exactly one
+workload entry per hardware thread). But `Process::initState()` only ever
+activates the *first* ThreadContext registered against a given Process
+(see `src/sim/process.cc`), so only the first core actually starts
+running `main()` -- every other core stays Halted despite having that
+same Process object as its nominal workload. gem5 SE mode hands a
+`pthread_create()`/`clone()` call the first Halted ThreadContext in the
+system, so the binary's worker thread lands on -- and stays pinned to --
+the second core for its entire lifetime, with no further setup required.
+
+This gives genuine cross-core cache-coherence timings for the REMOTE_* /
+L*_REMOTE_L*_HIT_CLEAN categories, which sched_setaffinity-based
+migration cannot: SE mode has no kernel scheduler to act on an affinity
+change for an already-running thread.
 
 Usage
 -----
 
 ```
 scons build/ALL/gem5.opt
-./build/ALL/gem5.opt configs/vulcan/amber_cache/timing_histogram.py
+./build/ALL/gem5.opt configs/vulcan/amber_cache/timing_histogram.py <read|write|flush>
 ```
 """
 
@@ -65,6 +81,10 @@ from gem5.components.cachehierarchies.ruby.mesi_three_level_cache_hierarchy impo
     MESIThreeLevelCacheHierarchy,
 )
 
+# One core to run main() (and measure), one left Halted for the binary's
+# pthread worker to claim via clone().
+NUM_CORES = 2
+
 # Here we set up a MESI Three Level Cache Hierarchy.
 cache_hierarchy = MESIThreeLevelCacheHierarchy(
     l1i_size="32KiB",
@@ -81,12 +101,12 @@ cache_hierarchy = MESIThreeLevelCacheHierarchy(
 # Set up the system memory.
 memory = SingleChannelDDR3_1600(size="3GiB")
 
-# Here we set up the processor. 1-core X86 timing processor. 
+# Here we set up the processor: a NUM_CORES-core X86 timing processor.
 
 processor = SimpleProcessor(
     cpu_type=CPUTypes.TIMING,
     isa=ISA.X86,
-    num_cores=2,
+    num_cores=NUM_CORES,
 )
 
 # Here we set up the board. The X86Board allows for FS mode (full system) or
