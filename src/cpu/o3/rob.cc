@@ -40,7 +40,9 @@
 
 #include "cpu/o3/rob.hh"
 
+#include <limits>
 #include <list>
+#include <set>
 
 #include "base/logging.hh"
 #include "cpu/o3/dyn_inst.hh"
@@ -202,6 +204,29 @@ ROB::insertInst(const DynInstPtr &inst)
 
     ThreadID tid = inst->threadNumber;
 
+    // DOLMA: classify this instruction's own control-taint status before
+    // it's visible to anything else. Two independent things happen here:
+    //  (1) if any still-unresolved ControlInducer already precedes it in
+    //      the ROB, this instruction is itself ControlRestricted;
+    //  (2) if this instruction is itself a branch whose direction/target
+    //      can't be decided purely from its PC-relative encoding (any
+    //      conditional or indirect control instruction), it becomes a
+    //      ControlInducer for everything younger than it.
+    if (cpu->isDolma() && !inst->isSquashed()) {
+        if (!cpu->isDolmaMemOnly()) {
+            for (auto &prevInst : instList[tid]) {
+                if (prevInst->isControlInducer()) {
+                    inst->setControlRestricted();
+                    break;
+                }
+            }
+        }
+        if (inst->isControl() &&
+            !(inst->isDirectCtrl() && inst->isUncondCtrl())) {
+            inst->setControlInducer();
+        }
+    }
+
     instList[tid].push_back(inst);
 
     //Set Up head iterator if this is the 1st instruction in the ROB
@@ -247,6 +272,24 @@ ROB::retireHead(ThreadID tid)
 
     --numInstsInROB;
     --threadEntries[tid];
+
+    // DOLMA: a retiring instruction must leave the ROB clean of every DOLMA
+    // predicate (clearInROB() asserts this). In conservative mode a
+    // DataInducer is deliberately retained live until it actually commits
+    // (see updateSafeStatus()'s ydis-retention rule), so it never gets
+    // cleared by the per-cycle sweep -- clear it here instead, and re-sweep
+    // since dependents may now be able to clear DataRestricted too. This is
+    // also a defensive backstop for any other mode/edge case that reaches
+    // retirement with an inducer flag still set.
+    if (cpu->isDolma()) {
+        if (head_inst->isDataInducer()) {
+            head_inst->clearDataInducer();
+            updateSafeStatus(tid);
+        }
+        if (head_inst->isControlInducer()) {
+            head_inst->clearControlInducer();
+        }
+    }
 
     head_inst->clearInROB();
     head_inst->setCommitted();
@@ -381,6 +424,110 @@ ROB::doSquash(ThreadID tid)
     }
 }
 
+// DOLMA: the once-per-cycle clearing sweep. Walks each thread's ROB
+// oldest-to-youngest and recomputes which control/data inducers are still
+// "live" (able to still restrict something), clearing ControlRestricted/
+// DataRestricted once they're not. Called once per cycle from
+// Commit::markCompletedInsts(), after execute.
+void
+ROB::updateSafeStatus(ThreadID tid)
+{
+    if (!cpu->isDolma() || instList[tid].empty()) {
+        return;
+    }
+
+    bool foundUnresolvedBranch = false;
+    bool foundUnresolvedStore = false;
+    std::set<InstSeqNum> liveYdis;
+    InstSeqNum oldestViolator = std::numeric_limits<InstSeqNum>::max();
+
+    for (auto &inst : instList[tid]) {
+        if (inst->isSquashed()) {
+            continue;
+        }
+
+        if (inst->isDolmaRestricted()) {
+            if (inst->isControlRestricted() && !foundUnresolvedBranch) {
+                inst->clearControlRestricted();
+            }
+            if (inst->isDataRestricted() &&
+                liveYdis.find(inst->ydi) == liveYdis.end()) {
+                inst->clearDataRestricted();
+            }
+
+            if (!inst->isDolmaRestricted()) {
+                // Both cleared this cycle: this instruction is now fully
+                // safe.
+                if (inst->isDolmaStalled()) {
+                    // Delay-on-miss resolved: it can be retried.
+                    inst->clearDolmaStalled();
+                } else if (inst->isStore() && !cpu->isSTT()) {
+                    DynInstPtr violator = inst->getViolator();
+                    if (violator && !violator->isSquashed()) {
+                        violator->setPendingMemOrder(inst);
+                    }
+                }
+            }
+        }
+
+        if (inst->isDataInducer()) {
+            // Retention rules: an inducer stays "live" (and keeps
+            // restricting its dependents) under any of these conditions;
+            // otherwise it's no longer a threat and is cleared outright.
+            if (cpu->isDolmaConservative() || inst->isPendingMemOrder()) {
+                liveYdis.insert(inst->seqNum);
+            } else if (cpu->isDolmaMemOnly() && foundUnresolvedBranch) {
+                liveYdis.insert(inst->seqNum);
+            } else if (!cpu->isSTT() && (foundUnresolvedStore ||
+                                         inst->seqNum >= oldestViolator)) {
+                liveYdis.insert(inst->seqNum);
+            } else {
+                inst->clearDataInducer();
+            }
+        }
+        if (inst->isControlInducer()) {
+            foundUnresolvedBranch = true;
+        }
+
+        if (inst->isStore() && !cpu->isSTT() && !cpu->isDolmaConservative()) {
+            if (!inst->effAddrValid()) {
+                foundUnresolvedStore = true;
+            } else if (inst->violatorSeqNum &&
+                       inst->violatorSeqNum < oldestViolator) {
+                DynInstPtr violator = findInst(tid, inst->violatorSeqNum);
+                if (violator && !violator->isSquashed()) {
+                    oldestViolator = inst->violatorSeqNum;
+                } else {
+                    inst->violatorSeqNum = 0;
+                }
+            }
+        }
+    }
+}
+
+// DOLMA: scan for the oldest instruction whose redirect (branch mispredict
+// or memory-order violation) was deferred while it was restricted, and
+// which has since become safe to act on.
+DynInstPtr
+ROB::getResolvedRedirect(ThreadID tid)
+{
+    if (instList[tid].empty()) {
+        return nullptr;
+    }
+    for (auto &inst : instList[tid]) {
+        if (inst->isDolmaRestricted()) {
+            continue;
+        }
+        if (inst->isPendingBranch()) {
+            return inst;
+        }
+        if (inst->isPendingMemOrder() &&
+            (inst->getColliderPC() || cpu->isSTT())) {
+            return inst;
+        }
+    }
+    return nullptr;
+}
 
 void
 ROB::updateHead()

@@ -536,7 +536,7 @@ class BaseCache : public ClockedObject
      * Performs the access specified by the request.
      * @param pkt The request to perform.
      */
-    virtual void recvTimingReq(PacketPtr pkt);
+    virtual bool recvTimingReq(PacketPtr pkt);
 
     /**
      * Handling the special case of uncacheable write responses to
@@ -1174,9 +1174,19 @@ class BaseCache : public ClockedObject
 
     MSHR *allocateMissBuffer(PacketPtr pkt, Tick time, bool sched_send = true)
     {
-        MSHR *mshr = mshrQueue.allocate(pkt->getBlockAddr(blkSize), blkSize,
-                                        pkt, time, order++,
-                                        allocOnFill(pkt->cmd));
+        // DOLMA: a restricted (still-unsafe) access's miss is handled
+        // completely normally (real MSHR, real downstream traffic, real
+        // response returned to the CPU on the normal schedule -- so this
+        // doesn't touch the accept/retry protocol at all, unlike a
+        // port-level refusal) except that the fetched line is never
+        // actually installed into the tag array. This is what denies the
+        // classic flush+reload channel: an attacker probing which of N
+        // candidate lines is now cache-resident learns nothing, because a
+        // secret-indexed line brought in while still speculative is never
+        // left resident.
+        MSHR *mshr = mshrQueue.allocate(
+            pkt->getBlockAddr(blkSize), blkSize, pkt, time, order++,
+            allocOnFill(pkt->cmd) && !pkt->req->isRestricted());
 
         if (mshrQueue.isFull()) {
             setBlocked((BlockedCause)MSHRQueue_MSHRs);

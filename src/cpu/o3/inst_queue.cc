@@ -249,6 +249,10 @@ InstructionQueue::InstructionQueue(CPU *cpu_ptr, IEW *iew_ptr,
     // Resize the register scoreboard.
     regScoreboard.resize(numPhysRegs);
 
+    // DOLMA: last known producer per physical register, for the
+    // already-ready-but-still-tainted corner case in addToDependents().
+    regToProducerInst.resize(numPhysRegs);
+
     //Initialize Mem Dependence Units
     for (ThreadID tid = 0; tid < MaxThreads; tid++) {
         memDepUnit[tid].init(params, tid, cpu_ptr);
@@ -863,6 +867,12 @@ InstructionQueue::scheduleReadyInsts()
         addReadyMemInst(mem_inst);
     }
 
+    // DOLMA: drain delay-on-miss stalled instructions that have since
+    // become safe to retry, same as the two retry queues above.
+    while ((mem_inst = getDolmaStalledInstToExecute())) {
+        addReadyMemInst(mem_inst);
+    }
+
     // Have iterator to head of the list
     // While I haven't exceeded bandwidth or reached the end of the list,
     // Try to get a FU that can do what this op needs.
@@ -1090,6 +1100,22 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
 
     assert(!completed_inst->isSquashed());
 
+    // DOLMA: a completed load becomes a DataInducer (a root of data taint)
+    // under mode-specific rules -- this is where taint is first introduced
+    // for data speculation, as opposed to where it propagates (below).
+    // Simplification vs. the paper's memory-only mode: that mode also
+    // promotes a load to DataInducer if a still-unresolved ControlInducer
+    // precedes it in program order (would require IQ-level access to full
+    // ROB ordering); here memory-only mode uses the same rule as default
+    // mode (isPendingMemOrder()) rather than that extra ROB walk.
+    if (cpu->isDolma() && completed_inst->isLoad() &&
+        !completed_inst->isDataInducer()) {
+        if (cpu->isDolmaConservative() ||
+            (!cpu->isSTT() && completed_inst->isPendingMemOrder())) {
+            completed_inst->setDataInducer();
+        }
+    }
+
     // Tell the memory dependence unit to wake any dependents on this
     // instruction if it is a memory instruction.  Also complete the memory
     // instruction at this point since we know it executed without issues.
@@ -1150,6 +1176,22 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
             // so that it knows which of its source registers is
             // ready.  However that would mean that the dependency
             // graph entries would need to hold the src_reg_idx.
+            // DOLMA: propagate data taint through the wakeup path -- any
+            // register produced by a DataInducer/DataRestricted producer
+            // taints its dependents transitively, register by register.
+            if (cpu->isDolma() && (completed_inst->isDataInducer() ||
+                                   completed_inst->isDataRestricted())) {
+                InstSeqNum new_ydi = completed_inst->isDataInducer()
+                                         ? completed_inst->seqNum
+                                         : completed_inst->ydi;
+                if (!dep_inst->ydi || dep_inst->ydi < new_ydi) {
+                    dep_inst->ydi = new_ydi;
+                }
+                if (!dep_inst->isDataRestricted()) {
+                    dep_inst->setDataRestricted();
+                }
+            }
+
             dep_inst->markSrcRegReady();
 
             addIfReady(dep_inst);
@@ -1234,6 +1276,31 @@ void
 InstructionQueue::retryMemInst(const DynInstPtr &retry_inst)
 {
     retryMemInsts.push_back(retry_inst);
+}
+
+void
+InstructionQueue::dolmaStallInst(const DynInstPtr &inst)
+{
+    assert(inst->isDolmaStalled());
+    inst->translationStarted(false);
+    inst->translationCompleted(false);
+    inst->clearIssued();
+    inst->clearCanIssue();
+    dolmaStalledInsts.push_back(inst);
+}
+
+DynInstPtr
+InstructionQueue::getDolmaStalledInstToExecute()
+{
+    for (ListIt it = dolmaStalledInsts.begin(); it != dolmaStalledInsts.end();
+         ++it) {
+        if (!(*it)->isDolmaStalled() || (*it)->isSquashed()) {
+            DynInstPtr inst = std::move(*it);
+            dolmaStalledInsts.erase(it);
+            return inst;
+        }
+    }
+    return nullptr;
 }
 
 void
@@ -1490,6 +1557,31 @@ InstructionQueue::addToDependents(const DynInstPtr &new_inst)
                         src_reg->className());
                 // Mark a register ready within the instruction.
                 new_inst->markSrcRegReady(src_reg_idx);
+
+                // DOLMA: this source is ready, so it will never go through
+                // wakeDependents()'s taint-propagation path -- check
+                // directly whether its last known producer is still a live
+                // DataInducer/DataRestricted and, if so, propagate here
+                // instead.
+                if (cpu->isDolma()) {
+                    DynInstPtr &producer =
+                        regToProducerInst[src_reg->flatIndex()];
+                    if (producer &&
+                        producer->threadNumber == new_inst->threadNumber &&
+                        (producer->isDataInducer() ||
+                         producer->isDataRestricted())) {
+                        assert(!producer->isCommitted());
+                        InstSeqNum new_ydi = producer->isDataInducer()
+                                                 ? producer->seqNum
+                                                 : producer->ydi;
+                        if (!new_inst->ydi || new_inst->ydi < new_ydi) {
+                            new_inst->ydi = new_ydi;
+                        }
+                        if (!new_inst->isDataRestricted()) {
+                            new_inst->setDataRestricted();
+                        }
+                    }
+                }
             }
         }
     }
@@ -1529,6 +1621,11 @@ InstructionQueue::addToProducers(const DynInstPtr &new_inst)
 
         // Mark the scoreboard to say it's not yet ready.
         regScoreboard[dest_reg->flatIndex()] = false;
+
+        // DOLMA: record the producer for the addToDependents() corner case.
+        if (cpu->isDolma()) {
+            regToProducerInst[dest_reg->flatIndex()] = new_inst;
+        }
     }
 }
 

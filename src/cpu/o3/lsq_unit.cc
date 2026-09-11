@@ -1226,6 +1226,16 @@ LSQUnit::trySendPacket(bool isLoad, PacketPtr data_pkt)
 
     LSQRequest *request = dynamic_cast<LSQRequest*>(data_pkt->senderState);
 
+    // DOLMA note: upstream detects a genuine restricted-miss here (the
+    // cache clearing Request::RESTRICTED on a miss it refuses to allocate
+    // for) and parks the instruction instead of an ordinary cache-blocked
+    // retry (delay-on-miss). That refusal protocol is NOT implemented on
+    // the cache side here (see mem/cache/base.cc) -- it conflicts with the
+    // ordinary retry bookkeeping multi-sub-access instructions rely on
+    // (e.g. x86's LdBig, which can have two translations/accesses for one
+    // instruction in flight at once) -- so a restricted access that misses
+    // is simply treated as an ordinary cache-blocked condition here.
+
     if (!lsq->cacheBlocked() &&
         lsq->cachePortAvailable(isLoad)) {
         if (!dcachePort->sendTimingReq(data_pkt)) {

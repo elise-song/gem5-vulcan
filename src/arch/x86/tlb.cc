@@ -416,7 +416,10 @@ TLB::translate(const RequestPtr &req,
                 pcid = 0x000;
 
             pageAlignedVaddr = concAddrPcid(pageAlignedVaddr, pcid);
-            TlbEntry *entry = lookup(pageAlignedVaddr);
+            // DOLMA: a TLB hit for a restricted (still-unsafe) access must
+            // not update LRU/replacement state -- same principle as the
+            // data cache (see mem/cache/base.cc).
+            TlbEntry *entry = lookup(pageAlignedVaddr, !req->isRestricted());
 
             switch (mode) {
                 case BaseMMU::Read:
@@ -432,6 +435,18 @@ TLB::translate(const RequestPtr &req,
                     panic("Invalid mode\n");
                     break;
             }
+            // DOLMA note: upstream additionally makes a genuine TLB miss on
+            // a restricted access skip the page-table walk entirely
+            // (delay-on-miss), synthesizing a fault the CPU-side detects
+            // and retries later instead of walking. That's deliberately
+            // NOT implemented here: refusing/aborting the walk requires
+            // hooking the same retry protocol multiple in-flight
+            // sub-accesses of a single instruction can exercise (e.g.
+            // x86's LdBig splitting a wide load into two translations),
+            // and doing that wrong reintroduces exactly the kind of
+            // request-lifecycle assertion failure this port is trying to
+            // avoid. A restricted miss here proceeds as an ordinary walk;
+            // only the no-LRU-update-on-hit property above is enforced.
             if (!entry) {
                 DPRINTF(TLB, "Handling a TLB miss for "
                         "address %#x at pc %#x.\n",

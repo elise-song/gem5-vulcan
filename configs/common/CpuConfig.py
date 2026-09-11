@@ -75,3 +75,26 @@ def config_etrace(cpu_cls, cpu_list, options):
             " type or inherited from DerivO3CPU.",
             cpu_cls,
         )
+
+
+# [DOLMA] wire up the speculative-execution defense configuration
+def config_dolma(cpu_cls, cpu_list, options):
+    if not issubclass(cpu_cls, m5.objects.DerivO3CPU):
+        return
+
+    mode = options.dolma_mode if options.dolma_mode is not None else 0
+    stt = bool(options.dolma_stt) if options.dolma_stt is not None else False
+
+    if mode == 0 and not stt:
+        return
+
+    print("**********")
+    print(
+        "info: Configure for DerivO3CPU. dolma_mode=%d; dolma_stt=%d"
+        % (mode, stt)
+    )
+    print("**********")
+
+    for cpu in cpu_list:
+        cpu.mode = mode
+        cpu.stt = stt

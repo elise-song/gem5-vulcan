@@ -131,7 +131,7 @@ NoncoherentCache::handleTimingReqMiss(PacketPtr pkt, CacheBlk *blk,
     BaseCache::handleTimingReqMiss(pkt, mshr, blk, forward_time, request_time);
 }
 
-void
+bool
 NoncoherentCache::recvTimingReq(PacketPtr pkt)
 {
     panic_if(pkt->cacheResponding(), "Should not see packets where cache "
@@ -140,7 +140,7 @@ NoncoherentCache::recvTimingReq(PacketPtr pkt)
     panic_if(!(pkt->isRead() || pkt->isWrite()),
              "Should only see read and writes at non-coherent cache\n");
 
-    BaseCache::recvTimingReq(pkt);
+    return BaseCache::recvTimingReq(pkt);
 }
 
 PacketPtr

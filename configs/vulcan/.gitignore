@@ -1,0 +1,38 @@
+# This directory mixes hand-written source (.py/.c/.sh/.awk) with
+# generated experiment output. Keep the source, ignore the output.
+
+# Generated logs, traces, plots, and result summaries
+*.txt
+*.png
+*.csv
+
+# Generated experiment data dumps
+/data/
+/data_*/
+/box/
+/spectre_run_out/
+/spectre_run_test/
+/spectre_dolma_out/
+/safeside_out/
+
+# Compiled SafeSide demo binaries (built by safeside/build_demos.sh)
+/safeside/bin/
+
+# Compiled attack/test binaries built from the .c files here
+/addr_probe_bin
+/calibrate_bin
+/calibrate2_bin
+/flush_reload
+/flush_reload_stats
+/spectre
+/spectre_debug_bin
+/spectre_implicit
+/spectre_memorder
+/spectre_pp_bin
+/spectre_pp_debug_bin
+/spectre_test_bin
+/test_lock
+/test_lock_a2_s8192
+/test_lock_a4_s16384
+/test_lock_a4_s32768
+/test_lock_a8_s32768

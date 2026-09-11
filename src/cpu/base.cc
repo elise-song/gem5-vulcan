@@ -155,6 +155,22 @@ BaseCPU::BaseCPU(const Params &p, bool is_checker)
     DPRINTF(SyscallVerbose, "Constructing CPU with id %d, socket id %d\n",
             _cpuId, _socketId);
 
+    _isDolma = p.mode > 0;
+    _isDolmaConservative = _isDolma && (p.mode % 2 == 0);
+    _isDolmaMemOnly = _isDolma && (p.mode > 2);
+    _isSTT = _isDolma && p.stt;
+    if (_isDolma) {
+        const char *variant =
+            _isSTT ? (_isDolmaMemOnly ? "STT-Futuristic (M)"
+                                      : "STT-Spectre (M+R)")
+                   : (_isDolmaConservative
+                          ? (_isDolmaMemOnly ? "DOLMA-Conservative (M)"
+                                             : "DOLMA-Conservative (M+R)")
+                          : (_isDolmaMemOnly ? "DOLMA-Default (M)"
+                                             : "DOLMA-Default (M+R)"));
+        inform("%s: speculative-taint protection mode: %s\n", name(), variant);
+    }
+
     if (numThreads > maxThreadsPerCPU)
         maxThreadsPerCPU = numThreads;
 

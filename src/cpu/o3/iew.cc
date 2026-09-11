@@ -1212,6 +1212,15 @@ IEW::executeInsts()
                 // event adds the instruction to the queue to commit
                 fault = ldstQueue.executeLoad(inst);
 
+                // DOLMA: delay-on-miss -- the load's access came back as a
+                // genuine miss while restricted (see LSQUnit::read()); park
+                // it instead of treating this as an ordinary translation
+                // delay or cache block, so it doesn't stall observably.
+                if (cpu->isDolma() && inst->isDolmaStalled()) {
+                    instQueue.dolmaStallInst(inst);
+                    continue;
+                }
+
                 if (inst->isTranslationDelayed() &&
                     fault == NoFault) {
                     // A hw page table walk is currently going on; the
@@ -1227,6 +1236,12 @@ IEW::executeInsts()
                 }
             } else if (inst->isStore()) {
                 fault = ldstQueue.executeStore(inst);
+
+                // DOLMA: same delay-on-miss handling as loads, above.
+                if (cpu->isDolma() && inst->isDolmaStalled()) {
+                    instQueue.dolmaStallInst(inst);
+                    continue;
+                }
 
                 if (inst->isTranslationDelayed() &&
                     fault == NoFault) {
@@ -1270,6 +1285,14 @@ IEW::executeInsts()
 
             inst->setExecuted();
 
+            // DOLMA: a non-memory ControlInducer's own resolution *is* its
+            // execution -- we now know its actual target/direction, so it
+            // no longer restricts anything younger than it once
+            // ROB::updateSafeStatus() next runs.
+            if (cpu->isDolma() && inst->isControlInducer()) {
+                inst->clearControlInducer();
+            }
+
             instToCommit(inst);
         }
 
@@ -1294,26 +1317,46 @@ IEW::executeInsts()
             bool loadNotExecuted = !inst->isExecuted() && inst->isLoad();
 
             if (inst->mispredicted() && !loadNotExecuted) {
-                fetchRedirect[tid] = true;
-
-                DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
-                        "Branch mispredict detected.\n",
-                        tid, inst->seqNum);
-                DPRINTF(IEW, "[tid:%i] [sn:%llu] "
-                        "Predicted target was PC: %s\n",
-                        tid, inst->seqNum, inst->readPredTarg());
-                DPRINTF(IEW, "[tid:%i] [sn:%llu] Execute: "
-                        "Redirecting fetch to PC: %s\n",
-                        tid, inst->seqNum, inst->pcState());
-                // If incorrect, then signal the ROB that it must be squashed.
-                squashDueToBranch(inst, tid);
-
-                ppMispredict->notify(inst);
-
-                if (inst->readPredTaken()) {
-                    iewStats.predictedTakenIncorrect++;
+                // DOLMA: a mispredict may only actually redirect fetch if
+                // the mispredicting branch is currently safe -- acting on
+                // it immediately while restricted would leak its
+                // (tainted) resolution through the timing of the squash.
+                // If restricted, defer: record the redirect on the
+                // instruction itself (commit polls
+                // rob->getResolvedRedirect() and drives the redirect once
+                // it becomes safe) instead of signalling toCommit here.
+                if (cpu->isDolma() && inst->isDolmaRestricted()) {
+                    DPRINTF(IEW,
+                            "[tid:%i] [sn:%llu] [DOLMA] Branch "
+                            "mispredict deferred (still restricted).\n",
+                            tid, inst->seqNum);
+                    inst->setPendingBranch(inst->pcState().branching());
                 } else {
-                    iewStats.predictedNotTakenIncorrect++;
+                    fetchRedirect[tid] = true;
+
+                    DPRINTF(IEW,
+                            "[tid:%i] [sn:%llu] Execute: "
+                            "Branch mispredict detected.\n",
+                            tid, inst->seqNum);
+                    DPRINTF(IEW,
+                            "[tid:%i] [sn:%llu] "
+                            "Predicted target was PC: %s\n",
+                            tid, inst->seqNum, inst->readPredTarg());
+                    DPRINTF(IEW,
+                            "[tid:%i] [sn:%llu] Execute: "
+                            "Redirecting fetch to PC: %s\n",
+                            tid, inst->seqNum, inst->pcState());
+                    // If incorrect, then signal the ROB that it must be
+                    // squashed.
+                    squashDueToBranch(inst, tid);
+
+                    ppMispredict->notify(inst);
+
+                    if (inst->readPredTaken()) {
+                        iewStats.predictedTakenIncorrect++;
+                    } else {
+                        iewStats.predictedNotTakenIncorrect++;
+                    }
                 }
             } else if (ldstQueue.violation(tid)) {
                 assert(inst->isMemRef());
@@ -1328,15 +1371,36 @@ IEW::executeInsts()
                         violator->pcState(), violator->seqNum,
                         inst->pcState(), inst->seqNum, inst->physEffAddr);
 
-                fetchRedirect[tid] = true;
+                // DOLMA: same deferral principle as the branch case above.
+                // `inst` here is the older instruction (a store) that just
+                // discovered the conflict; `violator` is the younger load
+                // that must actually be redirected/re-executed. If either
+                // side is still restricted, defer instead of squashing.
+                if (cpu->isDolma() && !cpu->isSTT() &&
+                    (inst->isDolmaRestricted() ||
+                     violator->isDolmaRestricted())) {
+                    DPRINTF(IEW,
+                            "[tid:%i] [DOLMA] Memory violation "
+                            "deferred (still restricted).\n",
+                            tid);
+                    instQueue.violation(inst, violator);
+                    if (inst->isDolmaRestricted()) {
+                        violator->setPendingMemOrder();
+                        inst->setViolator(violator);
+                    } else {
+                        violator->setPendingMemOrder(inst);
+                    }
+                } else {
+                    fetchRedirect[tid] = true;
 
-                // Tell the instruction queue that a violation has occured.
-                instQueue.violation(inst, violator);
+                    // Tell the instruction queue that a violation has occured.
+                    instQueue.violation(inst, violator);
 
-                // Squash.
-                squashDueToMemOrder(violator, tid);
+                    // Squash.
+                    squashDueToMemOrder(violator, tid);
 
-                ++iewStats.memOrderViolationEvents;
+                    ++iewStats.memOrderViolationEvents;
+                }
             }
         } else {
             // Reset any state associated with redirects that will not

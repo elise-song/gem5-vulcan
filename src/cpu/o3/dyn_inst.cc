@@ -412,6 +412,16 @@ DynInst::initiateMemRead(Addr addr, unsigned size, Request::Flags flags,
                                const std::vector<bool> &byte_enable)
 {
     assert(byte_enable.size() == size);
+    // DOLMA: tag this access as restricted if the instruction is currently
+    // unsafe, so the TLB/cache hierarchy (which sees the same flags via
+    // the Request it builds from these) knows not to let it change any
+    // replacement/coherence state, and to signal a genuine miss back
+    // (rather than a normal miss response) so it can be retried later
+    // instead of stalling observably. See LSQUnit::read() and
+    // arch/x86/tlb.cc for where the flag is consumed.
+    if (cpu->isDolma() && isDolmaRestricted()) {
+        flags.set(Request::RESTRICTED);
+    }
     return cpu->pushRequest(
         dynamic_cast<DynInstPtr::PtrType>(this),
         /* ld */ true, nullptr, size, addr, flags, nullptr, nullptr,
@@ -434,6 +444,19 @@ DynInst::writeMem(uint8_t *data, unsigned size, Addr addr,
                         const std::vector<bool> &byte_enable)
 {
     assert(byte_enable.size() == size);
+    // DOLMA: deliberately NOT tagging stores as restricted, even though
+    // this execute-time call may still be speculative. The same Request
+    // object built here is reused later for the store's actual cache
+    // write, which in this pipeline only happens post-commit (see
+    // LSQUnit::writebackStores()) -- by which point the instruction is
+    // guaranteed no longer restricted (commit requires it), so the flag
+    // would be stale on that later access. Tagging it here would trip
+    // DynInst::setDolmaStalled()'s "still restricted" assert if that
+    // later, already-safe access ever genuinely missed. Stores are
+    // therefore protected implicitly, by virtue of never touching the
+    // cache while still speculative in the first place -- matching
+    // upstream DOLMA's own rationale for clearing this flag before a
+    // store's write is issued.
     return cpu->pushRequest(
         dynamic_cast<DynInstPtr::PtrType>(this),
         /* st */ false, data, size, addr, flags, res, nullptr,

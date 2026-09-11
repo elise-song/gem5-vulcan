@@ -450,7 +450,7 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
     }
 }
 
-void
+bool
 BaseCache::recvTimingReq(PacketPtr pkt)
 {
     // anything that is merely forwarded pays for the forward latency and
@@ -495,6 +495,14 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // Here we reset the timing of the packet.
     pkt->headerDelay = pkt->payloadDelay = 0;
 
+    // DOLMA note: upstream refuses a genuine miss on a restricted access
+    // outright here (no MSHR/downstream traffic) as part of delay-on-miss.
+    // That's deliberately not done here -- see the note in
+    // LSQUnit::trySendPacket() for why (it requires a request-refusal
+    // protocol that conflicts with in-flight multi-sub-access instructions
+    // like x86's LdBig). A restricted miss proceeds through the ordinary
+    // miss path below like any other access.
+
     if (satisfied) {
         // notify before anything else as later handleTimingReqHit might turn
         // the packet in a response
@@ -521,6 +529,8 @@ BaseCache::recvTimingReq(PacketPtr pkt)
             schedMemSideSendEvent(next_pf_time);
         }
     }
+
+    return true;
 }
 
 void
@@ -2630,8 +2640,7 @@ BaseCache::CpuSidePort::recvTimingReq(PacketPtr pkt)
         assert(success);
         return true;
     } else if (tryTiming(pkt)) {
-        cache.recvTimingReq(pkt);
-        return true;
+        return cache.recvTimingReq(pkt);
     }
     return false;
 }

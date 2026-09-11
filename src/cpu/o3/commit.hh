@@ -276,6 +276,12 @@ class Commit
      */
     void squashAfter(ThreadID tid, const DynInstPtr &head_inst);
 
+    /** DOLMA: acts on a branch-mispredict/memory-order redirect that was
+     * deferred while its source instruction was still restricted, and has
+     * since become safe (see rob->getResolvedRedirect()). */
+    void handleDolmaResolvedRedirect(ThreadID tid,
+                                     const DynInstPtr &resolvedInst);
+
     /** Handles processing an interrupt. */
     void handleInterrupt();
 

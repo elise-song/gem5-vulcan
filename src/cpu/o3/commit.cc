@@ -742,6 +742,67 @@ Commit::propagateInterrupt()
         toIEW->commitInfo[0].interruptPending = true;
 }
 
+// DOLMA: acts on a redirect (branch mispredict or memory-order violation)
+// that was deferred earlier (see IEW::executeInsts()) because its source
+// instruction was still restricted, and has since become safe per
+// rob->getResolvedRedirect(). Reconstructs the redirect directly from the
+// instruction rather than from fromIEW (which only holds this cycle's
+// signal, and the deferred redirect may have been recorded several cycles
+// ago).
+void
+Commit::handleDolmaResolvedRedirect(ThreadID tid,
+                                    const DynInstPtr &resolvedInst)
+{
+    std::unique_ptr<PCStateBase> nextPC(resolvedInst->pcState().clone());
+    bool includeSquashInst = false;
+
+    if (resolvedInst->isPendingBranch()) {
+        resolvedInst->staticInst->advancePC(*nextPC);
+    } else {
+        assert(resolvedInst->isPendingMemOrder());
+        // The violating load itself must be re-executed.
+        includeSquashInst = true;
+    }
+
+    resolvedInst->clearPendingBranch();
+    resolvedInst->clearPendingMemOrder();
+
+    DPRINTF(Commit,
+            "[tid:%i] [DOLMA] Resolved deferred redirect [sn:%llu], "
+            "PC %s\n",
+            tid, resolvedInst->seqNum, resolvedInst->pcState());
+
+    commitStatus[tid] = ROBSquashing;
+
+    InstSeqNum squashed_inst = resolvedInst->seqNum;
+    if (includeSquashInst) {
+        squashed_inst--;
+    }
+
+    youngestSeqNum[tid] = squashed_inst;
+
+    rob->squash(squashed_inst, tid);
+    changedROBNumEntries[tid] = true;
+
+    toIEW->commitInfo[tid].doneSeqNum = squashed_inst;
+    toIEW->commitInfo[tid].squash = true;
+    toIEW->commitInfo[tid].robSquashing = true;
+    toIEW->commitInfo[tid].squashInst = rob->findInst(tid, squashed_inst);
+
+    if (!includeSquashInst) {
+        toIEW->commitInfo[tid].mispredictInst = resolvedInst;
+        toIEW->commitInfo[tid].branchTaken = nextPC->branching();
+        if (resolvedInst->isUncondCtrl()) {
+            toIEW->commitInfo[tid].branchTaken = true;
+        }
+        ++stats.branchMispredicts;
+    } else {
+        toIEW->commitInfo[tid].mispredictInst = NULL;
+    }
+
+    set(toIEW->commitInfo[tid].pc, *nextPC);
+}
+
 void
 Commit::commit()
 {
@@ -842,6 +903,16 @@ Commit::commit()
             }
 
             set(toIEW->commitInfo[tid].pc, fromIEW->pc[tid]);
+        } else if (cpu->isDolma() && commitStatus[tid] != TrapPending) {
+            // DOLMA: no squash was signalled by IEW this cycle -- check
+            // whether a previously-deferred redirect (a branch mispredict
+            // or memory-order violation that was withheld while its
+            // source instruction was still restricted, see
+            // IEW::executeInsts()) has since become safe to act on.
+            DynInstPtr resolved = rob->getResolvedRedirect(tid);
+            if (resolved && resolved->seqNum <= youngestSeqNum[tid]) {
+                handleDolmaResolvedRedirect(tid, resolved);
+            }
         }
 
         if (commitStatus[tid] == ROBSquashing) {
@@ -1331,7 +1402,16 @@ Commit::markCompletedInsts()
     // instructions completed within the ROB.
     for (int inst_num = 0; inst_num < fromIEW->size; ++inst_num) {
         assert(fromIEW->insts[inst_num]);
-        if (!fromIEW->insts[inst_num]->isSquashed()) {
+        // DOLMA: an instruction whose own redirect was just deferred
+        // (setPendingBranch()/setPendingMemOrder() in
+        // IEW::executeInsts()) must not be granted CanCommit here -- it's
+        // not safe to commit while it's still the source of an
+        // unresolved, withheld squash. It regains CanCommit only via
+        // clearPendingBranch()/clearPendingMemOrder(), once
+        // Commit::handleDolmaResolvedRedirect() acts on it.
+        if (!fromIEW->insts[inst_num]->isSquashed() &&
+            !fromIEW->insts[inst_num]->isPendingBranch() &&
+            !fromIEW->insts[inst_num]->isPendingMemOrder()) {
             DPRINTF(Commit, "[tid:%i] Marking PC %s, [sn:%llu] ready "
                     "within ROB.\n",
                     fromIEW->insts[inst_num]->threadNumber,
@@ -1340,6 +1420,13 @@ Commit::markCompletedInsts()
 
             // Mark the instruction as ready to commit.
             fromIEW->insts[inst_num]->setCanCommit();
+        }
+    }
+
+    // DOLMA: once-per-cycle clearing sweep (no-op when DOLMA is off).
+    if (cpu->isDolma()) {
+        for (ThreadID tid : *activeThreads) {
+            rob->updateSafeStatus(tid);
         }
     }
 }

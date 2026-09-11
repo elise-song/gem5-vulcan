@@ -235,6 +235,18 @@ MemDepUnit::insert(const DynInstPtr &inst)
                             producing_store);
         MemDepHashIt hash_it = memDepHash.find(producing_store);
 
+        // DOLMA: a restricted (still-unsafe) store must not be trusted as
+        // a memory-dependence producer -- stalling a consumer on it (or
+        // not) would itself be an observable signal correlated with the
+        // store's unresolved condition. Treat it as if no producer were
+        // found; ordinary memory-order-violation detection in the
+        // LSQ/ROB still catches any real hazard later.
+        if (hash_it != memDepHash.end() &&
+            (*hash_it).second->inst->cpu->isDolma() &&
+            (*hash_it).second->inst->isDolmaRestricted()) {
+            hash_it = memDepHash.end();
+        }
+
         if (hash_it != memDepHash.end()) {
             store_entries.push_back((*hash_it).second);
             DPRINTF(MemDepUnit, "Producer found\n");
@@ -288,10 +300,15 @@ MemDepUnit::insert(const DynInstPtr &inst)
         DPRINTF(MemDepUnit, "Inserting store/atomic PC %s [sn:%lli].\n",
                 inst->pcState(), inst->seqNum);
 
-        depPred.insertStore(inst->pcState().instAddr(), inst->seqNum,
-                inst->threadNumber);
+        // DOLMA: don't let a still-restricted store become a producer
+        // candidate for younger loads at all -- only insert it into the
+        // store-set predictor once it's safe (or when DOLMA is off).
+        if (!inst->cpu->isDolma() || !inst->isDolmaRestricted()) {
+            depPred.insertStore(inst->pcState().instAddr(), inst->seqNum,
+                                inst->threadNumber);
 
-        ++stats.insertedStores;
+            ++stats.insertedStores;
+        }
     } else if (inst->isLoad()) {
         ++stats.insertedLoads;
     } else {

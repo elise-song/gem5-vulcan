@@ -415,7 +415,7 @@ Cache::handleTimingReqMiss(PacketPtr pkt, CacheBlk *blk, Tick forward_time,
     BaseCache::handleTimingReqMiss(pkt, mshr, blk, forward_time, request_time);
 }
 
-void
+bool
 Cache::recvTimingReq(PacketPtr pkt)
 {
     DPRINTF(CacheTags, "%s tags:\n%s\n", __func__, tags->print());
@@ -483,10 +483,10 @@ Cache::recvTimingReq(PacketPtr pkt)
         // and we have already sent out any express snoops in the
         // section above to ensure all other copies in the system are
         // invalidated
-        return;
+        return true;
     }
 
-    BaseCache::recvTimingReq(pkt);
+    return BaseCache::recvTimingReq(pkt);
 }
 
 PacketPtr

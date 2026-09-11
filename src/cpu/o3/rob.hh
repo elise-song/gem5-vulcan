@@ -206,6 +206,16 @@ class ROB
      */
     void squash(InstSeqNum squash_num, ThreadID tid);
 
+    /** DOLMA: once-per-cycle sweep clearing ControlRestricted/DataRestricted
+     * as their inducers stop being live; see rob.cc for the full algorithm.
+     * Called from Commit::markCompletedInsts(). No-op when DOLMA is off. */
+    void updateSafeStatus(ThreadID tid);
+
+    /** DOLMA: the oldest instruction whose branch-mispredict/memory-order
+     * redirect was deferred while it was restricted and has since become
+     * safe to act on, or nullptr if none. */
+    DynInstPtr getResolvedRedirect(ThreadID tid);
+
     /** Updates the head instruction with the new oldest instruction. */
     void updateHead();
 

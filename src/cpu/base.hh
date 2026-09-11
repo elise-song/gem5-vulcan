@@ -124,6 +124,18 @@ class BaseCPU : public ClockedObject
      */
     const uint32_t _socketId;
 
+    /**
+     * DOLMA protection state, derived once from the `mode`/`stt` params in
+     * the BaseCPU constructor. `_isDolma` gates whether any of the
+     * speculative-taint-tracking machinery is active at all; the others
+     * select which policy variant applies. See BaseCPU.py for the mode
+     * value semantics.
+     */
+    bool _isDolma = false;
+    bool _isDolmaConservative = false;
+    bool _isDolmaMemOnly = false;
+    bool _isSTT = false;
+
     /** instruction side request id that must be placed in all requests */
     RequestorID _instRequestorId;
 
@@ -214,6 +226,28 @@ class BaseCPU : public ClockedObject
 
     /** Reads this CPU's Socket ID. */
     uint32_t socketId() const { return _socketId; }
+
+    /** DOLMA protection mode accessors (see BaseCPU.py's `mode`/`stt`). */
+    bool
+    isDolma() const
+    {
+        return _isDolma;
+    }
+    bool
+    isDolmaConservative() const
+    {
+        return _isDolmaConservative;
+    }
+    bool
+    isDolmaMemOnly() const
+    {
+        return _isDolmaMemOnly;
+    }
+    bool
+    isSTT() const
+    {
+        return _isSTT;
+    }
 
     /** Reads this CPU's unique data requestor ID */
     RequestorID dataRequestorId() const { return _dataRequestorId; }

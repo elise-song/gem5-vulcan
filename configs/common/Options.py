@@ -265,6 +265,22 @@ def addCommonOptions(parser, default_isa: Optional[ISA] = None):
         choices=ObjectList.cpu_list.get_names(),
         help="type of cpu to run with",
     )
+    # [DOLMA] speculative-execution defense configuration
+    parser.add_argument(
+        "--dolma-mode",
+        default=None,
+        type=int,
+        choices=[0, 1, 2, 3, 4],
+        help="DOLMA protection mode for DerivO3CPU: 0 off, 1 default, "
+        "2 conservative, 3 default mem-only, 4 conservative mem-only",
+    )
+    parser.add_argument(
+        "--dolma-stt",
+        default=None,
+        type=int,
+        help="Emulate STT's weaker policy on the DOLMA plumbing (0/1). "
+        "Requires --dolma-mode > 0.",
+    )
     parser.add_argument(
         "--list-bp-types",
         action=ListBp,

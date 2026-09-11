@@ -126,6 +126,18 @@ class BaseCPU(ClockedObject):
         True, "enable statistics pseudo instructions"
     )
 
+    mode = Param.Int(
+        0,
+        "DOLMA protection mode: 0 for no protection, 1 for DOLMA default, "
+        "2 for DOLMA conservative, 3 for DOLMA default mem-only, "
+        "4 for DOLMA conservative mem-only",
+    )
+    stt = Param.Bool(
+        False,
+        "Whether to emulate STT's weaker policy on the DOLMA plumbing "
+        "(disables several DOLMA-specific protections)",
+    )
+
     workload = VectorParam.Process([], "processes to run")
 
     mmu = Param.BaseMMU(NULL, "CPU memory management unit")

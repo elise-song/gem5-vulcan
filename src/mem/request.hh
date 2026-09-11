@@ -262,6 +262,24 @@ class Request : public Extensible<Request>
         /** TLBI_EXT_SYNC_COMP seems to be the largest value
             of FlagsType, so HAS_NO_ADDR's value is that << 1 */
         HAS_NO_ADDR                = 0x0001000000000000,
+
+        /**
+         * DOLMA: this access is made on behalf of a currently-unsafe
+         * (control- or data-restricted) instruction. The TLB/cache
+         * hierarchy must satisfy a hit normally but must not let it change
+         * any replacement/coherence state, and must not allocate any
+         * miss-handling resource (MSHR, page-table walk, downstream
+         * request) for it; the flag being cleared by the callee on a
+         * genuine miss is how the CPU is signalled to delay-on-miss.
+         */
+        RESTRICTED                  = 0x0002000000000000,
+        /**
+         * DOLMA: this is a deferred replay of a previously-restricted
+         * access, issued once the originating instruction is proven safe,
+         * solely to update TLB/cache replacement state for real. It is
+         * fire-and-forget: no functional response is needed.
+         */
+        METADATA_UPDATE              = 0x0004000000000000,
         // clang-format on
     };
     static const FlagsType STORE_NO_DATA = CACHE_BLOCK_ZERO |
@@ -1042,6 +1060,31 @@ class Request : public Extensible<Request>
         return _flags.isSet(LOCKED_RMW | READ_MODIFY_WRITE);
     }
     bool isSecure() const { return _flags.isSet(SECURE); }
+    bool
+    isRestricted() const
+    {
+        return _flags.isSet(RESTRICTED);
+    }
+    bool
+    isMetadataUpdate() const
+    {
+        return _flags.isSet(METADATA_UPDATE);
+    }
+    void
+    setUnsafe()
+    {
+        _flags.set(RESTRICTED);
+    }
+    void
+    clearUnsafe()
+    {
+        _flags.clear(RESTRICTED);
+    }
+    void
+    setMetadataUpdate()
+    {
+        _flags.set(METADATA_UPDATE);
+    }
     bool isPTWalk() const { return _flags.isSet(PT_WALK); }
     bool isRelease() const { return _flags.isSet(RELEASE); }
     bool isKernel() const { return _flags.isSet(KERNEL); }

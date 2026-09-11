@@ -143,31 +143,66 @@ class DynInst : public ExecContext, public RefCounted
   protected:
     enum Status
     {
-        IqEntry,                 /// Instruction is in the IQ
-        RobEntry,                /// Instruction is in the ROB
-        LsqEntry,                /// Instruction is in the LSQ
-        Completed,               /// Instruction has completed
-        ResultReady,             /// Instruction has its result
-        CanIssue,                /// Instruction can issue and execute
-        Issued,                  /// Instruction has issued
-        Executed,                /// Instruction has executed
-        CanCommit,               /// Instruction can commit
-        AtCommit,                /// Instruction has reached commit
-        Committed,               /// Instruction has committed
-        Squashed,                /// Instruction is squashed
-        SquashedInIQ,            /// Instruction is squashed in the IQ
-        SquashedInLSQ,           /// Instruction is squashed in the LSQ
-        SquashedInROB,           /// Instruction is squashed in the ROB
-        PinnedRegsRenamed,       /// Pinned registers are renamed
-        PinnedRegsWritten,       /// Pinned registers are written back
-        PinnedRegsSquashDone,    /// Regs pinning status updated after squash
-        RecoverInst,             /// Is a recover instruction
-        BlockingInst,            /// Is a blocking instruction
-        ThreadsyncWait,          /// Is a thread synchronization instruction
-        SerializeBefore,         /// Needs to serialize on
-                                 /// instructions ahead of it
-        SerializeAfter,          /// Needs to serialize instructions behind it
-        SerializeHandled,        /// Serialization has been handled
+        IqEntry,              /// Instruction is in the IQ
+        RobEntry,             /// Instruction is in the ROB
+        LsqEntry,             /// Instruction is in the LSQ
+        Completed,            /// Instruction has completed
+        ResultReady,          /// Instruction has its result
+        CanIssue,             /// Instruction can issue and execute
+        Issued,               /// Instruction has issued
+        Executed,             /// Instruction has executed
+        CanCommit,            /// Instruction can commit
+        AtCommit,             /// Instruction has reached commit
+        Committed,            /// Instruction has committed
+        Squashed,             /// Instruction is squashed
+        SquashedInIQ,         /// Instruction is squashed in the IQ
+        SquashedInLSQ,        /// Instruction is squashed in the LSQ
+        SquashedInROB,        /// Instruction is squashed in the ROB
+        PinnedRegsRenamed,    /// Pinned registers are renamed
+        PinnedRegsWritten,    /// Pinned registers are written back
+        PinnedRegsSquashDone, /// Regs pinning status updated after squash
+        RecoverInst,          /// Is a recover instruction
+        BlockingInst,         /// Is a blocking instruction
+        ThreadsyncWait,       /// Is a thread synchronization instruction
+        SerializeBefore,      /// Needs to serialize on
+                              /// instructions ahead of it
+        SerializeAfter,       /// Needs to serialize instructions behind it
+        SerializeHandled,     /// Serialization has been handled
+        // DOLMA: this instruction is itself an unresolved conditional/
+        // indirect branch (its outcome/target isn't decidable purely from
+        // its PC-relative encoding). Set once, at ROB insertion, by
+        // ROB::insertInst(); cleared only implicitly by squash (every DOLMA
+        // predicate below is defined/read as "!isSquashed() && <bit>").
+        ControlInducer,
+        // DOLMA: this instruction is (or was) an unsafe load whose result
+        // fed a still-live taint chain -- see
+        // InstructionQueue::wakeDependentInstructions() and
+        // LSQUnit::read()/executeLoad().
+        DataInducer,
+        // DOLMA: dependent on a still-unresolved ControlInducer somewhere
+        // older in the ROB. Set at ROB insertion; cleared by
+        // ROB::updateSafeStatus() once no live inducer precedes it.
+        ControlRestricted,
+        // DOLMA: transitively dependent (through a register producer) on a
+        // DataInducer. Set at rename/wakeup time; cleared by
+        // ROB::updateSafeStatus() once this inst's `ydi` inducer is no
+        // longer live.
+        DataRestricted,
+        // DOLMA: a memory-order violation was detected against this
+        // instruction (or by this instruction, against an older store)
+        // while one side of the violation was still restricted; the
+        // redirect is deferred (commit blocked) until
+        // ROB::updateSafeStatus()/Commit::commit() can prove it's safe to
+        // act on without itself leaking the restricted condition.
+        PendingMemOrder,
+        // DOLMA: same deferral, for a mispredicted branch whose own
+        // resolution was still restricted at execute time.
+        PendingBranch,
+        // DOLMA: delay-on-miss -- this instruction's memory/translation
+        // access came back as a genuine miss while restricted (the cache/
+        // TLB refused to allocate for it); it is parked off the normal
+        // issue path and retried later instead of stalling observably.
+        DolmaStalled,
         NumStatus
     };
 
@@ -368,6 +403,36 @@ class DynInst : public ExecContext, public RefCounted
     // Need a copy of main request pointer to verify on writes.
     RequestPtr reqToVerify;
 
+    /////////////////////// DOLMA //////////////////////
+    /** Seqnum of the Youngest Data Inducer this instruction's taint (if
+     * DataRestricted) is chained to. ROB::updateSafeStatus() clears
+     * DataRestricted once this inducer is no longer live. */
+    InstSeqNum ydi = 0;
+
+    /** For a PendingMemOrder store: the PC of the load found to violate
+     * against it. For a PendingMemOrder load: its own PC. Diagnostic only. */
+    Addr violatorPC = 0;
+
+    /** When a still-restricted store is itself the reason a younger load's
+     * redirect is pending, the PC/seqnum of that store, so the redirect can
+     * be re-checked once the store resolves. */
+    Addr colliderPC = 0;
+    InstSeqNum colliderSeqNum = 0;
+
+    /** For a store: seqnum of the load found to violate against it (used by
+     * ROB::updateSafeStatus() to track the oldest live violator, purely as
+     * a cheap numeric comparison). */
+    InstSeqNum violatorSeqNum = 0;
+
+    /** For a store: the load that was found to violate against it (set so
+     * that once this store is proven safe, ROB::updateSafeStatus() can
+     * promote the violator to PendingMemOrder). */
+    DynInstPtr violator;
+
+    /** Captured at setPendingBranch() time; used once the deferred redirect
+     * is finally acted on. */
+    bool branchTaken = false;
+
   public:
     /** Records changes to result? */
     void recordResult(bool f) { instFlags[RecordResult] = f; }
@@ -451,6 +516,184 @@ class DynInst : public ExecContext, public RefCounted
     isTranslationDelayed() const
     {
         return (translationStarted() && !translationCompleted());
+    }
+
+    ////////////////////// DOLMA taint/restriction state //////////////////
+    bool
+    isControlInducer() const
+    {
+        return !isSquashed() && status[ControlInducer];
+    }
+    void
+    setControlInducer()
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(ControlInducer);
+    }
+    void
+    clearControlInducer()
+    {
+        status.reset(ControlInducer);
+    }
+
+    bool
+    isDataInducer() const
+    {
+        return !isSquashed() && status[DataInducer];
+    }
+    void
+    setDataInducer()
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(DataInducer);
+    }
+    void
+    clearDataInducer()
+    {
+        status.reset(DataInducer);
+    }
+
+    bool
+    isControlRestricted() const
+    {
+        return !isSquashed() && status[ControlRestricted];
+    }
+    void
+    setControlRestricted()
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(ControlRestricted);
+    }
+    void
+    clearControlRestricted()
+    {
+        status.reset(ControlRestricted);
+    }
+
+    bool
+    isDataRestricted() const
+    {
+        return !isSquashed() && status[DataRestricted];
+    }
+    void
+    setDataRestricted()
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(DataRestricted);
+    }
+    void
+    clearDataRestricted()
+    {
+        status.reset(DataRestricted);
+    }
+
+    /** Master "is this micro-op currently unsafe" predicate -- gates every
+     * point where DOLMA suppresses a memory-hierarchy side effect or
+     * backend-resource contention. */
+    bool
+    isDolmaRestricted() const
+    {
+        return isControlRestricted() || isDataRestricted();
+    }
+
+    bool
+    isPendingMemOrder() const
+    {
+        return !isSquashed() && status[PendingMemOrder];
+    }
+    /** Called on the younger load found to violate against an older,
+     * still-restricted store: defer the redirect instead of squashing
+     * immediately (would leak the store's restricted condition). */
+    void
+    setPendingMemOrder()
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(PendingMemOrder);
+        status.reset(CanCommit);
+        violatorPC = pcState().instAddr();
+    }
+    /** Called on a store, once it is itself proven safe, to promote its
+     * previously-recorded violator to an enforceable pending squash. */
+    void
+    setPendingMemOrder(const DynInstPtr &collidingStore)
+    {
+        assert(cpu->isDolma());
+        assert(!isSquashed());
+        status.set(PendingMemOrder);
+        status.reset(CanCommit);
+        if (!colliderSeqNum || collidingStore->seqNum < colliderSeqNum) {
+            colliderSeqNum = collidingStore->seqNum;
+            colliderPC = collidingStore->pcState().instAddr();
+        }
+        violatorPC = pcState().instAddr();
+    }
+    void
+    clearPendingMemOrder()
+    {
+        status.reset(PendingMemOrder);
+        status.set(CanCommit);
+    }
+
+    bool
+    isPendingBranch() const
+    {
+        return !isSquashed() && status[PendingBranch];
+    }
+    void
+    setPendingBranch(bool taken)
+    {
+        assert(cpu->isDolma());
+        assert(!isPendingBranch());
+        branchTaken = taken;
+        status.set(PendingBranch);
+        status.reset(CanCommit);
+    }
+    void
+    clearPendingBranch()
+    {
+        status.reset(PendingBranch);
+        status.set(CanCommit);
+    }
+
+    bool
+    isDolmaStalled() const
+    {
+        return !isSquashed() && status[DolmaStalled];
+    }
+    void
+    setDolmaStalled()
+    {
+        assert(!isSquashed());
+        assert(!isDolmaStalled());
+        assert(isDolmaRestricted());
+        status.set(DolmaStalled);
+    }
+    void
+    clearDolmaStalled()
+    {
+        status.reset(DolmaStalled);
+    }
+
+    void
+    setViolator(const DynInstPtr &inst)
+    {
+        assert(cpu->isDolma());
+        violator = inst;
+    }
+    DynInstPtr
+    getViolator() const
+    {
+        return violator;
+    }
+    Addr
+    getColliderPC() const
+    {
+        return colliderPC;
     }
 
   public:
@@ -770,7 +1013,14 @@ class DynInst : public ExecContext, public RefCounted
     bool isExecuted() const { return status[Executed]; }
 
     /** Sets this instruction as ready to commit. */
-    void setCanCommit() { status.set(CanCommit); }
+    void
+    setCanCommit()
+    {
+        // DOLMA: can't grant commit-readiness to an instruction that is
+        // itself the source of a still-deferred redirect.
+        assert(!isPendingMemOrder() && !isPendingBranch());
+        status.set(CanCommit);
+    }
 
     /** Clears this instruction as being ready to commit. */
     void clearCanCommit() { status.reset(CanCommit); }
@@ -851,7 +1101,19 @@ class DynInst : public ExecContext, public RefCounted
     void setInROB() { status.set(RobEntry); }
 
     /** Sets this instruction as a entry the ROB. */
-    void clearInROB() { status.reset(RobEntry); }
+    void
+    clearInROB()
+    {
+        // DOLMA: an instruction must never leave the ROB while any DOLMA
+        // predicate is still logically set on it. Each predicate already
+        // reads as false once isSquashed() (see the accessors above), so
+        // this holds both for a normal commit (which requires all of these
+        // false already, since commit is gated on them) and for a squash.
+        assert(!isPendingMemOrder() && !isPendingBranch() &&
+               !isControlInducer() && !isDataInducer() &&
+               !isDolmaRestricted() && !isDolmaStalled());
+        status.reset(RobEntry);
+    }
 
     /** Returns whether or not this instruction is in the ROB. */
     bool isInROB() const { return status[RobEntry]; }
