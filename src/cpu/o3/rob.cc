@@ -212,13 +212,18 @@ ROB::insertInst(const DynInstPtr &inst)
     //      can't be decided purely from its PC-relative encoding (any
     //      conditional or indirect control instruction), it becomes a
     //      ControlInducer for everything younger than it.
+    // (1) applies in every DOLMA mode, including mem-only: it's what
+    // restricts a memory access that itself directly follows an
+    // unresolved branch (the classic Spectre v1 access-then-transmit
+    // gadget, Fig. 2a/Listing 2 in the DOLMA paper), which is a "data in
+    // memory" leak, not a register one, so mem-only protection must cover
+    // it too. Mem-only mode's narrower scope is expressed elsewhere (see
+    // InstructionQueue::wakeDependents()), not by skipping this check.
     if (cpu->isDolma() && !inst->isSquashed()) {
-        if (!cpu->isDolmaMemOnly()) {
-            for (auto &prevInst : instList[tid]) {
-                if (prevInst->isControlInducer()) {
-                    inst->setControlRestricted();
-                    break;
-                }
+        for (auto &prevInst : instList[tid]) {
+            if (prevInst->isControlInducer()) {
+                inst->setControlRestricted();
+                break;
             }
         }
         if (inst->isControl() &&
