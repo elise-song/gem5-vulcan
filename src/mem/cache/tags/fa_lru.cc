@@ -150,7 +150,11 @@ FALRU::accessBlock(const PacketPtr pkt, Cycles &lat,
     if (blk && blk->isValid()) {
         mask = blk->inCachesMask;
 
-        moveToHead(blk);
+        // DOLMA: don't let a still-restricted access reorder replacement
+        // state -- see base_set_assoc.hh's accessBlock() for the rationale.
+        if (!pkt->req->isRestricted()) {
+            moveToHead(blk);
+        }
     }
 
     if (in_caches_mask) {

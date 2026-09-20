@@ -267,19 +267,16 @@ class Request : public Extensible<Request>
          * DOLMA: this access is made on behalf of a currently-unsafe
          * (control- or data-restricted) instruction. The TLB/cache
          * hierarchy must satisfy a hit normally but must not let it change
-         * any replacement/coherence state, and must not allocate any
-         * miss-handling resource (MSHR, page-table walk, downstream
-         * request) for it; the flag being cleared by the callee on a
-         * genuine miss is how the CPU is signalled to delay-on-miss.
+         * any replacement/coherence state (see arch/x86/tlb.cc's
+         * lookup() call and mem/cache/tags/*.cc's accessBlock()s), and must
+         * not allocate any miss-handling resource for it (see
+         * BaseCache::allocateMissBuffer()). Delay-on-miss (parking the
+         * instruction on a genuine miss so it doesn't hold the MSHR/port
+         * for the full miss latency) is NOT implemented: a restricted
+         * miss proceeds through the ordinary miss path like any other
+         * access, just without installing the fetched line.
          */
         RESTRICTED                  = 0x0002000000000000,
-        /**
-         * DOLMA: this is a deferred replay of a previously-restricted
-         * access, issued once the originating instruction is proven safe,
-         * solely to update TLB/cache replacement state for real. It is
-         * fire-and-forget: no functional response is needed.
-         */
-        METADATA_UPDATE              = 0x0004000000000000,
         // clang-format on
     };
     static const FlagsType STORE_NO_DATA = CACHE_BLOCK_ZERO |
@@ -1065,11 +1062,6 @@ class Request : public Extensible<Request>
     {
         return _flags.isSet(RESTRICTED);
     }
-    bool
-    isMetadataUpdate() const
-    {
-        return _flags.isSet(METADATA_UPDATE);
-    }
     void
     setUnsafe()
     {
@@ -1079,11 +1071,6 @@ class Request : public Extensible<Request>
     clearUnsafe()
     {
         _flags.clear(RESTRICTED);
-    }
-    void
-    setMetadataUpdate()
-    {
-        _flags.set(METADATA_UPDATE);
     }
     bool isPTWalk() const { return _flags.isSet(PT_WALK); }
     bool isRelease() const { return _flags.isSet(RELEASE); }

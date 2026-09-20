@@ -142,11 +142,22 @@ class BaseSetAssoc : public BaseTags
 
         // If a cache hit
         if (blk != nullptr) {
-            // Update number of references to accessed block
-            blk->increaseRefCount();
+            // DOLMA: a hit on behalf of a still-restricted (control- or
+            // data-tainted) access must not change replacement state --
+            // otherwise a secret-dependent choice of *which* resident line
+            // is touched still reorders the set's LRU stack, letting a
+            // later eviction-based probe (Prime+Probe) observe it even
+            // though the classic flush+reload fill-suppression (see
+            // BaseCache::allocateMissBuffer()) blocks the miss-based
+            // channel. Mirrors arch/x86/tlb.cc's no-LRU-update-on-hit
+            // treatment of the same flag.
+            if (!pkt->req->isRestricted()) {
+                // Update number of references to accessed block
+                blk->increaseRefCount();
 
-            // Update replacement data of accessed block
-            replacementPolicy->touch(blk->replacementData, pkt);
+                // Update replacement data of accessed block
+                replacementPolicy->touch(blk->replacementData, pkt);
+            }
         }
 
         // The tag lookup latency is the same for a hit or a miss

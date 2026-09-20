@@ -177,16 +177,20 @@ SectorTags::accessBlock(const PacketPtr pkt, Cycles &lat)
 
     // If a cache hit
     if (blk != nullptr) {
-        // Update number of references to accessed block
-        blk->increaseRefCount();
+        // DOLMA: don't let a still-restricted access reorder replacement
+        // state -- see base_set_assoc.hh's accessBlock() for the rationale.
+        if (!pkt->req->isRestricted()) {
+            // Update number of references to accessed block
+            blk->increaseRefCount();
 
-        // Get block's sector
-        SectorSubBlk* sub_blk = static_cast<SectorSubBlk*>(blk);
-        const SectorBlk* sector_blk = sub_blk->getSectorBlock();
+            // Get block's sector
+            SectorSubBlk *sub_blk = static_cast<SectorSubBlk *>(blk);
+            const SectorBlk *sector_blk = sub_blk->getSectorBlock();
 
-        // Update replacement data of accessed block, which is shared with
-        // the whole sector it belongs to
-        replacementPolicy->touch(sector_blk->replacementData, pkt);
+            // Update replacement data of accessed block, which is shared
+            // with the whole sector it belongs to
+            replacementPolicy->touch(sector_blk->replacementData, pkt);
+        }
     }
 
     // The tag lookup latency is the same for a hit or a miss
