@@ -1200,6 +1200,22 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
         assert(dependGraph.empty(dest_reg->flatIndex()));
         dependGraph.clearInst(dest_reg->flatIndex());
 
+        // DOLMA: a producer's taint status is decided by the time it
+        // completes and only ever narrows afterward (see
+        // ROB::updateSafeStatus()), so a producer that isn't tainted right
+        // now can never usefully answer addToDependents()'s
+        // already-ready-source race later. Drop the reference here
+        // instead of letting regToProducerInst pin every producer this
+        // register has ever had for the rest of the run -- with a large
+        // (e.g. per-vector-element) physical register file, that pinned
+        // set alone can reach into the thousands and never shrink, since
+        // most registers are written once early on and rarely revisited.
+        if (cpu->isDolma() && !completed_inst->isDataInducer() &&
+            !completed_inst->isDataRestricted() &&
+            regToProducerInst[dest_reg->flatIndex()] == completed_inst) {
+            regToProducerInst[dest_reg->flatIndex()] = nullptr;
+        }
+
         // Mark the scoreboard as having that register ready.
         regScoreboard[dest_reg->flatIndex()] = true;
     }
