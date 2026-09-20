@@ -450,13 +450,10 @@ DynInst::writeMem(uint8_t *data, unsigned size, Addr addr,
     // write, which in this pipeline only happens post-commit (see
     // LSQUnit::writebackStores()) -- by which point the instruction is
     // guaranteed no longer restricted (commit requires it), so the flag
-    // would be stale on that later access. Tagging it here would trip
-    // DynInst::setDolmaStalled()'s "still restricted" assert if that
-    // later, already-safe access ever genuinely missed. Stores are
-    // therefore protected implicitly, by virtue of never touching the
-    // cache while still speculative in the first place -- matching
-    // upstream DOLMA's own rationale for clearing this flag before a
-    // store's write is issued.
+    // would be stale on that later access. Stores are therefore protected
+    // implicitly, by virtue of never touching the cache while still
+    // speculative in the first place -- matching upstream DOLMA's own
+    // rationale for clearing this flag before a store's write is issued.
     return cpu->pushRequest(
         dynamic_cast<DynInstPtr::PtrType>(this),
         /* st */ false, data, size, addr, flags, res, nullptr,

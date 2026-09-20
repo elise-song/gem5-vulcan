@@ -1212,15 +1212,6 @@ IEW::executeInsts()
                 // event adds the instruction to the queue to commit
                 fault = ldstQueue.executeLoad(inst);
 
-                // DOLMA: delay-on-miss -- the load's access came back as a
-                // genuine miss while restricted (see LSQUnit::read()); park
-                // it instead of treating this as an ordinary translation
-                // delay or cache block, so it doesn't stall observably.
-                if (cpu->isDolma() && inst->isDolmaStalled()) {
-                    instQueue.dolmaStallInst(inst);
-                    continue;
-                }
-
                 if (inst->isTranslationDelayed() &&
                     fault == NoFault) {
                     // A hw page table walk is currently going on; the
@@ -1236,12 +1227,6 @@ IEW::executeInsts()
                 }
             } else if (inst->isStore()) {
                 fault = ldstQueue.executeStore(inst);
-
-                // DOLMA: same delay-on-miss handling as loads, above.
-                if (cpu->isDolma() && inst->isDolmaStalled()) {
-                    instQueue.dolmaStallInst(inst);
-                    continue;
-                }
 
                 if (inst->isTranslationDelayed() &&
                     fault == NoFault) {

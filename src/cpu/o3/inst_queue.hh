@@ -355,16 +355,6 @@ class InstructionQueue
     /**  Retries a memory instruction in the next cycle. */
     void retryMemInst(const DynInstPtr &retry_inst);
 
-    /** DOLMA: delay-on-miss -- parks an instruction that came back as a
-     * genuine restricted miss (setDolmaStalled() already called on it)
-     * instead of letting it stall observably; it's retried once
-     * ROB::updateSafeStatus() clears DolmaStalled (or it's squashed). */
-    void dolmaStallInst(const DynInstPtr &inst);
-
-    /** DOLMA: returns the oldest parked instruction that has since become
-     * safe to retry (or was squashed), or nullptr if none. */
-    DynInstPtr getDolmaStalledInstToExecute();
-
     /**  Notify instruction queue that a previous blockage has resolved */
     void cacheUnblocked();
 
@@ -441,9 +431,6 @@ class InstructionQueue
      * since, so they can now be retried. May fail again go on the blocked list.
      */
     std::list<DynInstPtr> retryMemInsts;
-
-    /** DOLMA: instructions parked by delay-on-miss (see dolmaStallInst()). */
-    std::list<DynInstPtr> dolmaStalledInsts;
 
     /**
      * Struct for comparing entries to be added to the priority queue.

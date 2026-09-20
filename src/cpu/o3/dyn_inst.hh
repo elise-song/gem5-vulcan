@@ -198,11 +198,6 @@ class DynInst : public ExecContext, public RefCounted
         // DOLMA: same deferral, for a mispredicted branch whose own
         // resolution was still restricted at execute time.
         PendingBranch,
-        // DOLMA: delay-on-miss -- this instruction's memory/translation
-        // access came back as a genuine miss while restricted (the cache/
-        // TLB refused to allocate for it); it is parked off the normal
-        // issue path and retried later instead of stalling observably.
-        DolmaStalled,
         NumStatus
     };
 
@@ -660,25 +655,6 @@ class DynInst : public ExecContext, public RefCounted
         status.set(CanCommit);
     }
 
-    bool
-    isDolmaStalled() const
-    {
-        return !isSquashed() && status[DolmaStalled];
-    }
-    void
-    setDolmaStalled()
-    {
-        assert(!isSquashed());
-        assert(!isDolmaStalled());
-        assert(isDolmaRestricted());
-        status.set(DolmaStalled);
-    }
-    void
-    clearDolmaStalled()
-    {
-        status.reset(DolmaStalled);
-    }
-
     void
     setViolator(const DynInstPtr &inst)
     {
@@ -1111,7 +1087,7 @@ class DynInst : public ExecContext, public RefCounted
         // false already, since commit is gated on them) and for a squash.
         assert(!isPendingMemOrder() && !isPendingBranch() &&
                !isControlInducer() && !isDataInducer() &&
-               !isDolmaRestricted() && !isDolmaStalled());
+               !isDolmaRestricted());
         status.reset(RobEntry);
     }
 

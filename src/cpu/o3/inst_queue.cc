@@ -867,12 +867,6 @@ InstructionQueue::scheduleReadyInsts()
         addReadyMemInst(mem_inst);
     }
 
-    // DOLMA: drain delay-on-miss stalled instructions that have since
-    // become safe to retry, same as the two retry queues above.
-    while ((mem_inst = getDolmaStalledInstToExecute())) {
-        addReadyMemInst(mem_inst);
-    }
-
     // Have iterator to head of the list
     // While I haven't exceeded bandwidth or reached the end of the list,
     // Try to get a FU that can do what this op needs.
@@ -1276,31 +1270,6 @@ void
 InstructionQueue::retryMemInst(const DynInstPtr &retry_inst)
 {
     retryMemInsts.push_back(retry_inst);
-}
-
-void
-InstructionQueue::dolmaStallInst(const DynInstPtr &inst)
-{
-    assert(inst->isDolmaStalled());
-    inst->translationStarted(false);
-    inst->translationCompleted(false);
-    inst->clearIssued();
-    inst->clearCanIssue();
-    dolmaStalledInsts.push_back(inst);
-}
-
-DynInstPtr
-InstructionQueue::getDolmaStalledInstToExecute()
-{
-    for (ListIt it = dolmaStalledInsts.begin(); it != dolmaStalledInsts.end();
-         ++it) {
-        if (!(*it)->isDolmaStalled() || (*it)->isSquashed()) {
-            DynInstPtr inst = std::move(*it);
-            dolmaStalledInsts.erase(it);
-            return inst;
-        }
-    }
-    return nullptr;
 }
 
 void

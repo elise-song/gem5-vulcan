@@ -463,10 +463,7 @@ ROB::updateSafeStatus(ThreadID tid)
             if (!inst->isDolmaRestricted()) {
                 // Both cleared this cycle: this instruction is now fully
                 // safe.
-                if (inst->isDolmaStalled()) {
-                    // Delay-on-miss resolved: it can be retried.
-                    inst->clearDolmaStalled();
-                } else if (inst->isStore() && !cpu->isSTT()) {
+                if (inst->isStore() && !cpu->isSTT()) {
                     DynInstPtr violator = inst->getViolator();
                     if (violator && !violator->isSquashed()) {
                         violator->setPendingMemOrder(inst);
