@@ -78,6 +78,7 @@ namespace o3
 class FUPool;
 class CPU;
 class IEW;
+class ROB;
 
 class IQUnit : public SimObject
 {
@@ -227,6 +228,11 @@ class InstructionQueue
 
     /** Sets active threads list. */
     void setActiveThreads(std::list<ThreadID> *at_ptr);
+
+    /** DOLMA: wires up the ROB pointer wakeDependents() needs to query
+     * for elder unresolved stores. Set once from CPU::CPU(), mirroring
+     * Commit::setROB(). */
+    void setROB(ROB *rob_ptr);
 
     /** Sets the timer buffer between issue and execute. */
     void setIssueToExecuteQueue(TimeBuffer<IssueStruct> *i2eQueue);
@@ -383,6 +389,10 @@ class InstructionQueue
 
     /** Pointer to the CPU. */
     CPU *cpu;
+
+    /** DOLMA: ROB pointer for wakeDependents()'s elder-unresolved-store
+     * query; set via setROB(). Null until CPU::CPU() wires it up. */
+    ROB *rob = nullptr;
 
     /** Cache interface. */
     memory::MemInterface *dcacheInterface;

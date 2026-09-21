@@ -48,6 +48,7 @@
 #include "cpu/o3/dyn_inst.hh"
 #include "cpu/o3/fu_pool.hh"
 #include "cpu/o3/limits.hh"
+#include "cpu/o3/rob.hh"
 #include "debug/IQ.hh"
 #include "enums/OpClass.hh"
 #include "params/BaseO3CPU.hh"
@@ -537,6 +538,12 @@ InstructionQueue::setActiveThreads(list<ThreadID> *at_ptr)
     for (auto iq : iqs) {
         iq->setActiveThreads(at_ptr);
     }
+}
+
+void
+InstructionQueue::setROB(ROB *rob_ptr)
+{
+    rob = rob_ptr;
 }
 
 void
@@ -1097,15 +1104,29 @@ InstructionQueue::wakeDependents(const DynInstPtr &completed_inst)
     // DOLMA: a completed load becomes a DataInducer (a root of data taint)
     // under mode-specific rules -- this is where taint is first introduced
     // for data speculation, as opposed to where it propagates (below).
-    // Simplification vs. the paper's memory-only mode: that mode also
-    // promotes a load to DataInducer if a still-unresolved ControlInducer
-    // precedes it in program order (would require IQ-level access to full
-    // ROB ordering); here memory-only mode uses the same rule as default
-    // mode (isPendingMemOrder()) rather than that extra ROB walk.
+    //
+    // Conservative mode taints unconditionally (every load is a threat
+    // until it retires). For Default/mem-only mode, the paper's own text
+    // (S4.1) describes a *proactive* SSB restriction: "DOLMA-Default must
+    // prevent leakages stemming from any load-dependent micro-ops, until
+    // all prior stores resolve" -- i.e. any load that completed while an
+    // elder store's address was still unresolved, whether or not the
+    // memory-dependence predictor actually mispredicted that load against
+    // that store. isPendingMemOrder() alone only covers the *reactive*
+    // case (a violation already confirmed by checkViolations()), which
+    // can arrive too late: the load's dependents may already have used
+    // its result by the time a violation against some other, unrelated
+    // store is detected. hasUnresolvedElderStore() below covers the
+    // proactive case; the two conditions are independent (a confirmed
+    // violation against an *already-resolved* store wouldn't be caught by
+    // the elder-store scan alone).
     if (cpu->isDolma() && completed_inst->isLoad() &&
         !completed_inst->isDataInducer()) {
         if (cpu->isDolmaConservative() ||
-            (!cpu->isSTT() && completed_inst->isPendingMemOrder())) {
+            (!cpu->isSTT() &&
+             (completed_inst->isPendingMemOrder() ||
+              rob->hasUnresolvedElderStore(completed_inst->threadNumber,
+                                           completed_inst->seqNum)))) {
             completed_inst->setDataInducer();
         }
     }

@@ -671,5 +671,22 @@ ROB::findInst(ThreadID tid, InstSeqNum squash_inst)
     return NULL;
 }
 
+bool
+ROB::hasUnresolvedElderStore(ThreadID tid, InstSeqNum seqNum) const
+{
+    for (auto &inst : instList[tid]) {
+        if (inst->seqNum >= seqNum) {
+            break;
+        }
+        if (inst->isSquashed()) {
+            continue;
+        }
+        if (inst->isStore() && !inst->effAddrValid()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace o3
 } // namespace gem5
