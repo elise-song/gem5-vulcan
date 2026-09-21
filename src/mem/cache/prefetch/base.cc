@@ -239,6 +239,17 @@ Base::probeNotify(const CacheAccessProbeArg &acc, bool miss)
     if (pkt->req->isCacheMaintenance()) return;
     if (pkt->isCleanEviction()) return;
     if (pkt->isWrite() && cache.coalesce()) return;
+    // DOLMA: a still-restricted (control- or data-tainted) access must not
+    // train the prefetcher. Unlike the demand access itself, a resulting
+    // prefetch would be a brand-new request untagged with
+    // Request::RESTRICTED, so it would install its line with none of the
+    // fill-suppression protections applied to the triggering access (see
+    // BaseCache::allocateMissBuffer()) -- a secret-dependent address could
+    // otherwise reach the cache via the prefetcher even though the
+    // original restricted access's own miss is safely handled.
+    if (pkt->req->isRestricted()) {
+        return;
+    }
     if (!pkt->req->hasPaddr()) {
         panic("Request must have a physical address");
     }
