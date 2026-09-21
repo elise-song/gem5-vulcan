@@ -420,6 +420,11 @@ TLB::translate(const RequestPtr &req,
             // not update LRU/replacement state -- same principle as the
             // data cache (see mem/cache/base.cc).
             TlbEntry *entry = lookup(pageAlignedVaddr, !req->isRestricted());
+            // DOLMA: backing storage for a restricted SE-mode miss's
+            // un-inserted entry (see below); must outlive `entry`'s use
+            // in this function, hence declared at this scope rather than
+            // inside the branch that fills it in.
+            TlbEntry pteEntry;
 
             switch (mode) {
                 case BaseMMU::Read:
@@ -445,8 +450,12 @@ TLB::translate(const RequestPtr &req,
             // x86's LdBig splitting a wide load into two translations),
             // and doing that wrong reintroduces exactly the kind of
             // request-lifecycle assertion failure this port is trying to
-            // avoid. A restricted miss here proceeds as an ordinary walk;
-            // only the no-LRU-update-on-hit property above is enforced.
+            // avoid. A restricted miss here still walks normally (SE mode)
+            // or asks the hardware walker to (full-system mode); only the
+            // *result* is treated specially -- see the SE-mode branch
+            // below, which skips insert() for a restricted miss so the
+            // resolved mapping is used for this access but never becomes
+            // TLB-resident.
             if (!entry) {
                 DPRINTF(TLB, "Handling a TLB miss for "
                         "address %#x at pc %#x.\n",
@@ -483,13 +492,29 @@ TLB::translate(const RequestPtr &req,
                                                            true, false);
                     } else {
                         Addr alignedVaddr = p->pTable->pageAlign(vaddr);
-                        DPRINTF(TLB, "Mapping %#x to %#x\n", alignedVaddr,
-                                pte->paddr);
-                        entry = insert(alignedVaddr, TlbEntry(
-                                p->pTable->pid(), alignedVaddr, pte->paddr,
-                                pte->flags & EmulationPageTable::Uncacheable,
-                                pte->flags & EmulationPageTable::ReadOnly),
-                                pcid);
+                        pteEntry = TlbEntry(
+                            p->pTable->pid(), alignedVaddr, pte->paddr,
+                            pte->flags & EmulationPageTable::Uncacheable,
+                            pte->flags & EmulationPageTable::ReadOnly);
+                        // DOLMA: a restricted (still-unsafe) access must
+                        // not install a genuine TLB miss -- same principle
+                        // as BaseCache::allocateMissBuffer() suppressing a
+                        // restricted miss's line fill. Translate using the
+                        // local, un-inserted entry instead of calling
+                        // insert(), so this access completes correctly but
+                        // leaves no resident mapping behind for a later,
+                        // non-speculative probe to find.
+                        if (req->isRestricted()) {
+                            DPRINTF(TLB,
+                                    "Restricted miss for %#x -> %#x, "
+                                    "not installing.\n",
+                                    alignedVaddr, pte->paddr);
+                            entry = &pteEntry;
+                        } else {
+                            DPRINTF(TLB, "Mapping %#x to %#x\n", alignedVaddr,
+                                    pte->paddr);
+                            entry = insert(alignedVaddr, pteEntry, pcid);
+                        }
                     }
                     DPRINTF(TLB, "Miss was serviced.\n");
                 }
