@@ -866,6 +866,22 @@ LSQUnit::writebackStores()
 
         storeWBIt->committed() = true;
 
+        // DOLMA: this store's address translation (DynInst::writeMem(),
+        // called back at execute time) may have tagged its Request
+        // Request::RESTRICTED if the store was still unsafe then. That
+        // same Request is reused here for the real, architectural write,
+        // and by this point commit guarantees the instruction is no
+        // longer restricted -- so clear the flag before it's used to
+        // build the packet, or this now-legitimate write would wrongly
+        // still get its fill/replacement-state update suppressed.
+        // Narrow, acknowledged gap: this only covers the common
+        // single-fragment case (mainReq()); a store whose access splits
+        // across a translation/cache-line boundary has additional
+        // per-fragment Requests this doesn't reach.
+        if (cpu->isDolma()) {
+            request->mainReq()->clearUnsafe();
+        }
+
         assert(!inst->memData);
         inst->memData = new uint8_t[request->_size];
 

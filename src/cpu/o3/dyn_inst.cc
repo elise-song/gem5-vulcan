@@ -444,16 +444,21 @@ DynInst::writeMem(uint8_t *data, unsigned size, Addr addr,
                         const std::vector<bool> &byte_enable)
 {
     assert(byte_enable.size() == size);
-    // DOLMA: deliberately NOT tagging stores as restricted, even though
-    // this execute-time call may still be speculative. The same Request
-    // object built here is reused later for the store's actual cache
-    // write, which in this pipeline only happens post-commit (see
-    // LSQUnit::writebackStores()) -- by which point the instruction is
-    // guaranteed no longer restricted (commit requires it), so the flag
-    // would be stale on that later access. Stores are therefore protected
-    // implicitly, by virtue of never touching the cache while still
-    // speculative in the first place -- matching upstream DOLMA's own
-    // rationale for clearing this flag before a store's write is issued.
+    // DOLMA: tag this access as restricted if the instruction is currently
+    // unsafe -- same as initiateMemRead(). This call happens at execute
+    // time (LSQUnit::executeStore() -> initiateAcc()), before the store
+    // commits, and is what actually performs the store's address
+    // translation (TLB lookup/walk); the data write itself is deferred to
+    // commit (see LSQUnit::writebackStores()), but the translation is not,
+    // so a still-speculative store can populate the TLB/cache with a
+    // secret-dependent address exactly like a load can. Tagging only the
+    // translation would leave the *same* Request object carrying a stale
+    // RESTRICTED flag once writebackStores() reuses it for the real,
+    // now-safe committed write, so that path explicitly clears the flag
+    // before sending it -- see the DOLMA comment there.
+    if (cpu->isDolma() && isDolmaRestricted()) {
+        flags.set(Request::RESTRICTED);
+    }
     return cpu->pushRequest(
         dynamic_cast<DynInstPtr::PtrType>(this),
         /* st */ false, data, size, addr, flags, res, nullptr,
