@@ -18,6 +18,15 @@
 # Compiled SafeSide demo binaries (built by safeside/build_demos.sh)
 /safeside/bin/
 
+# Compiled DOLMA attack-suite binaries (built by dolma_attacks/build_attacks.sh)
+/dolma_attacks/control_mem_dcache_load
+/dolma_attacks/control_mem_btb_branch
+/dolma_attacks/control_mem_icache_branch
+/dolma_attacks/control_reg_dcache_load
+/dolma_attacks/data_mem_dcache_load
+/dolma_attacks/control_mem_dtlb_store
+/dolma_attacks_out/
+
 # Compiled attack/test binaries built from the .c files here
 /addr_probe_bin
 /calibrate_bin
