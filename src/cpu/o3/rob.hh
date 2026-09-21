@@ -216,6 +216,16 @@ class ROB
      * safe to act on, or nullptr if none. */
     DynInstPtr getResolvedRedirect(ThreadID tid);
 
+    /** DOLMA: true if any not-yet-squashed store older than seqNum still
+     * has an unresolved effective address. Used by
+     * InstructionQueue::wakeDependents() to proactively taint a completed
+     * load's dependents as soon as the load issues ahead of any such
+     * store, per the paper's SSB restriction (DOLMA-Default must restrict
+     * load-dependent micro-ops "until all prior stores resolve") -- rather
+     * than waiting for the memory-dependence predictor to actually get it
+     * wrong and a violation to be confirmed after the fact. */
+    bool hasUnresolvedElderStore(ThreadID tid, InstSeqNum seqNum) const;
+
     /** Updates the head instruction with the new oldest instruction. */
     void updateHead();
 
