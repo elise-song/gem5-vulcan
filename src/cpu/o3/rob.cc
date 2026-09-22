@@ -344,6 +344,29 @@ ROB::numFreeEntries(ThreadID tid)
     return maxEntries[tid] - threadEntries[tid];
 }
 
+// DOLMA: counterpart to IEW's deliberate non-clearing of a mispredicting
+// branch's ControlInducer (see IEW::executeInsts()). That branch holds its
+// inducer past execution so the wrong-path instructions it shadows stay
+// ControlRestricted right up until they are really gone; once the squash has
+// fully drained there is nothing wrong-path left for it to protect, and
+// holding on any longer would needlessly restrict the correct-path
+// instructions fetched after the redirect. Only an already-executed inducer
+// may be released: a squash whose boundary instruction happens to be an
+// unresolved branch (a deferred memory-order redirect lands on an arbitrary
+// older instruction) must keep restricting what follows it.
+void
+ROB::releaseSquashingControlInducer(ThreadID tid)
+{
+    if (!cpu->isDolma()) {
+        return;
+    }
+
+    DynInstPtr inst = findInst(tid, squashedSeqNum[tid]);
+    if (inst && inst->isExecuted() && inst->isControlInducer()) {
+        inst->clearControlInducer();
+    }
+}
+
 void
 ROB::doSquash(ThreadID tid)
 {
@@ -360,6 +383,7 @@ ROB::doSquash(ThreadID tid)
         squashIt[tid] = instList[tid].end();
 
         doneSquashing[tid] = true;
+        releaseSquashingControlInducer(tid);
         return;
     }
 
@@ -400,6 +424,7 @@ ROB::doSquash(ThreadID tid)
             squashIt[tid] = instList[tid].end();
 
             doneSquashing[tid] = true;
+            releaseSquashingControlInducer(tid);
 
             return;
         }
@@ -422,6 +447,7 @@ ROB::doSquash(ThreadID tid)
         squashIt[tid] = instList[tid].end();
 
         doneSquashing[tid] = true;
+        releaseSquashingControlInducer(tid);
     }
 
     if (robTailUpdate) {
