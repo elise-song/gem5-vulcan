@@ -1,38 +1,49 @@
 #!/usr/bin/env python3
 # Determines whether control_mem_dtlb_store leaked its secret, from a gem5
-# stdout log captured with --debug-flags=TLB.
+# stdout log captured with --debug-flags=TLB,PseudoInst.
 #
 # This is a from-scratch reimplementation of the DOLMA paper's own
-# scripts/parse_tlb_logs.py (github.com/efeslab/dolma/attacks), adapted
-# because that script relies on toggling the TLB debug flag on/off at
-# specific points via m5_work_begin() exit-event hooks in a custom SE-mode
-# config script, which this repo's harness does not replicate. Instead of
-# phase-separating the log, this script uses a signal that doesn't need
-# phase separation at all:
+# scripts/parse_tlb_logs.py (github.com/efeslab/dolma/attacks). That script
+# toggles the TLB debug flag on and off around the probe access via
+# m5_work_begin() exit-event hooks in a custom SE-mode config script, which
+# this repo's harness does not replicate. This one gets the same phase
+# separation by leaving TLB logging on throughout and using the markers
+# themselves -- which PseudoInst prints as "pseudo_inst::workbegin(42, 0)"
+# and "...(43, 0)" -- to bracket the probe.
 #
-#   - The secret-indexed slot (array2[SECRET_VALUE*STEP_SIZE]) is the only
-#     one that a restricted, speculative store ever touches -- every other
-#     slot is only ever touched once, by its own single, genuine, real read.
-#   - If the speculative store's translation is left uninstalled (DOLMA
-#     working), EVERY one of its ~256 repeated speculative touches across
-#     the program's outer loop is a genuine miss, so the secret slot's
-#     total miss count is a clear outlier compared to every other slot's
-#     count of exactly 1.
-#   - If the speculative store's translation gets installed the first time
-#     it's touched (unprotected), every later touch of that slot -- both
-#     further speculative attempts and its own real read -- is a hit, so
-#     the secret slot's total miss count is exactly 1, indistinguishable
-#     from every other slot's count.
+# The attack's outer loop runs, for each slot i in 0..255:
 #
-# So: secret slot miss count == 1  -> attack succeeded (leaked).
-#     secret slot miss count  > 1  -> attack blocked.
+#     <training + one speculative, secret-indexed store>
+#     m5_work_begin(42, 0)          <- probe window opens
+#     time a single read of array2[i * STEP_SIZE]
+#     m5_work_begin(43, 0)          <- probe window closes
+#
+# The probe is the only access to a slot address inside that window, so
+# whether it took a dTLB miss is exactly the signal the attacker is timing:
+#
+#   - Unprotected: the speculative store's translation is installed, so slot
+#     SECRET_VALUE is already TLB-resident when its probe runs and the probe
+#     HITS, while every other slot's probe misses. The outlier identifies the
+#     secret.
+#   - Protected: the speculative store leaves no resident mapping, so slot
+#     SECRET_VALUE's probe misses just like every other slot's and there is
+#     no outlier to read the secret out of.
+#
+# Note the miss counts are per probe window, so a miss on some other page
+# (the stack, the timer's own spill slot) is filtered out by only counting
+# addresses that the program printed as slot addresses. In SE mode a dTLB
+# miss is functionally free, so there is no timing difference to measure
+# directly -- the log is the proxy for what would be observable on real
+# hardware, which is why the paper's suite reads this channel out of a
+# debug log rather than out of the attack's own rdtscp deltas.
 
 import re
 import sys
 from argparse import ArgumentParser
-from collections import Counter
 
 SECRET_VALUE = 42
+PROBE_OPEN = "pseudo_inst::workbegin(42, 0)"
+PROBE_CLOSE = "pseudo_inst::workbegin(43, 0)"
 
 
 def get_slot_addresses(lines):
@@ -47,15 +58,28 @@ def get_slot_addresses(lines):
     return slots
 
 
-def collect_miss_counts(lines, slots):
-    counts = Counter()
+def collect_probe_misses(lines, slots):
+    """Slots whose probe took a dTLB miss, and the number of probe windows
+    seen, so a truncated or marker-less log can be reported as such."""
+    missed = set()
+    windows = 0
+    in_window = False
     for line in lines:
+        if PROBE_OPEN in line:
+            in_window = True
+            windows += 1
+            continue
+        if PROBE_CLOSE in line:
+            in_window = False
+            continue
+        if not in_window:
+            continue
         if "Handling a TLB miss for address" not in line:
             continue
         m = re.search(r"address (0x[0-9a-fA-F]+)", line)
         if m and m.group(1) in slots:
-            counts[slots[m.group(1)]] += 1
-    return counts
+            missed.add(slots[m.group(1)])
+    return missed, windows
 
 
 def main():
@@ -63,11 +87,12 @@ def main():
         description="Parse control_mem_dtlb_store's gem5 log"
     )
     parser.add_argument(
-        "log", help="gem5 stdout log, captured with --debug-flags=TLB"
+        "log",
+        help="gem5 stdout log, captured with --debug-flags=TLB,PseudoInst",
     )
     args = parser.parse_args()
 
-    with open(args.log) as f:
+    with open(args.log, errors="replace") as f:
         lines = f.readlines()
 
     slots = get_slot_addresses(lines)
@@ -78,15 +103,25 @@ def main():
             file=sys.stderr,
         )
 
-    counts = collect_miss_counts(lines, slots)
-    secret_count = counts.get(SECRET_VALUE, 0)
-    other_counts = [c for idx, c in counts.items() if idx != SECRET_VALUE]
-    other_max = max(other_counts) if other_counts else 0
+    missed, windows = collect_probe_misses(lines, slots)
+    if windows < 200:
+        print(
+            f"INCONCLUSIVE: only {windows} probe windows in the log -- was it "
+            "captured with --debug-flags=TLB,PseudoInst?"
+        )
+        sys.exit(2)
 
-    print(f"secret slot ({SECRET_VALUE}) miss count: {secret_count}")
-    print(f"other slots: max miss count: {other_max}")
+    secret_missed = SECRET_VALUE in missed
+    others_missed = len(missed - {SECRET_VALUE})
+    others_total = len(slots) - 1
 
-    if secret_count <= 1 and secret_count <= other_max + 1:
+    print(f"probe windows: {windows}")
+    print(f"secret slot ({SECRET_VALUE}) probe missed: {secret_missed}")
+    print(f"other slots whose probe missed: {others_missed}/{others_total}")
+
+    # The secret is readable only if its slot stands out: its probe hits
+    # while the field of innocent slots overwhelmingly misses.
+    if not secret_missed and others_missed >= 0.9 * others_total:
         print(f"Attack succeeded. Secret correctly guessed as {SECRET_VALUE}")
         sys.exit(0)
     else:
