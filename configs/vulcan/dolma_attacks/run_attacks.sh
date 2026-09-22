@@ -54,10 +54,20 @@ run_dtlb() {
     local name="control_mem_dtlb_store"
     local outsub="$OUTDIR/$name"
     mkdir -p "$outsub"
-    timeout "$TIMEOUT_SECS" "$GEM5" --debug-flags=TLB --outdir="$outsub" "$CONFIG" \
+    # PseudoInst surfaces the attack's own m5_work_begin() markers, which
+    # bracket the probe access -- parse_tlb_log.py needs them to tell a
+    # probe's TLB miss apart from the attack loop's own.
+    # The raw TLB trace runs to several GB, almost all of it lines the
+    # verdict doesn't depend on, so keep only what parse_tlb_log.py reads:
+    # the program's own slot-address printouts, the probe-window markers and
+    # the miss lines.
+    timeout "$TIMEOUT_SECS" "$GEM5" --debug-flags=TLB,PseudoInst \
+        --outdir="$outsub" "$CONFIG" \
         "${COMMON_ARGS[@]}" $DOLMA_ARGS -c "$BINDIR/$name" \
-        > "$outsub/stdout.log" 2> "$outsub/stderr.log"
-    local ec=$?
+        2> "$outsub/stderr.log" \
+        | grep -aE "^array2\[|pseudo_inst::workbegin|Handling a TLB miss" \
+        > "$outsub/stdout.log"
+    local ec=${PIPESTATUS[0]}
     if [ "$ec" = 124 ]; then
         echo "$name: TIMED OUT after ${TIMEOUT_SECS}s"
         return
