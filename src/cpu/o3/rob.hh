@@ -198,6 +198,12 @@ class ROB
     bool isEmpty(ThreadID tid) const
     { return threadEntries[tid] == 0; }
 
+    /** DOLMA: releases the ControlInducer that a mispredicting branch holds
+     * past its own execution, once the squash it caused has fully drained
+     * and no wrong-path instruction is left for it to restrict. Called from
+     * doSquash(); no-op when DOLMA is off. */
+    void releaseSquashingControlInducer(ThreadID tid);
+
     /** Executes the squash, marking squashed instructions. */
     void doSquash(ThreadID tid);
 

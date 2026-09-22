@@ -1270,11 +1270,26 @@ IEW::executeInsts()
 
             inst->setExecuted();
 
-            // DOLMA: a non-memory ControlInducer's own resolution *is* its
-            // execution -- we now know its actual target/direction, so it
-            // no longer restricts anything younger than it once
+            // DOLMA: a correctly-predicted ControlInducer's own resolution
+            // *is* its execution -- we now know its actual target/direction
+            // matches what was predicted, so everything younger than it was
+            // on the right path all along and it stops restricting them once
             // ROB::updateSafeStatus() next runs.
-            if (cpu->isDolma() && inst->isControlInducer()) {
+            //
+            // A mispredicting one is the opposite case and must *not* clear
+            // here. Every younger instruction in the ROB is wrong-path, but
+            // the squash that removes them only starts next cycle (commit
+            // reads toCommit) and then drains squashWidth entries per cycle
+            // in ROB::doSquash(), so they stay issuable for several more
+            // cycles. Clearing the inducer now would let the very next
+            // ROB::updateSafeStatus() sweep drop their ControlRestricted
+            // inside that window, and any transmitter whose operands happen
+            // to arrive late -- e.g. one waiting on a cache miss for the
+            // tainted load feeding it -- would then execute unprotected even
+            // though it is doomed. ROB::doSquash() releases the inducer once
+            // the squash has actually been applied.
+            if (cpu->isDolma() && inst->isControlInducer() &&
+                !inst->mispredicted()) {
                 inst->clearControlInducer();
             }
 
