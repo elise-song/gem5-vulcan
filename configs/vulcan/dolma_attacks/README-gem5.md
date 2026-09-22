@@ -32,13 +32,23 @@ in the paper's own Fig. 7 (naming convention
   `se_run_experiment.py` drive a custom SE-mode config script and (for
   `control_mem_dtlb_store` only) toggle the TLB debug flag on and off at
   runtime via `m5_work_begin()` exit-event hooks, so its log only captures
-  misses during a bracketed "recovery" window. This repo's harness doesn't
-  replicate that hook. Instead, `parse_tlb_log.py` here is a **from-scratch
-  reimplementation** of upstream's `scripts/parse_tlb_logs.py` using a
-  signal that doesn't need phase separation at all -- see the comment at
-  the top of that file for the reasoning. It was cross-checked against the
-  same ground truth (baseline leaks, DOLMA-Conservative doesn't) before
-  being trusted.
+  misses during a bracketed probe window. This repo's harness doesn't
+  replicate that hook, so `parse_tlb_log.py` here is a **from-scratch
+  reimplementation** of upstream's `scripts/parse_tlb_logs.py` that gets
+  the same phase separation a different way: TLB logging stays on
+  throughout, `--debug-flags` also carries `PseudoInst` so the attack's own
+  `m5_work_begin(42/43)` markers land in the log, and the parser brackets
+  the probe with those. The verdict is then the attacker's own signal --
+  whether the secret-indexed slot's probe took a d-TLB miss while the
+  other 255 slots' probes did. See the comment at the top of that file.
+
+  An earlier version of this parser tried to sidestep needing the markers
+  by counting each slot's *total* misses across the whole run. That
+  heuristic is unsound and has been discarded: the training-path slot
+  dominates the counts, and "blocked, because the speculative store never
+  executed" is indistinguishable from "leaked" under it. It reported a
+  leak in modes 1 and 3 that the phase-separated signal shows is not
+  there.
 - **No assembly-level patching.** Upstream's Makefile runs
   `scripts/{control_mem_dtlb_store,control_reg_dcache_load,data_mem_dcache_load}.py`
   against gcc-9.3.0-era generated assembly to force a specific
@@ -89,57 +99,56 @@ Run via `DOLMA_ARGS=--dolma-mode=N ./run_attacks.sh` for N in 0-4:
 |---|---|---|---|---|---|
 | `control_mem_dcache_load` | leak | blocked | blocked | blocked | blocked |
 | `control_reg_dcache_load` | leak | blocked | blocked | blocked | blocked |
-| `data_mem_dcache_load` | leak | **leak** | blocked | **leak** | blocked |
-| `control_mem_dtlb_store` | leak | **leak** | **leak** | **leak** | **leak** |
+| `data_mem_dcache_load` | leak | blocked | blocked | blocked | blocked |
+| `control_mem_dtlb_store` | leak | blocked | blocked | blocked | blocked |
 | `control_mem_icache_branch` | leak | blocked | blocked | blocked | blocked |
 | `control_mem_btb_branch` | doesn't converge | doesn't converge | doesn't converge | doesn't converge | doesn't converge |
 
-`control_mem_dcache_load` and `control_mem_icache_branch` match the
-paper's own reference results
-([efeslab/dolma/attacks/README.md](https://github.com/efeslab/dolma/blob/master/attacks/README.md))
-exactly. The bolded results are where this repo's DOLMA port diverges from
-what the paper's own reference implementation reports for the same named
-attack, found only by actually running these specific tests:
+Every attack that produces a usable signal now matches the paper's own
+reference results
+([efeslab/dolma/attacks/README.md](https://github.com/efeslab/dolma/blob/master/attacks/README.md)),
+apart from the one fidelity gap noted last. Two of these rows needed a fix
+to this repo's DOLMA port before they did, both found only by actually
+running these tests:
 
-- **`data_mem_dcache_load` leaks under DOLMA-Default (modes 1 and 3), but
-  is correctly blocked under DOLMA-Conservative (modes 2 and 4).** The
-  paper's own results say all four defended modes should block this. In
+- **`data_mem_dcache_load` originally leaked under DOLMA-Default (modes 1
+  and 3)**, while being correctly blocked under DOLMA-Conservative. In
   `InstructionQueue::wakeDependents()`
   ([src/cpu/o3/inst_queue.cc](../../../src/cpu/o3/inst_queue.cc)), a
-  non-Conservative load is only promoted to `DataInducer` once
-  `isPendingMemOrder()` is true -- i.e. only *after* a memory-order
-  violation has already been detected and confirmed. The paper's own text
+  non-Conservative load was only promoted to `DataInducer` once
+  `isPendingMemOrder()` was true -- i.e. only *after* a memory-order
+  violation had already been detected and confirmed. The paper's own text
   (§4.1) describes a *proactive* restriction ("DOLMA-Default must
   prevent leakages stemming from any load-dependent micro-ops, until all
-  prior stores resolve") that should apply to any load that issued ahead
-  of an unresolved elder store, not only to ones later confirmed to have
-  guessed wrong. Conservative mode sidesteps this entirely (it makes
-  *every* load a `DataInducer` unconditionally), which is exactly why it
-  still blocks this attack while Default doesn't. This looks like a real
-  gap in DOLMA-Default's SSB handling, not a convergence artifact --
-  unlike `control_mem_btb_branch`, this one converges cleanly and
-  consistently across every mode; it just doesn't get blocked in Default.
+  prior stores resolve") that applies to any load that issued ahead of an
+  unresolved elder store, not only to ones later confirmed to have guessed
+  wrong. Conservative mode sidestepped this entirely (it makes *every*
+  load a `DataInducer` unconditionally), which is exactly why it still
+  blocked this attack while Default didn't. Fixed in commit `aa39fadf`,
+  which adds `ROB::hasUnresolvedElderStore()` and consults it at promotion
+  time.
 
-- **`control_mem_dtlb_store` leaks in every mode, including
-  DOLMA-Conservative.** This is more serious: the paper's own headline
-  attack is completely unprotected here, in every configuration. The
-  reason is upstream, in the very first DOLMA commit, not something this
-  session's earlier TLB fix (commit `f850279`, "Suppress TLB installation
-  on a restricted miss") touches:
+- **`control_mem_dtlb_store` originally leaked in every mode, including
+  DOLMA-Conservative** -- the paper's own headline attack, unprotected in
+  every configuration. The cause was upstream, in the very first DOLMA
+  commit, not anything the TLB fix (commit `f850279`, "Suppress TLB
+  installation on a restricted miss") touched:
   `DynInst::writeMem()` ([src/cpu/o3/dyn_inst.cc](../../../src/cpu/o3/dyn_inst.cc))
   is the entry point `LSQUnit::executeStore()` calls at *execute* time
   (via `initiateAcc()`) to translate a store's address -- before the store
-  commits -- and it deliberately never sets `Request::RESTRICTED`,
-  reasoning that stores don't touch the cache until they commit, by which
-  point they're safe. That reasoning is correct for the *data write*, but
-  the *address translation* (the TLB lookup/walk/install) happens at this
-  same speculative execute-time call, regardless of whether the write
-  itself ever commits. So a restricted store's translation is never tagged
-  restricted at all, meaning neither this session's TLB fix nor any other
-  DOLMA protection ever engages for it. This is, concretely, the same
-  category of mistake the DOLMA paper itself criticizes STT for making
-  (§3.3): assuming a store is safe because its *data* write is
-  deferred, without separately accounting for its *address*.
+  commits -- and it never set `Request::RESTRICTED`, on the reasoning that
+  stores don't touch the cache until they commit, by which point they're
+  safe. That reasoning holds for the *data write*, but the *address
+  translation* (the TLB lookup/walk/install) happens at this same
+  speculative execute-time call regardless of whether the write ever
+  commits, so a restricted store's translation was never tagged restricted
+  at all and no DOLMA protection ever engaged for it. This is concretely
+  the same category of mistake the DOLMA paper itself criticizes STT for
+  making (§3.3): assuming a store is safe because its *data* write is
+  deferred, without separately accounting for its *address*. Fixed in
+  commit `32ce960c`, which tags the translation and has
+  `LSQUnit::writebackStores()` clear the flag again for the real,
+  now-safe committed write.
 
 - **`control_reg_dcache_load` is blocked in mem-only mode 3, where the
   paper's own reference says it should succeed.** Mem-only mode is
@@ -166,6 +175,39 @@ attack, found only by actually running these specific tests:
   and doesn't indicate anything about DOLMA's own correctness, since the
   underlying channel never produces a usable signal even without any
   defense enabled.
+
+## A residual gap these six attacks do not catch
+
+Passing all six is necessary, not sufficient. Instrumenting `ROB::doSquash()`
+to count, over a whole `control_mem_dtlb_store` run, every memory access that
+(a) was `ControlRestricted` when it entered the ROB, (b) executed anyway, and
+(c) was then squashed -- i.e. every wrong-path access that DOLMA had tainted
+and then untainted before it ran:
+
+| mode | wrong-path mem refs tainted at insert | of which the access itself ran **unrestricted** |
+|---|---|---|
+| 1 (Default M+R) | 7,864,064 | 887,038 (11.3%) |
+| 2 (Conservative M+R) | 12,707,844 | 894 (0.007%) |
+
+DOLMA-Conservative is effectively airtight by this measure; DOLMA-Default
+lets better than one in ten wrong-path accesses run with its restriction
+already cleared. None of the six attacks exercises that gap -- they all
+transmit through a chain that Default happens to still cover -- so this is
+recorded here as a measured, open finding rather than a fixed one. The
+1000x mode-1-vs-mode-2 ratio points at `ControlRestricted`'s clearing rule
+rather than at any single transmitter: Conservative's blanket per-load
+`DataInducer` tainting keeps these same instructions covered by
+`DataRestricted` long after `ControlRestricted` has gone.
+
+One contributor is fixed, and is worth naming because it is *not* the
+dominant one: `IEW::executeInsts()` used to clear a branch's
+`ControlInducer` the moment the branch executed, including when it
+mispredicted -- even though every younger instruction was then wrong-path
+and still several cycles away from being squashed. Holding the inducer
+until `ROB::doSquash()` has actually drained the squash closes that window
+at no measured cost (identical `simTicks` in mode 1, +0.0006% in mode 2),
+but it only accounts for 2,140 of mode 1's 887,038 escapes. The rest have
+a different cause, not yet identified.
 
 ## Usage
 

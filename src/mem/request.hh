@@ -268,7 +268,7 @@ class Request : public Extensible<Request>
          * (control- or data-restricted) instruction. The TLB/cache
          * hierarchy must satisfy a hit normally but must not let it change
          * any replacement/coherence state (see arch/x86/tlb.cc's
-         * lookup() call and mem/cache/tags/*.cc's accessBlock()s), and must
+         * lookup() call and the tag classes' accessBlock()s), and must
          * not allocate any miss-handling resource for it (see
          * BaseCache::allocateMissBuffer()). Delay-on-miss (parking the
          * instruction on a genuine miss so it doesn't hold the MSHR/port
