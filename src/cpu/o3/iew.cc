@@ -1393,6 +1393,20 @@ IEW::executeInsts()
                 } else {
                     fetchRedirect[tid] = true;
 
+                    // DOLMA: neither side is restricted, so this violation
+                    // is acted on right now -- but the squash still takes
+                    // several cycles to reach commit and drain through
+                    // ROB::doSquash(), and the violating load plus
+                    // everything after it stays issuable until it does.
+                    // Those instructions read stale data by definition, so
+                    // record the violator: ROB::updateSafeStatus() keeps
+                    // every data-inducer at or after it live (and its
+                    // dependents DataRestricted) until the load is really
+                    // gone, at which point the retention self-clears.
+                    if (cpu->isDolma() && !cpu->isSTT()) {
+                        inst->setViolatorSeqNum(violator->seqNum);
+                    }
+
                     // Tell the instruction queue that a violation has occured.
                     instQueue.violation(inst, violator);
 

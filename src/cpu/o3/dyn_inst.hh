@@ -660,6 +660,18 @@ class DynInst : public ExecContext, public RefCounted
     {
         assert(cpu->isDolma());
         violator = inst;
+        setViolatorSeqNum(inst ? inst->seqNum : 0);
+    }
+    /** DOLMA: record which load violated against this store without taking
+     * a reference to it. ROB::updateSafeStatus() only ever needs the
+     * seqnum (it re-finds the instruction itself), and the squash paths
+     * that call this are about to discard the load anyway, so holding a
+     * DynInstPtr to it would pin a dead instruction for no reason. */
+    void
+    setViolatorSeqNum(InstSeqNum sn)
+    {
+        assert(cpu->isDolma());
+        violatorSeqNum = sn;
     }
     DynInstPtr
     getViolator() const
