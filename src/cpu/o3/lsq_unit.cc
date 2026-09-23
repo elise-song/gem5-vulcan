@@ -1552,6 +1552,22 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
                       load_inst->getHtmTransactionUid());
                 }
 
+                // DOLMA (Sec. 5.4): a complete store-buffer hit normally
+                // means the load issues no memory request at all, and the
+                // very absence of that request reveals the unsafe store's
+                // address operand. Issue the load to the cache hierarchy
+                // anyway and ignore the response, so downstream traffic is
+                // independent of the store's address. The load still
+                // consumes the forwarded data above; the shadow access
+                // writes into a buffer the request owns, because this load
+                // completes now and its memData does not outlive the access.
+                if (cpu->isDolma() &&
+                    store_it->instruction()->isDolmaRestricted() &&
+                    !request->isAnyOutstandingRequest() &&
+                    request->buildShadowPackets()) {
+                    request->sendPacketToCache();
+                }
+
                 if (request->isAnyOutstandingRequest()) {
                     assert(request->_numOutstandingPackets > 0);
                     // There are memory requests packets in flight already.
@@ -1562,6 +1578,14 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
                     // Avoid checking snoops on this discarded request.
                     load_entry.setRequest(nullptr);
                 }
+                // Note: if the shadow access could not be sent (blocked
+                // cache) the request is deliberately left alone. Discarding
+                // it here would delete it outright -- release() destroys a
+                // request with nothing outstanding -- and WritebackEvent's
+                // constructor asserts on _inst->savedRequest, which the
+                // destructor clears. The built packets and scratch buffer
+                // are reclaimed when the LSQ entry is freed instead, and
+                // this load completes from the store buffer either way.
 
                 WritebackEvent *wb = new WritebackEvent(load_inst, data_pkt,
                         this);
@@ -1582,6 +1606,22 @@ LSQUnit::read(LSQRequest *request, ssize_t load_idx)
                 if (store_it->completed()) {
                     panic("Should not check one of these");
                     continue;
+                }
+
+                // DOLMA (Sec. 5.4): the partial-hit case prior work missed.
+                // Neither the store buffer nor the cache holds all the data,
+                // so the load stalls until the store completes and that
+                // stall leaks the unsafe store's address through timing.
+                // Issue the load to the cache hierarchy anyway (this branch
+                // discards the request, and with it the response) so the
+                // downstream traffic does not depend on the store; the
+                // reschedule below still re-issues the load once the store
+                // is safe and complete.
+                if (cpu->isDolma() &&
+                    store_it->instruction()->isDolmaRestricted() &&
+                    !request->isAnyOutstandingRequest() &&
+                    request->buildShadowPackets()) {
+                    request->sendPacketToCache();
                 }
 
                 // Must stall load and force it to retry, so long as it's the

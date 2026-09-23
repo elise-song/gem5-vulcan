@@ -1118,7 +1118,29 @@ LSQ::LSQRequest::~LSQRequest()
 
     for (auto r: _packets)
         delete r;
+
+    delete[] _dolmaShadowData;
 };
+
+bool
+LSQ::LSQRequest::buildShadowPackets()
+{
+    if (_dolmaShadowData || _packets.size() != 0) {
+        return false;
+    }
+
+    // buildPackets() points every packet at _inst->memData; swap in a
+    // buffer this request owns so the discarded response writes somewhere
+    // harmless, then put the instruction's own buffer back for the
+    // store-to-load forwarding writeback that follows.
+    _dolmaShadowData = new uint8_t[_size];
+    uint8_t *inst_data = _inst->memData;
+    _inst->memData = _dolmaShadowData;
+    buildPackets();
+    _inst->memData = inst_data;
+
+    return true;
+}
 
 ContextID
 LSQ::LSQRequest::contextId() const

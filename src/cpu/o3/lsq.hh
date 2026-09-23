@@ -286,6 +286,9 @@ class LSQ
         const Request::Flags _flags;
         std::vector<bool> _byteEnable;
         uint32_t _numOutstandingPackets;
+        /** DOLMA: private data buffer for a shadow cache access (see
+         * buildShadowPackets()). Owned by this request and freed with it. */
+        uint8_t *_dolmaShadowData = nullptr;
         AtomicOpFunctorPtr _amo_op;
         bool _hasStaleTranslation;
 
@@ -450,6 +453,21 @@ class LSQ
         virtual bool recvTimingResp(PacketPtr pkt) = 0;
         virtual void sendPacketToCache() = 0;
         virtual void buildPackets() = 0;
+
+        /**
+         * DOLMA (Sec. 5.4): build this request's packets against a private
+         * throwaway buffer rather than the instruction's memData, for a
+         * shadow access issued purely so that an unsafe store-buffer hit
+         * still generates the memory traffic a buffer miss would. The
+         * response is discarded, and the load completes from the store
+         * buffer -- so ~DynInst can free memData long before this access
+         * returns, and the packets must not point at it.
+         *
+         * Returns false, having done nothing, if this request already has
+         * packets -- a load re-executed after a partial-hit reschedule
+         * reuses its request, and its existing packets must be left alone.
+         */
+        bool buildShadowPackets();
 
         /**
          * Memory mapped IPR accesses
