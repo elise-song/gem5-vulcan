@@ -169,12 +169,18 @@ running these tests:
   landing at the same cycle count, with no signal at the secret index --
   consistent with this CPU config's BTB (4096 entries, per this repo's O3
   CPU defaults) being far larger than the 256 distinct targets this attack
-  trains, so none of them ever evict each other. This matches the same
-  class of non-convergence already documented for SafeSide's
-  `spectre_v1_btb_sa` (see [../safeside/README-gem5.md](../safeside/README-gem5.md))
-  and doesn't indicate anything about DOLMA's own correctness, since the
-  underlying channel never produces a usable signal even without any
-  defense enabled.
+  trains, so none of them ever evict each other. This doesn't indicate
+  anything about DOLMA's own correctness, since the underlying channel
+  never produces a usable signal even without any defense enabled.
+
+  Note this is *not* the same failure as SafeSide's `spectre_v1_btb_sa`,
+  despite the similar name. That demo is indirect-call/vtable target
+  injection, not a BTB eviction set, and
+  [../safeside/README-gem5.md](../safeside/README-gem5.md) records that its
+  mistraining demonstrably *does* fire in gem5 (565 `CallIndirect`
+  corrections in a 90-second sample) -- so a capacity argument cannot
+  explain it. The two are unrelated; do not treat one as evidence about the
+  other.
 
 ## A residual gap these six attacks do not catch
 
@@ -182,32 +188,49 @@ Passing all six is necessary, not sufficient. Instrumenting `ROB::doSquash()`
 to count, over a whole `control_mem_dtlb_store` run, every memory access that
 (a) was `ControlRestricted` when it entered the ROB, (b) executed anyway, and
 (c) was then squashed -- i.e. every wrong-path access that DOLMA had tainted
-and then untainted before it ran:
+and then untainted before it ran -- turned up a large hole in DOLMA-Default
+that none of the six attacks exercises, and bucketing those escapes by what
+actually caused the squash identified it precisely:
 
-| mode | wrong-path mem refs tainted at insert | of which the access itself ran **unrestricted** |
-|---|---|---|
-| 1 (Default M+R) | 7,864,064 | 887,038 (11.3%) |
-| 2 (Conservative M+R) | 12,707,844 | 894 (0.007%) |
+| squash cause | mode 1 tainted | mode 1 escaped (before) | mode 1 escaped (after) |
+|---|---|---|---|
+| IEW memory-order violation, immediate | 6,690,720 | 883,059 (13.2%) | 96,643 (1.4%) |
+| memory-order violation, deferred | 1,153,770 | 1,823 | 30 |
+| branch mispredict (deferred + immediate) | 18,970 | 0 | 0 |
+| trap | 604 | 16 | 16 |
 
-DOLMA-Conservative is effectively airtight by this measure; DOLMA-Default
-lets better than one in ten wrong-path accesses run with its restriction
-already cleared. None of the six attacks exercises that gap -- they all
-transmit through a chain that Default happens to still cover -- so this is
-recorded here as a measured, open finding rather than a fixed one. The
-1000x mode-1-vs-mode-2 ratio points at `ControlRestricted`'s clearing rule
-rather than at any single transmitter: Conservative's blanket per-load
-`DataInducer` tainting keeps these same instructions covered by
-`DataRestricted` long after `ControlRestricted` has gone.
+Control speculation was already airtight -- **zero** escapes from either
+branch-mispredict path, in either mode. Essentially the whole hole was
+memory-order violations, and it was a plain bug rather than a design
+tension: `DynInst::violatorSeqNum` was read by
+`ROB::updateSafeStatus()`'s `oldestViolator` retention but was never
+assigned anywhere in the tree, so that retention had always been dead code;
+and `IEW::executeInsts()`'s immediate-squash path (taken when neither the
+store nor the violating load is restricted) recorded no violator at all.
+Fixed by having `setViolator()` populate the seqnum and by recording it on
+the immediate path too, which cuts mode 1's escapes by 89% at no measured
+cost (identical `simTicks` and IPC in modes 1 and 2).
 
-One contributor is fixed, and is worth naming because it is *not* the
-dominant one: `IEW::executeInsts()` used to clear a branch's
-`ControlInducer` the moment the branch executed, including when it
-mispredicted -- even though every younger instruction was then wrong-path
-and still several cycles away from being squashed. Holding the inducer
-until `ROB::doSquash()` has actually drained the squash closes that window
-at no measured cost (identical `simTicks` in mode 1, +0.0006% in mode 2),
-but it only accounts for 2,140 of mode 1's 887,038 escapes. The rest have
-a different cause, not yet identified.
+That also explains why DOLMA-Conservative never had the problem: because it
+makes every load a `DataInducer`, its violations almost always take the
+*deferred* path instead (12.6M vs 3,188 in mode 1), which was never
+affected.
+
+Every escape that remains has `everDataRestricted == 0` -- these
+instructions were never data-tainted, so they carry no secret-derived
+value. DOLMA restricts transmitters of tainted data, not every wrong-path
+instruction, so this residue is consistent with the paper's threat model
+rather than a further hole. It is recorded here because the measurement is
+worth re-running after any change to the restriction lifetimes.
+
+One further contributor is fixed and is worth naming because it turned out
+*not* to matter: `IEW::executeInsts()` used to clear a branch's
+`ControlInducer` the moment the branch executed, including on a mispredict,
+even though every younger instruction was then wrong-path and still several
+cycles from being squashed. Holding the inducer until `ROB::doSquash()` has
+drained the squash closes that window at no measured cost -- but the
+bucketing above shows the window was already producing zero escapes, so it
+is hardening, not a fix for anything observed.
 
 ## Usage
 
