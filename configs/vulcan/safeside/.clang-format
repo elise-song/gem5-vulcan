@@ -1,0 +1,8 @@
+---
+# These are vendored Google SafeSide sources (github.com/google/safeside),
+# kept as close to upstream as possible so they can be re-synced. gem5's
+# clang-format hook runs with --style=file and walks up from each file, so
+# this pins the tree to upstream's own Google style: without it, touching a
+# single line inside a function reformats the whole function to gem5 style
+# and buries the real change in hundreds of lines of noise.
+BasedOnStyle: Google
