@@ -30,6 +30,9 @@ OUTDIR="${OUTDIR:-safeside_out}"
 DOLMA_ARGS="${DOLMA_ARGS:-}"
 TIMEOUT_SECS="${TIMEOUT_SECS:-600}"
 
+# The secret these demos embed; a recovered prefix of it counts as a leak.
+SECRET="It's a s3kr3t!!!"
+
 mkdir -p "$OUTDIR"
 
 run() {
@@ -41,12 +44,21 @@ run() {
         $DOLMA_ARGS -c "$BINDIR/$name" \
         > "$outsub/stdout.log" 2> "$outsub/stderr.log"
     local ec=$?
-    if grep -q "It's a s3kr3t" "$outsub/stdout.log"; then
-        echo "$name: LEAKED secret ($outsub/stdout.log)"
+    # A *correct prefix* counts as a leak, not just the whole string. These
+    # demos print one character per recovered byte and flush as they go, and
+    # under gem5 a byte can take ~15 minutes of wall clock (spectre_v4), so
+    # requiring all 16 characters would report a working attack as a
+    # timeout. One correctly recovered byte is already the signal: it cannot
+    # be produced without the speculative transmission having worked.
+    local leaked
+    leaked="$(sed -n 's/.*Leaking the string: //p' "$outsub/stdout.log" \
+              | tail -1)"
+    if [ -n "$leaked" ] && [ "${SECRET#"$leaked"}" != "$SECRET" ]; then
+        echo "$name: LEAKED \"$leaked\" ($outsub/stdout.log)"
     elif grep -q "Does not converge" "$outsub/stdout.log"; then
         echo "$name: did not converge ($outsub/stdout.log)"
     elif [ "$ec" = 124 ]; then
-        echo "$name: TIMED OUT after ${TIMEOUT_SECS}s without leaking (not necessarily broken -- see README-gem5.md; retry with a larger TIMEOUT_SECS)"
+        echo "$name: TIMED OUT after ${TIMEOUT_SECS}s without leaking a byte (see README-gem5.md; retry with a larger TIMEOUT_SECS)"
     else
         echo "$name: NO LEAK / check $outsub/stdout.log and $outsub/stderr.log"
     fi

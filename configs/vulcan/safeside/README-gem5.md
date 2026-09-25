@@ -38,24 +38,71 @@ build problem.
   *succeeds* under gem5 where it failed to converge natively above:
   gem5's O3 CPU's return-address-stack predictor evidently doesn't
   implement the RSB-refill-style mitigation this host's real CPU has.
-- **`spectre_v4`, `spectre_v1_btb_sa`** — run cleanly (no crash, no hang)
-  but don't converge to a leak within a generous time budget (40+ minutes
-  of simulated execution each). This was investigated, not just accepted:
-  `system.cpu.iew.memOrderViolationEvents` confirms `spectre_v4`'s
-  speculative store-bypass *is* firing (65 violations in a 90-second
-  sample at the default `store_set_clear_period`); passing
-  `-P 'system.cpu[0].store_set_clear_period=100'` raises that to 10503
-  violations in the same window (gem5's store-set predictor normally
-  re-learns the true dependency and stops speculating past it almost
-  immediately), yet a 20-minute run with that override still didn't
-  converge. Likewise, `system.cpu.branchPred.corrected_0::CallIndirect`
-  confirms `spectre_v1_btb_sa`'s indirect-call mistraining *is* causing
-  real BTB mispredictions (565 in a 90-second sample). Both demos exercise
-  the right microarchitectural primitive but something further downstream
-  (how the resulting speculative access correlates with the cache-timing
-  oracle, in gem5's specific timing model) prevents it from actually
-  converging — this would need real profiling/debugging inside gem5 to
-  pin down further, not just a parameter tweak.
+- **`spectre_v4`** — leaks correctly, but only after being ported off
+  `CacheSideChannel` (see below). Budget generously: a byte costs roughly
+  15 minutes of wall clock here.
+- **`spectre_v1_btb_sa`** — still produces no signal, even with the same
+  readout the three working demos use. See below.
+
+### The `CacheSideChannel` readout does not work under gem5
+
+`spectre_v4` and `spectre_v1_btb_sa` originally read their side channel
+through `CacheSideChannel::RecomputeScores()`, unlike `spectre_v1_pht_sa`
+and `ret2spec_sa`, which use `TimingArray`. That difference — not the
+speculation, and not the cache model — is why the two never converged.
+
+`RecomputeScores()` only scores a sample when *exactly one* oracle entry
+reads as a cache hit, and discards the sample otherwise. Instrumenting it
+(printing its own calibration and hit count every few calls) shows that
+condition is never met under gem5:
+
+    spectre_v4:        calls=1200 scored=0 avg_hitcount=16.00
+                       median=201 safe_lat=55 hitmiss_diff=146 thresh=128
+    spectre_v1_btb_sa: calls=1000 scored=0 avg_hitcount=21.00
+                       median=202 safe_lat=55 hitmiss_diff=147 thresh=129
+
+The calibration is healthy -- a hit reads 55 cycles, a miss 201, and the
+threshold lands at 128, cleanly between them -- and all prefetchers are
+`Null` in this configuration. But 16 (or 21) entries read fast on *every*
+call, with no variance, so `hitcount` is never 1, **not one sample in over
+a thousand is ever scored**, `scores_` never increments, and the
+`> 2 * runner_up + 40` bar is unreachable. More runtime cannot help: two
+100-minute runs (~2.35 billion simulated instructions each, versus the
+12.2 million `spectre_v1_pht_sa` needs for the whole secret) left the
+counters in exactly the state 200 runs did. The demos cannot converge, and
+equally cannot reach their own 100,000-run "Does not converge" bound, which
+is why they only ever appeared to hang.
+
+Both are therefore ported to the `TimingArray` readout that upstream
+already uses for `spectre_v1_pht_sa`, which has no such validity filter.
+The change is mechanical (`FlushOracle()` becomes `FlushFromCache()`,
+`ForceRead(oracle.data() + b)` becomes `ForceRead(&timing_array[b])`, and
+the score accumulation becomes `FindFirstCachedElementIndexAfter()`), and
+each file carries a comment recording why.
+
+Outcome:
+
+- **`spectre_v4` now works.** It recovers the first secret byte at
+  baseline, where before the port it produced nothing at all. This is the
+  suite's only working speculative-store-bypass test, and it confirms SSB
+  genuinely occurs in this port -- something no other test demonstrated.
+  Under DOLMA it leaks nothing, in both Default and Conservative, in a
+  longer budget than the baseline needed.
+- **`spectre_v1_btb_sa` still produces nothing**, now with a readout
+  identical to three demos that work. So its remaining gap is specific and
+  upstream of the oracle: the speculative window following an indirect
+  branch mispredict is not reaching the transmitting load. The mistraining
+  itself provably fires (565 `branchPred.corrected_0::CallIndirect` in a
+  90-second sample). Note `../dolma_attacks/control_mem_btb_branch` fails
+  on the same channel, which suggests the limitation is in this
+  configuration's BTB/indirect-predictor behaviour rather than in either
+  attack.
+
+Because a byte can take ~15 minutes, `run_safeside.sh` treats a correctly
+recovered *prefix* of the secret as a leak rather than requiring all 16
+characters -- one correct byte cannot be produced without the speculative
+transmission having worked, and the all-or-nothing check would otherwise
+report a working attack as a timeout.
 
 ## What's excluded, and why
 

