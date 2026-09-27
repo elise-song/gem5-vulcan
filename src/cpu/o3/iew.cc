@@ -612,6 +612,41 @@ IEW::instToCommit(const DynInstPtr& inst)
 
     DPRINTF(IEW, "Current wb cycle: %i, width: %i, numInst: %i\nwbActual:%i\n",
             wbCycle, wbWidth, wbNumInst, wbCycle * wbWidth + wbNumInst);
+
+    // DOLMA (Sec. 5.3): writeback ports are allocated first-come-first-served
+    // above, so a younger micro-op that finished earlier can push an elder
+    // one into a later writeback cycle. When the younger one is restricted,
+    // that delay is a function of a transient operand, which is precisely
+    // the out-of-order backend contention transient non-observability
+    // forbids (Sec. 5.1(a)). The paper's rule is that "if there are P ports
+    // and N micro-ops ready to writeback (where N > P), the P eldest
+    // micro-ops obtain the ports".
+    //
+    // Enforce it by displacement: if this instruction is being pushed past
+    // an earlier writeback cycle that holds a younger, still-restricted
+    // micro-op, the elder takes that slot and the younger moves here. The
+    // younger one is transient or will be re-issued once safe, so its own
+    // delay is not observable.
+    if (cpu->isDolma() && wbCycle > 0) {
+        for (int cycle = 0; cycle < wbCycle; cycle++) {
+            for (int slot = 0; slot < wbWidth; slot++) {
+                DynInstPtr &occupant = (*iewQueue)[cycle].insts[slot];
+                if (occupant && occupant->seqNum > inst->seqNum &&
+                    occupant->isDolmaRestricted()) {
+                    DPRINTF(IEW,
+                            "[tid:%i] [sn:%llu] [DOLMA] Taking writeback "
+                            "cycle %i from younger restricted [sn:%llu].\n",
+                            inst->threadNumber, inst->seqNum, cycle,
+                            occupant->seqNum);
+                    (*iewQueue)[wbCycle].insts[wbNumInst] = occupant;
+                    (*iewQueue)[wbCycle].size++;
+                    occupant = inst;
+                    return;
+                }
+            }
+        }
+    }
+
     // Add finished instruction to queue to commit.
     (*iewQueue)[wbCycle].insts[wbNumInst] = inst;
     (*iewQueue)[wbCycle].size++;
