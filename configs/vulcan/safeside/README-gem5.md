@@ -89,14 +89,21 @@ Outcome:
   Under DOLMA it leaks nothing, in both Default and Conservative, in a
   longer budget than the baseline needed.
 - **`spectre_v1_btb_sa` still produces nothing**, now with a readout
-  identical to three demos that work. So its remaining gap is specific and
-  upstream of the oracle: the speculative window following an indirect
-  branch mispredict is not reaching the transmitting load. The mistraining
-  itself provably fires (565 `branchPred.corrected_0::CallIndirect` in a
-  90-second sample). Note `../dolma_attacks/control_mem_btb_branch` fails
-  on the same channel, which suggests the limitation is in this
-  configuration's BTB/indirect-predictor behaviour rather than in either
-  attack.
+  identical to three demos that work -- and the cause has since been
+  pinned down in gem5 itself. `BPredUnit::updateBTB()` is called from
+  exactly two places: `update()`, at commit, and `squash()`, for the
+  branch that *resolved* as mispredicted. Wrong-path branches younger
+  than it are discarded through `squashHistory()`, which never touches
+  the BTB. A transient branch therefore cannot install a BTB entry, so a
+  speculative indirect jump has nothing to transmit through. The
+  mistraining does fire (565 `branchPred.corrected_0::CallIndirect` in a
+  90-second sample); it simply cannot leave a trace.
+
+  `../dolma_attacks/control_mem_btb_branch` fails identically, and its
+  per-guess timings show the secret index sitting in the bulk with no
+  signal at all. This is a property of gem5's branch predictor model, not
+  of either attack or of DOLMA: the baseline has nothing to leak, so the
+  BTB channel cannot be validated here in either direction.
 
 Because a byte can take ~15 minutes, `run_safeside.sh` treats a correctly
 recovered *prefix* of the secret as a leak rather than requiring all 16
