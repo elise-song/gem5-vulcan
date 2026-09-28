@@ -163,24 +163,67 @@ running these tests:
   this direction of drift makes the port *more* conservative than the
   paper's spec, not less -- a fidelity gap, not a new leak.
 
-- **`control_mem_btb_branch` doesn't converge in any mode, including
-  baseline (mode 0).** Investigated, not just accepted: the per-guess
-  timing distribution shows almost every one of the 256 candidate targets
-  landing at the same cycle count, with no signal at the secret index --
-  consistent with this CPU config's BTB (4096 entries, per this repo's O3
-  CPU defaults) being far larger than the 256 distinct targets this attack
-  trains, so none of them ever evict each other. This doesn't indicate
-  anything about DOLMA's own correctness, since the underlying channel
-  never produces a usable signal even without any defense enabled.
+- **`control_mem_btb_branch` produces no signal in any mode, including
+  baseline (mode 0)** -- and the reason is structural to gem5, not to
+  DOLMA. The attack times an indirect jump to each of 256 candidate
+  targets and takes the minimum. Its own per-guess output shows the
+  channel is simply empty at the secret:
 
-  Note this is *not* the same failure as SafeSide's `spectre_v1_btb_sa`,
-  despite the similar name. That demo is indirect-call/vtable target
-  injection, not a BTB eviction set, and
-  [../safeside/README-gem5.md](../safeside/README-gem5.md) records that its
-  mistraining demonstrably *does* fire in gem5 (565 `CallIndirect`
-  corrections in a 90-second sample) -- so a capacity argument cannot
-  explain it. The two are unrelated; do not treat one as evidence about the
-  other.
+  | guess | cycles |
+  |---|---|
+  | 0, 18, 74 | 29 |
+  | **42 (the secret)** | **44** |
+  | 217 of 256 | 44 |
+
+  The secret index sits squarely in the bulk; the three fast outliers are
+  unrelated. So the transient indirect jump never leaves a BTB entry for
+  `target[42]`.
+
+  `BPredUnit::updateBTB()` has exactly two call sites: in `update()`, at
+  commit, and in `squash()`, for the branch that *resolved* as
+  mispredicted. Wrong-path branches younger than it are discarded through
+  `squashHistory()`, which never touches the BTB. **A transient branch
+  therefore cannot install a BTB entry in gem5**, so a speculative
+  indirect jump has no way to transmit through this channel.
+
+  This applies equally to SafeSide's `spectre_v1_btb_sa` (see
+  [../safeside/README-gem5.md](../safeside/README-gem5.md)), which fails
+  the same way for the same reason. It is a limitation of gem5's branch
+  predictor model: the baseline has nothing to leak, so DOLMA's BTB
+  protection cannot be validated here either way. The paper's own Fig. 7
+  includes a BTB result, so this is a real gap in what this repo can
+  reproduce -- closing it would mean modelling speculative BTB updates,
+  not changing anything in DOLMA.
+
+## Simultaneous multi-threading
+
+The paper evaluates DOLMA with 2-SMT (Table 1, and the Overhead-SMT
+column of Table 2), and argues in Sec. 5.4 that blocking speculative
+fetch redirects is what mitigates SMotherSpectre. This port's DOLMA
+state is all per-thread, but had never been run with more than one
+thread. It has now been exercised:
+
+    ./configs/deprecated/example/se.py --smt --num-cpus=1 \
+        --cpu-type=DerivO3CPU -c "<attack>;<attack>"
+
+Running `control_mem_dcache_load` on both thread contexts at once: at
+baseline one thread still leaks the secret (the other loses its timing
+signal to contention from its twin, which is expected when two copies of
+a cache-timing attack share a core), and under `--dolma-mode=1` both are
+blocked. No assertion failures, and no cross-thread leakage of taint
+state. SMT is not a validated *performance* configuration here -- see
+the note on SPEC below -- but it is no longer untested for correctness.
+
+## What cannot be reproduced here
+
+The paper's headline overhead figures (10.2/29.7/22.6/42.2% on SPEC
+2017, Table 2) cannot be reproduced in this repo: SPEC CPU2017 is a
+licensed suite and is not present on this machine, and neither is
+Lapidary, the checkpoint-sampling framework the paper drives it with
+(Sec. 7). This is the one paper claim that remains entirely unverified
+here. Note it became *more* meaningful to attempt only recently: Sec.
+7.1 attributes DOLMA's overhead advantage over STT primarily to
+delay-on-miss, which this port did not implement until recently.
 
 ## A residual gap these six attacks do not catch
 
