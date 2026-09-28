@@ -527,6 +527,7 @@ InstructionQueue::resetState()
     nonSpecInsts.clear();
     listOrder.clear();
     deferredMemInsts.clear();
+    dolmaStalledMemInsts.clear();
     blockedMemInsts.clear();
     retryMemInsts.clear();
     wbOutstanding = 0;
@@ -874,6 +875,11 @@ InstructionQueue::scheduleReadyInsts()
         addReadyMemInst(mem_inst);
     }
 
+    // DOLMA: re-issue any delay-on-miss instruction that has become safe.
+    while ((mem_inst = getDolmaStalledMemInstToExecute())) {
+        addReadyMemInst(mem_inst);
+    }
+
     // Have iterator to head of the list
     // While I haven't exceeded bandwidth or reached the end of the list,
     // Try to get a FU that can do what this op needs.
@@ -1032,7 +1038,8 @@ InstructionQueue::scheduleReadyInsts()
     // @todo If the way deferred memory instructions are handeled due to
     // translation changes then the deferredMemInsts condition should be
     // removed from the code below.
-    if (total_issued || !retryMemInsts.empty() || !deferredMemInsts.empty()) {
+    if (total_issued || !retryMemInsts.empty() || !deferredMemInsts.empty() ||
+        !dolmaStalledMemInsts.empty()) {
         cpu->activityThisCycle();
     } else {
         DPRINTF(IQ, "Not able to schedule any instructions.\n");
@@ -1301,6 +1308,41 @@ InstructionQueue::blockMemInst(const DynInstPtr &blocked_inst)
     DPRINTF(IQ, "Memory inst [sn:%llu] PC %s is blocked, will be "
             "reissued later\n", blocked_inst->seqNum,
             blocked_inst->pcState());
+}
+
+void
+InstructionQueue::dolmaStallMemInst(const DynInstPtr &stalled_inst)
+{
+    // Reset the DTB translation state, as rescheduleMemInst() does. The
+    // access is redone from scratch when the instruction becomes safe, and
+    // LSQ::pushRequest() reuses inst->savedRequest whenever
+    // translationStarted() is set -- which would be a dangling read here,
+    // since the declined request has already been discarded.
+    stalled_inst->translationStarted(false);
+    stalled_inst->translationCompleted(false);
+    stalled_inst->clearIssued();
+    stalled_inst->clearCanIssue();
+    stalled_inst->effAddrValid(false);
+    dolmaStalledMemInsts.push_back(stalled_inst);
+    DPRINTF(IQ,
+            "[sn:%llu] PC %s missed while restricted, stalled until "
+            "safe\n",
+            stalled_inst->seqNum, stalled_inst->pcState());
+}
+
+DynInstPtr
+InstructionQueue::getDolmaStalledMemInstToExecute()
+{
+    for (ListIt it = dolmaStalledMemInsts.begin();
+         it != dolmaStalledMemInsts.end(); ++it) {
+        if ((*it)->isSquashed() || !(*it)->isDolmaRestricted()) {
+            DynInstPtr mem_inst = std::move(*it);
+            dolmaStalledMemInsts.erase(it);
+            mem_inst->setCanIssue();
+            return mem_inst;
+        }
+    }
+    return nullptr;
 }
 
 void

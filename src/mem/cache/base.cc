@@ -495,13 +495,31 @@ BaseCache::recvTimingReq(PacketPtr pkt)
     // Here we reset the timing of the packet.
     pkt->headerDelay = pkt->payloadDelay = 0;
 
-    // DOLMA note: upstream refuses a genuine miss on a restricted access
-    // outright here (no MSHR/downstream traffic) as part of delay-on-miss.
-    // That's deliberately not done here -- see the note in
-    // LSQUnit::trySendPacket() for why (it requires a request-refusal
-    // protocol that conflicts with in-flight multi-sub-access instructions
-    // like x86's LdBig). A restricted miss proceeds through the ordinary
-    // miss path below like any other access.
+    // DOLMA delay-on-miss (Sec. 5.3, Sec. 5.5): "outgoing memory requests
+    // are tainted for unsafe micro-ops, such that the L1 cache will know to
+    // return without fetching from L2 upon a miss". Answer a restricted
+    // miss without allocating an MSHR and without sending anything
+    // downstream, so it leaves no trace in the miss-handling resources, the
+    // interconnect, or any coherence state. Suppressing only the fill is
+    // not equivalent: that still occupies an MSHR and offcore bandwidth for
+    // the full miss latency, which Sec. 5.1(b) names as observable.
+    //
+    // This *answers* the request rather than refusing it at the port. An
+    // earlier attempt refused it, which drags in gem5's retry protocol and
+    // breaks multi-sub-access instructions such as x86's LdBig; answering
+    // leaves the ordinary request lifecycle intact. The response carries no
+    // data: it tells the core to park the instruction and re-issue it once
+    // safe (InstructionQueue::dolmaStallMemInst()).
+    if (!satisfied && pkt->req->isRestricted() && pkt->needsResponse() &&
+        !pkt->isLockedRMW() && !pkt->req->isUncacheable()) {
+        DPRINTF(Cache, "%s: restricted miss for %s, not servicing\n", __func__,
+                pkt->print());
+        pkt->headerDelay = pkt->payloadDelay = 0;
+        pkt->makeTimingResponse();
+        pkt->setRestrictedMiss();
+        cpuSidePort.schedTimingResp(pkt, request_time);
+        return true;
+    }
 
     if (satisfied) {
         // notify before anything else as later handleTimingReqHit might turn

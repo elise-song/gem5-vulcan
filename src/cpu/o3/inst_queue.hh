@@ -305,6 +305,16 @@ class InstructionQueue
      */
     DynInstPtr getBlockedMemInstToExecute();
 
+    /** DOLMA delay-on-miss (Sec. 5.3): parks a memory instruction whose
+     * access the cache declined to service because the instruction was
+     * still restricted when it missed. It is re-issued from scratch once
+     * it becomes safe, not before. */
+    void dolmaStallMemInst(const DynInstPtr &stalled_inst);
+
+    /** DOLMA: gets a stalled memory instruction that has since become
+     * safe (or been squashed) and can be re-issued. NULL if none. */
+    DynInstPtr getDolmaStalledMemInstToExecute();
+
     /**
      * Records the instruction as the producer of a register without
      * adding it to the rest of the IQ.
@@ -436,6 +446,12 @@ class InstructionQueue
 
     /** List of instructions that have been cache blocked. */
     std::list<DynInstPtr> blockedMemInsts;
+
+    /** DOLMA's dedicated stall queue: memory instructions whose access was
+     * declined because they missed while restricted. Held here until they
+     * are safe, which is what makes delay-on-miss a delay rather than a
+     * spin -- re-issuing eagerly would just miss again. */
+    std::list<DynInstPtr> dolmaStalledMemInsts;
 
     /** List of instructions that were cache blocked, but a retry has been seen
      * since, so they can now be retried. May fail again go on the blocked list.
