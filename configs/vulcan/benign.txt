@@ -1,0 +1,151 @@
+commit 14e45b73a685d495e92921ea590d89719e3559f3
+Author: Elise Song <elise.song@wisc.edu>
+Date:   Fri Aug 7 00:11:27 2026 -0500
+
+    mem-cache: Update cache to employ VIPT instead of PIPT
+    
+    - Changed the TaggedSetAssociative indexing policy to use index derived from virtual address. Tag is still derived from physical address.
+    - This is meant for a cache without prefetching or snooping. If the request doesn't have a virtual address, the physical address is used as default.
+
+diff --git a/src/mem/cache/tags/tagged_entry.hh b/src/mem/cache/tags/tagged_entry.hh
+index ee1a164a27..635208a88a 100644
+--- a/src/mem/cache/tags/tagged_entry.hh
++++ b/src/mem/cache/tags/tagged_entry.hh
+@@ -61,6 +61,8 @@ class TaggedTypes
+     class KeyType
+     {
+       private:
++        Addr _vaddr;
++        bool _hasVaddr;
+         bool _hasContextId;
+         ContextID _contextid;
+ 
+@@ -70,20 +72,38 @@ class TaggedTypes
+ 
+         KeyType(Addr addr, bool sec)
+             : _hasContextId(false),
++              _hasVaddr(false), 
+               address(addr),
+               secure(sec)
+         {}
+ 
+         KeyType(PacketPtr pkt)
+             : _hasContextId(pkt->req->hasContextId()),
++              _hasVaddr(pkt->req->hasVaddr()),
+               address(pkt->getAddr()),
+               secure(pkt->isSecure())
+         {
++            if (_hasVaddr) {
++                _vaddr = pkt->req->getVaddr();
++            }
+             if (_hasContextId) {
+                 _contextid = pkt->req->contextId();
+             }
+         }
+ 
++        bool
++        hasVaddr() const
++        {
++            return _hasVaddr;
++        }
++
++        Addr
++        getVaddr() const
++        {
++            assert(_hasVaddr);
++            return _vaddr;
++        }
++
+         bool
+         hasContextId() const
+         {
+@@ -116,6 +136,17 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
+     extractSet(const KeyType &key) const
+     {
+         Addr address = key.address;
++        if (key.hasVaddr()) {
++            address = key.getVaddr();
++            DPRINTF(
++                Cache,
++                "TaggedSetAssociative::extractSet addr %#x has vaddr %#x\n",
++                key.address, address);
++        } else {
++            DPRINTF(Cache,
++                    "TaggedSetAssociative::extractSet addr %#x has no vaddr\n",
++                    address);
++        }
+         if (key.hasContextId()) {
+             address += key.getContextId() << setShift;
+             DPRINTF(Cache,
+@@ -138,16 +169,8 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
+         return sets[extractSet(key)];
+     }
+ 
+-    Addr
+-    regenerateAddr(const KeyType &key,
+-                   const ReplaceableEntry *entry) const override
+-    {
+-        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
+-        if (key.hasContextId()) {
+-            address -= key.getContextId() << setShift;
+-        }
+-        return address;
+-    }
++    Addr regenerateAddr(const KeyType &key,
++                        const ReplaceableEntry *entry) const override;
+ };
+ 
+ /**
+@@ -194,6 +217,12 @@ class TaggedEntry : public ReplaceableEntry
+      */
+     virtual Addr getTag() const { return _tag; }
+ 
++    virtual Addr
++    getPaddr() const
++    {
++        return _paddr;
++    }
++
+     /**
+      * Checks if the given tag information corresponds to this entry's.
+      *
+@@ -221,6 +250,7 @@ class TaggedEntry : public ReplaceableEntry
+         assert(extractTag);
+         setValid();
+         setTag(extractTag(key.address));
++        setPaddr(key.address);
+         if (key.secure) {
+             setSecure();
+         }
+@@ -249,6 +279,12 @@ class TaggedEntry : public ReplaceableEntry
+      */
+     virtual void setTag(Addr tag) { _tag = tag; }
+ 
++    virtual void
++    setPaddr(Addr paddr)
++    {
++        _paddr = paddr;
++    }
++
+     /** Set secure bit. */
+     virtual void setSecure() { _secure = true; }
+ 
+@@ -282,8 +318,18 @@ class TaggedEntry : public ReplaceableEntry
+ 
+     /** The entry's tag. */
+     Addr _tag;
++
++    /** The entry's physical address. */
++    Addr _paddr;
+ };
+ 
++inline Addr
++TaggedSetAssociative::regenerateAddr(const KeyType &key,
++                                     const ReplaceableEntry *entry) const
++{
++    return static_cast<const TaggedEntry *>(entry)->getPaddr();
++}
++
+ /**
+  * This helper generates an a tag extractor function object
+  * which will be typically used by Replaceable entries indexed
