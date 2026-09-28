@@ -106,6 +106,25 @@ LSQUnit::completeDataAccess(PacketPtr pkt)
     LSQRequest *request = dynamic_cast<LSQRequest *>(pkt->senderState);
     DynInstPtr inst = request->instruction();
 
+    // DOLMA delay-on-miss: the cache declined to service this access
+    // because the instruction was still restricted when it missed (see
+    // BaseCache::recvTimingReq()). No data came back, so park the
+    // instruction in the stall queue; it is re-issued from scratch once it
+    // is safe. Note it must be *parked*, not rescheduled: re-issuing it
+    // eagerly would simply miss again while still restricted, spinning on
+    // issue bandwidth until the restriction happened to clear.
+    if (pkt->isRestrictedMiss()) {
+        DPRINTF(LSQUnit, "[sn:%llu] Restricted miss, stalling until safe\n",
+                inst->seqNum);
+        if (!inst->isSquashed()) {
+            iewStage->instQueue.dolmaStallMemInst(inst);
+            ++stats.rescheduledLoads;
+        }
+        loadQueue[inst->lqIdx].setRequest(nullptr);
+        request->discard();
+        return;
+    }
+
     // hardware transactional memory
     // sanity check
     if (pkt->isHtmTransactional() && !inst->isSquashed()) {
