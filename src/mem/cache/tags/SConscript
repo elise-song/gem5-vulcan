@@ -54,3 +54,5 @@ Source("tagged_entry.cc")
 DebugFlag("KeyedIndex")
 
 GTest("dueling.test", "dueling.test.cc", "dueling.cc")
+GTest("sector_blk.test", "sector_blk.test.cc", "sector_blk.cc",
+      with_tag('gem5 simobject'))
