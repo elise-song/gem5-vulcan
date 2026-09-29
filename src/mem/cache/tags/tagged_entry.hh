@@ -42,8 +42,8 @@
 #define __CACHE_TAGGED_ENTRY_HH__
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <unordered_map>
 #include <vector>
 
 #include "base/cprintf.hh"
@@ -143,20 +143,41 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     const bool contextKeyed;
 
     /**
-     * Per-context keys, generated lazily the first time a context is
-     * seen. Mutable because it is populated from the const lookup path.
+     * The key unit keeps one resident key per active hardware thread
+     * context sharing this cache level, not one per software-visible
+     * requestor context -- contexts can vastly outnumber the physical
+     * thread contexts that actually drive requests into a given cache
+     * instance, so sizing key storage off the context count would leave
+     * it unbounded.
+     *
+     * kThreadContextsPerCache is the number of hardware thread contexts
+     * this cache instance serves; kKeysPerThreadContext is the number of
+     * resident keys kept per context (a single key per context keeps the
+     * unit's local key storage trivially small). A context is mapped onto
+     * a resident slot via (context % kKeyTableSlots), direct-mapped-cache
+     * style.
      */
-    mutable std::unordered_map<ContextID, uint64_t> contextKeys;
+    static constexpr std::size_t kThreadContextsPerCache = 1;
+    static constexpr std::size_t kKeysPerThreadContext = 1;
+    static constexpr std::size_t kKeyTableSlots =
+        kThreadContextsPerCache * kKeysPerThreadContext;
+
+    /**
+     * Resident key table. keyTable_[slot] == 0 means "unpopulated"; a
+     * populated slot holds whichever context's key last resolved into it.
+     * Mutable because it is populated from the const lookup path.
+     */
+    mutable std::vector<uint64_t> keyTable_;
 
     /**
      * Optional fixed keys (from the Python param) indexed by context, used
      * to make experiments reproducible. Contexts beyond this vector, or
      * with a zero entry, get a fresh random key instead.
      */
-    const std::vector<uint64_t> fixedKeys;
+    const std::vector<uint64_t> fixedKeys_;
 
     /** RNG used to generate per-context keys with adequate entropy. */
-    Random::RandomPtr rng;
+    Random::RandomPtr rng_;
 
     /**
      * Experiment-only override of the active context. When set (via
@@ -164,12 +185,19 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * over the per-request contextId so that a traffic-generator workload,
      * whose requests carry no context, can still drive distinct keys.
      */
-    bool activeContextSet = false;
-    ContextID activeContext = 0;
+    bool overrideActive_ = false;
+    ContextID overrideContext_ = 0;
 
     /** Registry of live context-keyed instances, so the override can be
      * applied globally. */
-    static std::vector<TaggedSetAssociative*> allPolicies;
+    static std::vector<TaggedSetAssociative *> liveInstances_;
+
+    /** Map a context onto its resident key-table slot. */
+    std::size_t
+    slotFor(ContextID context) const
+    {
+        return static_cast<std::size_t>(context) % kKeyTableSlots;
+    }
 
     /**
      * Resolve the effective context for a lookup: the experiment override
@@ -177,16 +205,16 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * context 0 for requests that carry none).
      */
     ContextID
-    resolveContext(ContextID raw) const
+    normalizeContext(ContextID raw) const
     {
-        if (activeContextSet) {
-            return activeContext;
+        if (overrideActive_) {
+            return overrideContext_;
         }
         return (raw != InvalidContextID) ? raw : 0;
     }
 
-    /** Get (generating on first use) the key for a context. */
-    uint64_t getContextKey(ContextID context) const;
+    /** Get (populating on first use) the resident key for a context. */
+    uint64_t keyForContext(ContextID context) const;
 
     /**
      * Keyed set index for a given lookup key and way. The full line address
@@ -194,10 +222,10 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * address-, way- and context-specific.
      */
     uint32_t
-    extractSet(const KeyType &key, const uint32_t way) const
+    computeWaySet(const KeyType &key, const uint32_t way) const
     {
         const uint64_t line_addr = key.address >> setShift;
-        const uint64_t ckey = getContextKey(resolveContext(key.context));
+        const uint64_t ckey = keyForContext(normalizeContext(key.context));
         return wayIndexHash(line_addr, way, ckey) & setMask;
     }
 
@@ -323,6 +351,23 @@ class TaggedEntry : public ReplaceableEntry
         setTag(extractTag(key.address));
         if (key.secure) {
             setSecure();
+        }
+    }
+
+    /**
+     * Copy the tag and secure bit directly from another entry without
+     * re-extracting via the indexing policy callback.
+     *
+     * @param other The entry to copy tags from.
+     */
+    virtual void
+    copyTagsFrom(const TaggedEntry &other)
+    {
+        setTag(other.getTag());
+        if (other.isSecure()) {
+            setSecure();
+        } else {
+            clearSecure();
         }
     }
 
