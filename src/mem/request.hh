@@ -265,16 +265,20 @@ class Request : public Extensible<Request>
 
         /**
          * DOLMA: this access is made on behalf of a currently-unsafe
-         * (control- or data-restricted) instruction. The TLB/cache
-         * hierarchy must satisfy a hit normally but must not let it change
-         * any replacement/coherence state (see arch/x86/tlb.cc's
-         * lookup() call and the tag classes' accessBlock()s), and must
-         * not allocate any miss-handling resource for it (see
-         * BaseCache::allocateMissBuffer()). Delay-on-miss (parking the
-         * instruction on a genuine miss so it doesn't hold the MSHR/port
-         * for the full miss latency) is NOT implemented: a restricted
-         * miss proceeds through the ordinary miss path like any other
-         * access, just without installing the fetched line.
+         * (control- or data-restricted) instruction.
+         *
+         * On a hit, the TLB/cache hierarchy satisfies it normally but must
+         * not let it change any replacement or coherence state (see
+         * arch/x86/tlb.cc's lookup() call and the tag classes'
+         * accessBlock()s).
+         *
+         * On a miss, the access is not serviced at all: no MSHR is
+         * allocated and nothing is sent downstream. BaseCache answers it
+         * with a RESTRICTED_MISS response and the core parks the
+         * instruction until it is safe, re-issuing the access from
+         * scratch then -- the paper's delay-on-miss (Sec. 5.3, Sec. 5.5).
+         * See BaseCache::recvTimingReq() and
+         * InstructionQueue::dolmaStallMemInst().
          */
         RESTRICTED                  = 0x0002000000000000,
         // clang-format on
