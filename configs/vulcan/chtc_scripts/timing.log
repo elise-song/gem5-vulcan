@@ -1,0 +1,1073 @@
+000 (9647866.000.000) 2026-08-12 19:11:21 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9647866.001.000) 2026-08-12 19:11:21 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9647866.002.000) 2026-08-12 19:11:21 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9647866.000.000) 2026-08-12 19:11:33 Started transferring input files
+	Transferring to host: <128.105.68.38:9618?addrs=128.105.68.38-9618+[2607-f388-2200-100-3680-dff-fe2e-8660]-9618&alias=e2468.chtc.wisc.edu&noUDP&sock=slot1_63_1898698_4153_20227>
+...
+040 (9647866.000.000) 2026-08-12 19:11:33 Finished transferring input files
+...
+040 (9647866.002.000) 2026-08-12 19:11:34 Started transferring input files
+	Transferring to host: <128.105.68.150:9618?addrs=128.105.68.150-9618+[2607-f388-2200-100-b226-28ff-fe50-1774]-9618&alias=e2009.chtc.wisc.edu&noUDP&sock=slot1_6_169468_4964_13663>
+...
+040 (9647866.002.000) 2026-08-12 19:11:34 Finished transferring input files
+...
+040 (9647866.001.000) 2026-08-12 19:11:34 Started transferring input files
+	Transferring to host: <128.105.68.155:9618?addrs=128.105.68.155-9618+[2607-f388-2200-100-b226-28ff-fe50-5c14]-9618&alias=e2014.chtc.wisc.edu&noUDP&sock=slot1_4_7943_4fdc_16134>
+...
+040 (9647866.001.000) 2026-08-12 19:11:34 Finished transferring input files
+...
+021 (9647866.000.000) 2026-08-12 19:11:34 Error from starter on slot1_63@e2468.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+021 (9647866.001.000) 2026-08-12 19:11:34 Error from starter on slot1_4@e2014.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+021 (9647866.002.000) 2026-08-12 19:11:34 Error from starter on slot1_6@e2009.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+004 (9647866.000.000) 2026-08-12 19:11:44 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_63@e2468.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+012 (9647866.000.000) 2026-08-12 19:11:44 Job was held.
+	Error from slot1_63@e2468.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+004 (9647866.001.000) 2026-08-12 19:11:44 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_4@e2014.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+012 (9647866.001.000) 2026-08-12 19:11:44 Job was held.
+	Error from slot1_4@e2014.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+004 (9647866.002.000) 2026-08-12 19:11:44 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_6@e2009.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+012 (9647866.002.000) 2026-08-12 19:11:44 Job was held.
+	Error from slot1_6@e2009.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+009 (9647866.000.000) 2026-08-12 19:14:03 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9647866.001.000) 2026-08-12 19:14:03 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9647866.002.000) 2026-08-12 19:14:03 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9647869.000.000) 2026-08-12 19:14:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9647869.001.000) 2026-08-12 19:14:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9647869.002.000) 2026-08-12 19:14:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9647869.002.000) 2026-08-12 19:14:43 Started transferring input files
+	Transferring to host: <128.105.68.46:9618?addrs=128.105.68.46-9618+[2607-f388-2200-100-3680-dff-fe2e-8780]-9618&alias=e2476.chtc.wisc.edu&noUDP&sock=slot1_57_3197952_3bf5_19422>
+...
+040 (9647869.002.000) 2026-08-12 19:14:43 Finished transferring input files
+...
+040 (9647869.001.000) 2026-08-12 19:14:43 Started transferring input files
+	Transferring to host: <128.105.68.40:9618?addrs=128.105.68.40-9618+[2607-f388-2200-100-3680-dff-fe2e-8810]-9618&alias=e2470.chtc.wisc.edu&noUDP&sock=slot1_62_876411_9550_57466>
+...
+040 (9647869.001.000) 2026-08-12 19:14:43 Finished transferring input files
+...
+040 (9647869.000.000) 2026-08-12 19:14:43 Started transferring input files
+	Transferring to host: <128.105.68.15:9618?addrs=128.105.68.15-9618+[2607-f388-2200-100-b226-28ff-fe51-615c]-9618&alias=e2008.chtc.wisc.edu&noUDP&sock=slot1_6_7943_4fdc_21069>
+...
+040 (9647869.000.000) 2026-08-12 19:14:43 Finished transferring input files
+...
+021 (9647869.001.000) 2026-08-12 19:14:43 Error from starter on slot1_62@e2470.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+021 (9647869.002.000) 2026-08-12 19:14:43 Error from starter on slot1_57@e2476.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+021 (9647869.000.000) 2026-08-12 19:14:44 Error from starter on slot1_6@e2008.chtc.wisc.edu:
+	Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+004 (9647869.001.000) 2026-08-12 19:14:53 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_62@e2470.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+004 (9647869.002.000) 2026-08-12 19:14:53 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_57@e2476.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+012 (9647869.001.000) 2026-08-12 19:14:54 Job was held.
+	Error from slot1_62@e2470.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+012 (9647869.002.000) 2026-08-12 19:14:54 Job was held.
+	Error from slot1_57@e2476.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+004 (9647869.000.000) 2026-08-12 19:14:54 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_6@e2008.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+...
+012 (9647869.000.000) 2026-08-12 19:14:54 Job was held.
+	Error from slot1_6@e2008.chtc.wisc.edu: Cannot pull image gcr.io/gem5-test/ubuntu-22.04_all-dependencies:v22-1 Error response from daemon: Head "https://gcr.io/v2/gem5-test/ubuntu-22.04_all-dependencies/manifests/v22-1": denied: Artifact Registry API has not been used in project 345032938727 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/artifactregistry.googleapis.com/overview?project=345032938727 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.
+	Code 35 Subcode 0
+...
+009 (9647869.000.000) 2026-08-12 19:22:16 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9647869.001.000) 2026-08-12 19:22:16 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9647869.002.000) 2026-08-12 19:22:16 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9648073.000.000) 2026-08-12 19:22:22 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648073.001.000) 2026-08-12 19:22:22 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648073.002.000) 2026-08-12 19:22:22 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9648073.002.000) 2026-08-12 19:22:41 Started transferring input files
+	Transferring to host: <128.105.68.38:9618?addrs=128.105.68.38-9618+[2607-f388-2200-100-3680-dff-fe2e-8660]-9618&alias=e2468.chtc.wisc.edu&noUDP&sock=slot1_44_1898698_4153_20253>
+...
+040 (9648073.002.000) 2026-08-12 19:22:41 Finished transferring input files
+...
+040 (9648073.001.000) 2026-08-12 19:22:41 Started transferring input files
+	Transferring to host: <128.105.69.165:9618?addrs=128.105.69.165-9618+[2607-f388-2200-100-1270-fdff-fe56-7194]-9618&alias=e2548.chtc.wisc.edu&noUDP&sock=slot1_83_283746_79cc_23716>
+...
+040 (9648073.001.000) 2026-08-12 19:22:41 Finished transferring input files
+...
+040 (9648073.000.000) 2026-08-12 19:22:41 Started transferring input files
+	Transferring to host: <128.105.68.151:9618?addrs=128.105.68.151-9618+[2607-f388-2200-100-b226-28ff-fe50-4e4c]-9618&alias=e2010.chtc.wisc.edu&noUDP&sock=slot1_33_7909_5b1b_8593>
+...
+040 (9648073.000.000) 2026-08-12 19:22:41 Finished transferring input files
+...
+001 (9648073.001.000) 2026-08-12 19:22:42 Job executing on host: <128.105.69.165:9618?addrs=128.105.69.165-9618+[2607-f388-2200-100-1270-fdff-fe56-7194]-9618&alias=e2548.chtc.wisc.edu&noUDP&sock=startd_15061_2bf8>
+	SlotName: slot1_83@e2548.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_1798844/scratch"
+	Cpus = 1
+	Disk = 1048576
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 1024
+...
+021 (9648073.001.000) 2026-08-12 19:22:42 Error from starter on slot1_83@e2548.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648073.001.000) 2026-08-12 19:22:43 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_83@e2548.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+	   TimeSlotBusy (s)     :        1                    
+...
+012 (9648073.001.000) 2026-08-12 19:22:44 Job was held.
+	Error from slot1_83@e2548.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+001 (9648073.000.000) 2026-08-12 19:22:50 Job executing on host: <128.105.68.151:9618?addrs=128.105.68.151-9618+[2607-f388-2200-100-b226-28ff-fe50-4e4c]-9618&alias=e2010.chtc.wisc.edu&noUDP&sock=startd_7816_b451>
+	SlotName: slot1_33@e2010.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_2133764/scratch"
+	Cpus = 1
+	Disk = 1048576
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 1024
+...
+001 (9648073.002.000) 2026-08-12 19:22:50 Job executing on host: <128.105.68.38:9618?addrs=128.105.68.38-9618+[2607-f388-2200-100-3680-dff-fe2e-8660]-9618&alias=e2468.chtc.wisc.edu&noUDP&sock=startd_12133_ceaa>
+	SlotName: slot1_44@e2468.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_3384610/scratch"
+	Cpus = 1
+	Disk = 1048576
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 1024
+...
+021 (9648073.000.000) 2026-08-12 19:23:34 Error from starter on slot1_33@e2010.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648073.000.000) 2026-08-12 19:23:37 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_33@e2010.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        1         1 
+	   Disk (KB)            :        1  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+	   TimeSlotBusy (s)     :       53                    
+...
+012 (9648073.000.000) 2026-08-12 19:23:37 Job was held.
+	Error from slot1_33@e2010.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+021 (9648073.002.000) 2026-08-12 19:23:37 Error from starter on slot1_44@e2468.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648073.002.000) 2026-08-12 19:23:38 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_44@e2468.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        1         1 
+	   Disk (KB)            :       31  1048576   1048576 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :              1024      1024 
+	   TimeSlotBusy (s)     :       56                    
+...
+012 (9648073.002.000) 2026-08-12 19:23:38 Job was held.
+	Error from slot1_44@e2468.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+009 (9648073.000.000) 2026-08-12 19:32:52 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648073.001.000) 2026-08-12 19:32:52 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648073.002.000) 2026-08-12 19:32:52 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9648176.000.000) 2026-08-12 19:32:57 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648176.001.000) 2026-08-12 19:32:57 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648176.002.000) 2026-08-12 19:32:57 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9648176.000.000) 2026-08-12 19:33:19 Started transferring input files
+	Transferring to host: <128.105.69.150:9618?addrs=128.105.69.150-9618+[2607-f388-2200-100-1270-fdff-fe56-732c]-9618&alias=e4027.chtc.wisc.edu&noUDP&sock=slot1_2_2001094_8017_68464>
+...
+040 (9648176.000.000) 2026-08-12 19:33:19 Finished transferring input files
+...
+021 (9648176.000.000) 2026-08-12 19:33:20 Error from starter on slot1_2@e4027.chtc.wisc.edu:
+	Cannot pull image ghcr.io/gem5/ubuntu-24.04_all-dependencies:build-cache unsupported media type application/vnd.buildkit.cacheconfig.v0
+	Code 35 Subcode 0
+...
+004 (9648176.000.000) 2026-08-12 19:33:30 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_2@e4027.chtc.wisc.edu: Cannot pull image ghcr.io/gem5/ubuntu-24.04_all-dependencies:build-cache unsupported media type application/vnd.buildkit.cacheconfig.v0
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 8         8 
+	   Disk (KB)            :        1 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :             12288     12288 
+...
+012 (9648176.000.000) 2026-08-12 19:33:30 Job was held.
+	Error from slot1_2@e4027.chtc.wisc.edu: Cannot pull image ghcr.io/gem5/ubuntu-24.04_all-dependencies:build-cache unsupported media type application/vnd.buildkit.cacheconfig.v0
+	Code 35 Subcode 0
+...
+009 (9648176.000.000) 2026-08-12 19:33:48 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648176.001.000) 2026-08-12 19:33:48 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648176.002.000) 2026-08-12 19:33:48 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9648177.000.000) 2026-08-12 19:35:10 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648177.001.000) 2026-08-12 19:35:10 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648177.002.000) 2026-08-12 19:35:10 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9648177.000.000) 2026-08-12 19:35:16 Started transferring input files
+	Transferring to host: <128.105.69.168:9618?addrs=128.105.69.168-9618+[2607-f388-2200-100-1270-fdff-fe56-768c]-9618&alias=e2551.chtc.wisc.edu&noUDP&sock=slot1_17_964771_3259_55434>
+...
+040 (9648177.000.000) 2026-08-12 19:35:16 Finished transferring input files
+...
+040 (9648177.002.000) 2026-08-12 19:35:16 Started transferring input files
+	Transferring to host: <128.105.69.168:9618?addrs=128.105.69.168-9618+[2607-f388-2200-100-1270-fdff-fe56-768c]-9618&alias=e2551.chtc.wisc.edu&noUDP&sock=slot1_103_964771_3259_55435>
+...
+040 (9648177.002.000) 2026-08-12 19:35:16 Finished transferring input files
+...
+040 (9648177.001.000) 2026-08-12 19:35:16 Started transferring input files
+	Transferring to host: <128.105.69.121:9618?addrs=128.105.69.121-9618+[2607-f388-2200-100-1270-fdff-fe56-672c]-9618&alias=e4070.chtc.wisc.edu&noUDP&sock=slot1_8_655841_1087_21304>
+...
+040 (9648177.001.000) 2026-08-12 19:35:16 Finished transferring input files
+...
+001 (9648177.000.000) 2026-08-12 19:35:25 Job executing on host: <128.105.69.168:9618?addrs=128.105.69.168-9618+[2607-f388-2200-100-1270-fdff-fe56-768c]-9618&alias=e2551.chtc.wisc.edu&noUDP&sock=startd_15097_dd61>
+	SlotName: slot1_17@e2551.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_2687009/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+001 (9648177.002.000) 2026-08-12 19:35:25 Job executing on host: <128.105.69.168:9618?addrs=128.105.69.168-9618+[2607-f388-2200-100-1270-fdff-fe56-768c]-9618&alias=e2551.chtc.wisc.edu&noUDP&sock=startd_15097_dd61>
+	SlotName: slot1_103@e2551.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_2687010/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+001 (9648177.001.000) 2026-08-12 19:35:25 Job executing on host: <128.105.69.121:9618?addrs=128.105.69.121-9618+[2607-f388-2200-100-1270-fdff-fe56-672c]-9618&alias=e4070.chtc.wisc.edu&noUDP&sock=startd_14748_7ad3>
+	SlotName: slot1_8@e4070.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_263254/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+021 (9648177.001.000) 2026-08-12 19:35:44 Error from starter on slot1_8@e4070.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648177.001.000) 2026-08-12 19:35:45 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_8@e4070.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        8         8 
+	   Disk (KB)            :        1 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :             12288     12288 
+	   TimeSlotBusy (s)     :       28                    
+...
+012 (9648177.001.000) 2026-08-12 19:35:45 Job was held.
+	Error from slot1_8@e4070.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+021 (9648177.000.000) 2026-08-12 19:35:49 Error from starter on slot1_17@e2551.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+021 (9648177.002.000) 2026-08-12 19:35:49 Error from starter on slot1_103@e2551.chtc.wisc.edu:
+	DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648177.000.000) 2026-08-12 19:35:49 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_17@e2551.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 8         8 
+	   Disk (KB)            :       20 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :             12288     12288 
+	   TimeSlotBusy (s)     :       34                    
+...
+012 (9648177.000.000) 2026-08-12 19:35:49 Job was held.
+	Error from slot1_17@e2551.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+004 (9648177.002.000) 2026-08-12 19:35:50 Job was evicted. Code 35 Subcode 0
+	(0) CPU times
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_103@e2551.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :                 8         8 
+	   Disk (KB)            :       20 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :             12288     12288 
+	   TimeSlotBusy (s)     :       33                    
+...
+012 (9648177.002.000) 2026-08-12 19:35:50 Job was held.
+	Error from slot1_103@e2551.chtc.wisc.edu: DockerProc::StartJob(): Image Architecture arm64 not compatible with this machine.
+	Code 35 Subcode 0
+...
+009 (9648177.000.000) 2026-08-12 19:43:44 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648177.001.000) 2026-08-12 19:43:44 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648177.002.000) 2026-08-12 19:43:44 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9648288.000.000) 2026-08-12 20:02:40 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648288.001.000) 2026-08-12 20:02:40 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648288.002.000) 2026-08-12 20:02:40 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9648288.000.000) 2026-08-12 20:04:43 Started transferring input files
+	Transferring to host: <128.105.69.225:9618?addrs=128.105.69.225-9618+[2607-f388-2200-100-eaeb-d3ff-fe40-112c]-9618&alias=e2608.chtc.wisc.edu&noUDP&sock=slot1_110_4142145_9e50_68377>
+...
+040 (9648288.000.000) 2026-08-12 20:04:43 Finished transferring input files
+...
+040 (9648288.001.000) 2026-08-12 20:04:44 Started transferring input files
+	Transferring to host: <128.105.69.134:9618?addrs=128.105.69.134-9618+[2607-f388-2200-100-1270-fdff-fe56-7644]-9618&alias=e4083.chtc.wisc.edu&noUDP&sock=slot1_2_103021_5d36_73031>
+...
+040 (9648288.001.000) 2026-08-12 20:04:44 Finished transferring input files
+...
+040 (9648288.002.000) 2026-08-12 20:04:44 Started transferring input files
+	Transferring to host: <128.105.69.134:9618?addrs=128.105.69.134-9618+[2607-f388-2200-100-1270-fdff-fe56-7644]-9618&alias=e4083.chtc.wisc.edu&noUDP&sock=slot1_50_103021_5d36_73032>
+...
+040 (9648288.002.000) 2026-08-12 20:04:44 Finished transferring input files
+...
+001 (9648288.000.000) 2026-08-12 20:04:52 Job executing on host: <128.105.69.225:9618?addrs=128.105.69.225-9618+[2607-f388-2200-100-eaeb-d3ff-fe40-112c]-9618&alias=e2608.chtc.wisc.edu&noUDP&sock=startd_3012956_c99c>
+	SlotName: slot1_110@e2608.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_217763/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+001 (9648288.001.000) 2026-08-12 20:04:53 Job executing on host: <128.105.69.134:9618?addrs=128.105.69.134-9618+[2607-f388-2200-100-1270-fdff-fe56-7644]-9618&alias=e4083.chtc.wisc.edu&noUDP&sock=startd_10727_6882>
+	SlotName: slot1_2@e4083.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_1807472/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+001 (9648288.002.000) 2026-08-12 20:04:53 Job executing on host: <128.105.69.134:9618?addrs=128.105.69.134-9618+[2607-f388-2200-100-1270-fdff-fe56-7644]-9618&alias=e4083.chtc.wisc.edu&noUDP&sock=startd_10727_6882>
+	SlotName: slot1_50@e4083.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_1807492/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 12288
+...
+006 (9648288.000.000) 2026-08-12 20:09:52 Image size of job updated: 2158
+	2158  -  MemoryUsage of job (MB)
+	2210148  -  ResidentSetSize of job (KB)
+...
+006 (9648288.001.000) 2026-08-12 20:09:53 Image size of job updated: 2094
+	2094  -  MemoryUsage of job (MB)
+	2144420  -  ResidentSetSize of job (KB)
+...
+006 (9648288.002.000) 2026-08-12 20:09:53 Image size of job updated: 2563
+	2563  -  MemoryUsage of job (MB)
+	2625312  -  ResidentSetSize of job (KB)
+...
+006 (9648288.000.000) 2026-08-12 20:14:53 Image size of job updated: 4087
+	4087  -  MemoryUsage of job (MB)
+	4185656  -  ResidentSetSize of job (KB)
+...
+006 (9648288.001.000) 2026-08-12 20:14:54 Image size of job updated: 4389
+	4389  -  MemoryUsage of job (MB)
+	4494404  -  ResidentSetSize of job (KB)
+...
+006 (9648288.002.000) 2026-08-12 20:14:54 Image size of job updated: 3454
+	3454  -  MemoryUsage of job (MB)
+	3537896  -  ResidentSetSize of job (KB)
+...
+006 (9648288.002.000) 2026-08-12 20:19:54 Image size of job updated: 10847
+	10847  -  MemoryUsage of job (MB)
+	11107588  -  ResidentSetSize of job (KB)
+...
+021 (9648288.002.000) 2026-08-12 20:23:42 Error from starter on slot1_50@e4083.chtc.wisc.edu:
+	Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+004 (9648288.002.000) 2026-08-12 20:23:43 Job was evicted. Code 34 Subcode 102
+	(0) CPU times
+		Usr 0 01:35:20, Sys 0 00:07:39  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_50@e4083.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        8         8 
+	   Disk (KB)            :  5766080 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :    10847    12288     12288 
+	   TimeSlotBusy (s)     :     1138                    
+...
+012 (9648288.002.000) 2026-08-12 20:23:43 Job was held.
+	Error from slot1_50@e4083.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+000 (9648297.000.000) 2026-08-12 20:32:04 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648297.001.000) 2026-08-12 20:32:04 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9648297.002.000) 2026-08-12 20:32:04 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9648297.000.000) 2026-08-12 20:33:11 Started transferring input files
+	Transferring to host: <128.105.69.103:9618?addrs=128.105.69.103-9618+[2607-f388-2200-100-1270-fdff-fe56-4614]-9618&alias=e4031.chtc.wisc.edu&noUDP&sock=slot1_3_3538704_d815_60723>
+...
+040 (9648297.000.000) 2026-08-12 20:33:11 Finished transferring input files
+...
+001 (9648297.000.000) 2026-08-12 20:33:20 Job executing on host: <128.105.69.103:9618?addrs=128.105.69.103-9618+[2607-f388-2200-100-1270-fdff-fe56-4614]-9618&alias=e4031.chtc.wisc.edu&noUDP&sock=startd_14737_ef48>
+	SlotName: slot1_3@e4031.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_777905/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 16384
+...
+040 (9648297.002.000) 2026-08-12 20:34:23 Started transferring input files
+	Transferring to host: <128.105.69.234:9618?addrs=128.105.69.234-9618+[2607-f388-2200-100-eaeb-d3ff-fe40-1efc]-9618&alias=e2617.chtc.wisc.edu&noUDP&sock=slot1_37_3522641_01e8_60014>
+...
+040 (9648297.002.000) 2026-08-12 20:34:24 Finished transferring input files
+...
+040 (9648297.001.000) 2026-08-12 20:34:24 Started transferring input files
+	Transferring to host: <128.105.69.187:9618?addrs=128.105.69.187-9618+[2607-f388-2200-100-1270-fdff-fe56-b86c]-9618&alias=e4039.chtc.wisc.edu&noUDP&sock=slot1_8_3087961_9fdc_58982>
+...
+040 (9648297.001.000) 2026-08-12 20:34:24 Finished transferring input files
+...
+001 (9648297.002.000) 2026-08-12 20:34:32 Job executing on host: <128.105.69.234:9618?addrs=128.105.69.234-9618+[2607-f388-2200-100-eaeb-d3ff-fe40-1efc]-9618&alias=e2617.chtc.wisc.edu&noUDP&sock=startd_14927_4247>
+	SlotName: slot1_37@e2617.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_2969223/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 16384
+...
+001 (9648297.001.000) 2026-08-12 20:34:33 Job executing on host: <128.105.69.187:9618?addrs=128.105.69.187-9618+[2607-f388-2200-100-1270-fdff-fe56-b86c]-9618&alias=e4039.chtc.wisc.edu&noUDP&sock=startd_14864_0bcf>
+	SlotName: slot1_8@e4039.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_1175468/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 16384
+...
+006 (9648288.000.000) 2026-08-12 20:34:55 Image size of job updated: 4376
+	4376  -  MemoryUsage of job (MB)
+	4481388  -  ResidentSetSize of job (KB)
+...
+006 (9648297.000.000) 2026-08-12 20:38:20 Image size of job updated: 2047
+	2047  -  MemoryUsage of job (MB)
+	2096264  -  ResidentSetSize of job (KB)
+...
+006 (9648297.002.000) 2026-08-12 20:39:32 Image size of job updated: 2143
+	2143  -  MemoryUsage of job (MB)
+	2194572  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 20:39:33 Image size of job updated: 1907
+	1907  -  MemoryUsage of job (MB)
+	1952864  -  ResidentSetSize of job (KB)
+...
+006 (9648288.000.000) 2026-08-12 20:39:56 Image size of job updated: 11496
+	11496  -  MemoryUsage of job (MB)
+	11772592  -  ResidentSetSize of job (KB)
+...
+006 (9648288.001.000) 2026-08-12 20:39:57 Image size of job updated: 5860
+	5860  -  MemoryUsage of job (MB)
+	6000740  -  ResidentSetSize of job (KB)
+...
+006 (9648297.000.000) 2026-08-12 20:43:21 Image size of job updated: 3867
+	3867  -  MemoryUsage of job (MB)
+	3960224  -  ResidentSetSize of job (KB)
+...
+021 (9648288.001.000) 2026-08-12 20:44:28 Error from starter on slot1_2@e4083.chtc.wisc.edu:
+	Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+004 (9648288.001.000) 2026-08-12 20:44:30 Job was evicted. Code 34 Subcode 102
+	(0) CPU times
+		Usr 0 04:05:46, Sys 0 00:15:11  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_2@e4083.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Partitionable Resources :      Usage  Request Allocated 
+	   Cpus                 :       0.00        8         8 
+	   Disk (KB)            : 9947980    12582912  12582912 
+	   GPUs                 :                             0 
+	   IoHeavy              :                             0 
+	   Memory (MB)          :    5860       12288     12288 
+	   TimeSlotBusy (s)     :    2384                       
+...
+012 (9648288.001.000) 2026-08-12 20:44:30 Job was held.
+	Error from slot1_2@e4083.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+006 (9648297.002.000) 2026-08-12 20:44:32 Image size of job updated: 8288
+	8288  -  MemoryUsage of job (MB)
+	8487900  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 20:44:33 Image size of job updated: 3615
+	3615  -  MemoryUsage of job (MB)
+	3701816  -  ResidentSetSize of job (KB)
+...
+006 (9648288.000.000) 2026-08-12 20:44:56 Image size of job updated: 11776
+	11776  -  MemoryUsage of job (MB)
+	12059488  -  ResidentSetSize of job (KB)
+...
+021 (9648288.000.000) 2026-08-12 20:45:53 Error from starter on slot1_110@e2608.chtc.wisc.edu:
+	Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+004 (9648288.000.000) 2026-08-12 20:45:54 Job was evicted. Code 34 Subcode 102
+	(0) CPU times
+		Usr 0 04:28:44, Sys 0 00:22:26  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_110@e2608.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        8         8 
+	   Disk (KB)            :  8258736 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :    11776    12288     12288 
+	   TimeSlotBusy (s)     :     2470                    
+...
+012 (9648288.000.000) 2026-08-12 20:45:54 Job was held.
+	Error from slot1_110@e2608.chtc.wisc.edu: Docker job has gone over memory limit of 12288 Mb
+	Code 34 Subcode 102
+...
+006 (9648297.000.000) 2026-08-12 20:48:21 Image size of job updated: 4365
+	4365  -  MemoryUsage of job (MB)
+	4469844  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 20:49:33 Image size of job updated: 3780
+	3780  -  MemoryUsage of job (MB)
+	3871464  -  ResidentSetSize of job (KB)
+...
+006 (9648297.002.000) 2026-08-12 20:49:34 Image size of job updated: 11169
+	11169  -  MemoryUsage of job (MB)
+	11437740  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 20:54:33 Image size of job updated: 3784
+	3784  -  MemoryUsage of job (MB)
+	3875520  -  ResidentSetSize of job (KB)
+...
+006 (9648297.002.000) 2026-08-12 20:54:34 Image size of job updated: 12484
+	12484  -  MemoryUsage of job (MB)
+	12784192  -  ResidentSetSize of job (KB)
+...
+009 (9648288.000.000) 2026-08-12 20:57:51 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648288.001.000) 2026-08-12 20:57:51 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648288.002.000) 2026-08-12 20:57:51 Job was aborted.
+	via condor_rm (by user esong32)
+...
+006 (9648297.001.000) 2026-08-12 20:59:34 Image size of job updated: 4567
+	4567  -  MemoryUsage of job (MB)
+	4677028  -  ResidentSetSize of job (KB)
+...
+006 (9648297.000.000) 2026-08-12 21:23:26 Image size of job updated: 7908
+	7908  -  MemoryUsage of job (MB)
+	8098556  -  ResidentSetSize of job (KB)
+...
+006 (9648297.002.000) 2026-08-12 21:24:38 Image size of job updated: 13113
+	13113  -  MemoryUsage of job (MB)
+	13427900  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 21:24:38 Image size of job updated: 5613
+	5613  -  MemoryUsage of job (MB)
+	5748556  -  ResidentSetSize of job (KB)
+...
+006 (9648297.000.000) 2026-08-12 21:28:26 Image size of job updated: 9999
+	9999  -  MemoryUsage of job (MB)
+	10239056  -  ResidentSetSize of job (KB)
+...
+006 (9648297.002.000) 2026-08-12 21:29:39 Image size of job updated: 14040
+	14040  -  MemoryUsage of job (MB)
+	14377380  -  ResidentSetSize of job (KB)
+...
+021 (9648297.002.000) 2026-08-12 21:29:39 Error from starter on slot1_37@e2617.chtc.wisc.edu:
+	disk usage exceeded request_disk
+	Code 21 Subcode 103
+...
+004 (9648297.002.000) 2026-08-12 21:29:39 Job was evicted. Code 21 Subcode 103
+	(0) CPU times
+		Usr 0 06:03:13, Sys 0 00:26:27  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_37@e2617.chtc.wisc.edu: disk usage exceeded request_disk
+	Partitionable Resources :       Usage  Request Allocated 
+	   Cpus                 :        0.00        8         8 
+	   Disk (KB)            : 13208349    12582912  12582912 
+	   GPUs                 :                              0 
+	   IoHeavy              :                              0 
+	   Memory (MB)          :    14040       16384     16384 
+	   TimeSlotBusy (s)     :     3316                       
+...
+012 (9648297.002.000) 2026-08-12 21:29:39 Job was held.
+	Error from slot1_37@e2617.chtc.wisc.edu: disk usage exceeded request_disk
+	Code 21 Subcode 103
+...
+006 (9648297.001.000) 2026-08-12 21:29:40 Image size of job updated: 12026
+	12026  -  MemoryUsage of job (MB)
+	12315260  -  ResidentSetSize of job (KB)
+...
+006 (9648297.000.000) 2026-08-12 21:33:27 Image size of job updated: 11377
+	11377  -  MemoryUsage of job (MB)
+	11650520  -  ResidentSetSize of job (KB)
+...
+006 (9648297.001.000) 2026-08-12 21:34:40 Image size of job updated: 15520
+	15520  -  MemoryUsage of job (MB)
+	15892884  -  ResidentSetSize of job (KB)
+...
+021 (9648297.001.000) 2026-08-12 21:35:17 Error from starter on slot1_8@e4039.chtc.wisc.edu:
+	Docker job has gone over memory limit of 16384 Mb
+	Code 34 Subcode 102
+...
+004 (9648297.001.000) 2026-08-12 21:35:18 Job was evicted. Code 34 Subcode 102
+	(0) CPU times
+		Usr 0 07:05:19, Sys 0 00:35:56  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_8@e4039.chtc.wisc.edu: Docker job has gone over memory limit of 16384 Mb
+	Partitionable Resources :       Usage  Request Allocated 
+	   Cpus                 :        0.00        8         8 
+	   Disk (KB)            : 10914664    12582912  12582912 
+	   GPUs                 :                              0 
+	   IoHeavy              :                              0 
+	   Memory (MB)          :    15520       16384     16384 
+	   TimeSlotBusy (s)     :     3653                       
+...
+012 (9648297.001.000) 2026-08-12 21:35:18 Job was held.
+	Error from slot1_8@e4039.chtc.wisc.edu: Docker job has gone over memory limit of 16384 Mb
+	Code 34 Subcode 102
+...
+006 (9648297.000.000) 2026-08-12 21:38:28 Image size of job updated: 14200
+	14200  -  MemoryUsage of job (MB)
+	14541112  -  ResidentSetSize of job (KB)
+...
+021 (9648297.000.000) 2026-08-12 21:39:54 Error from starter on slot1_3@e4031.chtc.wisc.edu:
+	Job has exceeded allocated disk (11.76 GB). Consider increasing the value of request_disk.
+	Code 34 Subcode 104
+...
+004 (9648297.000.000) 2026-08-12 21:40:04 Job was evicted. Code 34 Subcode 104
+	(0) CPU times
+		Usr 0 07:12:08, Sys 0 00:37:56  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_3@e4031.chtc.wisc.edu: Job has exceeded allocated disk (11.76 GB). Consider increasing the value of request_disk.
+	Partitionable Resources :       Usage  Request Allocated 
+	   Cpus                 :        0.00        8         8 
+	   Disk (KB)            : 11745032    12582912  12582912 
+	   GPUs                 :                              0 
+	   IoHeavy              :                              0 
+	   Memory (MB)          :    14200       16384     16384 
+	   TimeSlotBusy (s)     :     4003                       
+...
+012 (9648297.000.000) 2026-08-12 21:40:04 Job was held.
+	Error from slot1_3@e4031.chtc.wisc.edu: Job has exceeded allocated disk (11.76 GB). Consider increasing the value of request_disk.
+	Code 34 Subcode 104
+...
+009 (9648297.000.000) 2026-08-12 23:13:05 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648297.001.000) 2026-08-12 23:13:05 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9648297.002.000) 2026-08-12 23:13:05 Job was aborted.
+	via condor_rm (by user esong32)
+...
+000 (9649959.000.000) 2026-08-12 23:13:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9649959.001.000) 2026-08-12 23:13:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+000 (9649959.002.000) 2026-08-12 23:13:09 Job submitted from host: <128.105.68.112:9618?addrs=128.105.68.112-9618+[2607-f388-2200-100-eaeb-d3ff-fea3-4202]-9618&alias=ap2001.chtc.wisc.edu&noUDP&sock=schedd_7891_25eb>
+...
+040 (9649959.000.000) 2026-08-12 23:20:52 Started transferring input files
+	Transferring to host: <128.105.69.102:9618?addrs=128.105.69.102-9618+[2607-f388-2200-100-1270-fdff-fe56-cbc4]-9618&alias=e4013.chtc.wisc.edu&noUDP&sock=slot1_6_964537_5290_72799>
+...
+040 (9649959.000.000) 2026-08-12 23:20:52 Finished transferring input files
+...
+001 (9649959.000.000) 2026-08-12 23:21:01 Job executing on host: <128.105.69.102:9618?addrs=128.105.69.102-9618+[2607-f388-2200-100-1270-fdff-fe56-cbc4]-9618&alias=e4013.chtc.wisc.edu&noUDP&sock=startd_15172_4efb>
+	SlotName: slot1_6@e4013.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_3296960/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 32768
+...
+006 (9649959.000.000) 2026-08-12 23:26:01 Image size of job updated: 2037
+	2037  -  MemoryUsage of job (MB)
+	2086228  -  ResidentSetSize of job (KB)
+...
+040 (9649959.001.000) 2026-08-12 23:26:11 Started transferring input files
+	Transferring to host: <128.105.69.177:9618?addrs=128.105.69.177-9618+[2607-f388-2200-100-1270-fdff-fe56-7684]-9618&alias=e2560.chtc.wisc.edu&noUDP&sock=slot1_9_3907774_0bf5_22484>
+...
+040 (9649959.001.000) 2026-08-12 23:26:11 Finished transferring input files
+...
+001 (9649959.001.000) 2026-08-12 23:26:20 Job executing on host: <128.105.69.177:9618?addrs=128.105.69.177-9618+[2607-f388-2200-100-1270-fdff-fe56-7684]-9618&alias=e2560.chtc.wisc.edu&noUDP&sock=startd_14919_c585>
+	SlotName: slot1_9@e2560.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_3801802/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 32768
+...
+006 (9649959.000.000) 2026-08-12 23:31:03 Image size of job updated: 3951
+	3951  -  MemoryUsage of job (MB)
+	4046292  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-12 23:31:21 Image size of job updated: 2049
+	2049  -  MemoryUsage of job (MB)
+	2099124  -  ResidentSetSize of job (KB)
+...
+040 (9649959.002.000) 2026-08-12 23:31:31 Started transferring input files
+	Transferring to host: <128.105.69.95:9618?addrs=128.105.69.95-9618+[2607-f388-2200-100-1270-fdff-fe56-bff4]-9618&alias=e4006.chtc.wisc.edu&noUDP&sock=slot1_2_3506832_2305_78097>
+...
+040 (9649959.002.000) 2026-08-12 23:31:31 Finished transferring input files
+...
+001 (9649959.002.000) 2026-08-12 23:31:40 Job executing on host: <128.105.69.95:9618?addrs=128.105.69.95-9618+[2607-f388-2200-100-1270-fdff-fe56-bff4]-9618&alias=e4006.chtc.wisc.edu&noUDP&sock=startd_10511_400d>
+	SlotName: slot1_2@e4006.chtc.wisc.edu
+	CondorScratchDir = "/var/lib/condor/execute/slot1/dir_511316/scratch"
+	Cpus = 8
+	Disk = 12582912
+	GPUs = 0
+	IoHeavy = 0
+	Memory = 32768
+...
+006 (9649959.001.000) 2026-08-12 23:36:23 Image size of job updated: 3730
+	3730  -  MemoryUsage of job (MB)
+	3820380  -  ResidentSetSize of job (KB)
+...
+006 (9649959.002.000) 2026-08-12 23:36:41 Image size of job updated: 2454
+	2454  -  MemoryUsage of job (MB)
+	2513644  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-12 23:41:23 Image size of job updated: 3763
+	3763  -  MemoryUsage of job (MB)
+	3854180  -  ResidentSetSize of job (KB)
+...
+006 (9649959.002.000) 2026-08-12 23:41:42 Image size of job updated: 6122
+	6122  -  MemoryUsage of job (MB)
+	6268984  -  ResidentSetSize of job (KB)
+...
+006 (9649959.000.000) 2026-08-12 23:46:05 Image size of job updated: 4224
+	4224  -  MemoryUsage of job (MB)
+	4326076  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-12 23:46:24 Image size of job updated: 4158
+	4158  -  MemoryUsage of job (MB)
+	4257884  -  ResidentSetSize of job (KB)
+...
+006 (9649959.002.000) 2026-08-12 23:46:43 Image size of job updated: 15419
+	15419  -  MemoryUsage of job (MB)
+	15789728  -  ResidentSetSize of job (KB)
+...
+006 (9649959.000.000) 2026-08-12 23:56:06 Image size of job updated: 6283
+	6283  -  MemoryUsage of job (MB)
+	6433832  -  ResidentSetSize of job (KB)
+...
+006 (9649959.000.000) 2026-08-13 00:01:06 Image size of job updated: 11802
+	11802  -  MemoryUsage of job (MB)
+	12085964  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-13 00:01:25 Image size of job updated: 4274
+	4274  -  MemoryUsage of job (MB)
+	4376764  -  ResidentSetSize of job (KB)
+...
+006 (9649959.000.000) 2026-08-13 00:06:06 Image size of job updated: 13229
+	13229  -  MemoryUsage of job (MB)
+	13546868  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-13 00:06:25 Image size of job updated: 12132
+	12132  -  MemoryUsage of job (MB)
+	12423496  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-13 00:11:25 Image size of job updated: 13615
+	13615  -  MemoryUsage of job (MB)
+	13941980  -  ResidentSetSize of job (KB)
+...
+021 (9649959.002.000) 2026-08-13 00:16:36 Error from starter on slot1_2@e4006.chtc.wisc.edu:
+	Job has exceeded allocated disk (12.00 GB). Consider increasing the value of request_disk.
+	Code 34 Subcode 104
+...
+004 (9649959.002.000) 2026-08-13 00:16:46 Job was evicted. Code 34 Subcode 104
+	(0) CPU times
+		Usr 0 04:52:09, Sys 0 00:19:51  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_2@e4006.chtc.wisc.edu: Job has exceeded allocated disk (12.00 GB). Consider increasing the value of request_disk.
+	Partitionable Resources :    Usage  Request Allocated 
+	   Cpus                 :        0        8         8 
+	   Disk (KB)            : 11357996 12582912  12582912 
+	   GPUs                 :                           0 
+	   IoHeavy              :                           0 
+	   Memory (MB)          :    15419    32768     32768 
+	   TimeSlotBusy (s)     :     2705                    
+...
+012 (9649959.002.000) 2026-08-13 00:16:46 Job was held.
+	Error from slot1_2@e4006.chtc.wisc.edu: Job has exceeded allocated disk (12.00 GB). Consider increasing the value of request_disk.
+	Code 34 Subcode 104
+...
+006 (9649959.000.000) 2026-08-13 00:26:09 Image size of job updated: 14331
+	14331  -  MemoryUsage of job (MB)
+	14675252  -  ResidentSetSize of job (KB)
+...
+040 (9649959.000.000) 2026-08-13 00:26:33 Started transferring output files
+...
+040 (9649959.000.000) 2026-08-13 00:26:33 Finished transferring output files
+...
+021 (9649959.000.000) 2026-08-13 00:26:33 Error from starter on slot1_6@e4013.chtc.wisc.edu:
+	STARTER at 128.105.69.102 failed to send file(s) to <128.105.68.112:9618>: |Error: 2 total failures: first failure: reading from file /var/lib/condor/execute/slot1/dir_3296960/scratch/coarse_histogram_read.out: (errno 2) No such file or directory; SHADOW failed to receive file(s) from <128.105.69.102:34241>
+	Code 13 Subcode 2
+...
+004 (9649959.000.000) 2026-08-13 00:26:36 Job was evicted. Code 12 Subcode 2
+	(0) CPU times
+		Usr 0 07:25:51, Sys 0 00:40:19  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Transfer output files failure at execution point slot1_6@e4013.chtc.wisc.edu while sending files to access point ap2001. Details: 2 total failures: first failure: reading from file /var/lib/condor/execute/slot1/dir_3296960/scratch/coarse_histogram_read.out: (errno 2) No such file or directory
+	Partitionable Resources :       Usage  Request Allocated 
+	   Cpus                 :        0.00        8         8 
+	   Disk (KB)            : 11744880    12582912  12582912 
+	   GPUs                 :                              0 
+	   IoHeavy              :                              0 
+	   Memory (MB)          :    14331       32768     32768 
+	   TimeExecute (s)      :     3909                       
+	   TimeSlotBusy (s)     :     3941                       
+...
+012 (9649959.000.000) 2026-08-13 00:26:36 Job was held.
+	Transfer output files failure at execution point slot1_6@e4013.chtc.wisc.edu while sending files to access point ap2001. Details: 2 total failures: first failure: reading from file /var/lib/condor/execute/slot1/dir_3296960/scratch/coarse_histogram_read.out: (errno 2) No such file or directory
+	Code 12 Subcode 2
+...
+006 (9649959.001.000) 2026-08-13 00:41:28 Image size of job updated: 13820
+	13820  -  MemoryUsage of job (MB)
+	14151784  -  ResidentSetSize of job (KB)
+...
+006 (9649959.001.000) 2026-08-13 00:46:28 Image size of job updated: 14334
+	14334  -  MemoryUsage of job (MB)
+	14678396  -  ResidentSetSize of job (KB)
+...
+021 (9649959.001.000) 2026-08-13 00:46:32 Error from starter on slot1_9@e2560.chtc.wisc.edu:
+	disk usage exceeded request_disk
+	Code 21 Subcode 103
+...
+004 (9649959.001.000) 2026-08-13 00:46:32 Job was evicted. Code 21 Subcode 103
+	(0) CPU times
+		Usr 0 08:49:56, Sys 0 00:45:41  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+	0  -  Run Bytes Sent By Job
+	826  -  Run Bytes Received By Job
+	Reason: Error from slot1_9@e2560.chtc.wisc.edu: disk usage exceeded request_disk
+	Partitionable Resources :       Usage  Request Allocated 
+	   Cpus                 :        0.00        8         8 
+	   Disk (KB)            : 13206649    12582912  12582912 
+	   GPUs                 :                              0 
+	   IoHeavy              :                              0 
+	   Memory (MB)          :    14334       32768     32768 
+	   TimeSlotBusy (s)     :     4822                       
+...
+012 (9649959.001.000) 2026-08-13 00:46:32 Job was held.
+	Error from slot1_9@e2560.chtc.wisc.edu: disk usage exceeded request_disk
+	Code 21 Subcode 103
+...
+009 (9649959.000.000) 2026-08-13 11:55:02 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9649959.001.000) 2026-08-13 11:55:02 Job was aborted.
+	via condor_rm (by user esong32)
+...
+009 (9649959.002.000) 2026-08-13 11:55:02 Job was aborted.
+	via condor_rm (by user esong32)
+...

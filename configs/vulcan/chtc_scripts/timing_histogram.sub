@@ -18,4 +18,8 @@ request_disk = 16GB
 notify_user = elise.song@wisc.edu
 notification = always
 
-queue op from ops.txt
+queue op from (
+    read
+    write
+    flush
+)

@@ -1,1 +1,0 @@
-The generated numbers for drawing histograms will be output to this folder.

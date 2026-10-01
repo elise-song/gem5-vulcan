@@ -1,1 +1,0 @@
-The generated benchmark result diagrams will be output to this folder.

@@ -36,6 +36,26 @@
 
 #include "cpu_info.h"
 
+// Select which operations to histogram, e.g. to split them into separate
+// jobs. If none is selected, all three are run.
+//   gcc ... -DDO_READ=1  -o timing_histogram_read
+//   gcc ... -DDO_WRITE=1 -o timing_histogram_write
+//   gcc ... -DDO_FLUSH=1 -o timing_histogram_flush
+#if !defined(DO_READ) && !defined(DO_WRITE) && !defined(DO_FLUSH)
+#define DO_READ 1
+#define DO_WRITE 1
+#define DO_FLUSH 1
+#endif
+#ifndef DO_READ
+#define DO_READ 0
+#endif
+#ifndef DO_WRITE
+#define DO_WRITE 0
+#endif
+#ifndef DO_FLUSH
+#define DO_FLUSH 0
+#endif
+
 #define L1_CACHE_SIZE 0x8000
 #define L1_ASSOC 8
 #define CACHE_LINE 0x40
@@ -628,6 +648,9 @@ int main(int argc, char *argv[]) {
 
   // calibration
   // READ
+#if DO_READ
+  // keep each operation's columns in the same place in the output
+  counter_hist = 0;
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre) {
     printf("Generating histogram for timing type %d ...\n", counter_hist + 1);
     // add dummy computation to make sure the data load into L1/L2 from memory
@@ -650,8 +673,12 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif
 
   // WRITE
+#if DO_WRITE
+  // keep each operation's columns in the same place in the output
+  counter_hist = 1 * NUM_CALIBRE_SINGLE;
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre) {
     printf("Generating histogram for timing type %d ...\n", counter_hist + 1);
     // add dummy computation to make sure the data load into L1/L2 from memory
@@ -674,8 +701,12 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif
 
   // FLUSH
+#if DO_FLUSH
+  // keep each operation's columns in the same place in the output
+  counter_hist = 2 * NUM_CALIBRE_SINGLE;
   for (int ord_calibre = 0; ord_calibre < NUM_CALIBRE_SINGLE; ++ord_calibre) {
     printf("Generating histogram for timing type %d ...\n", counter_hist + 1);
     // add dummy computation to make sure the data load into L1/L2 from memory
@@ -698,6 +729,7 @@ int main(int argc, char *argv[]) {
     }
     counter_hist++;
   }
+#endif
 
   int min_time_diff = MAX_CYCLE;
   int min_time_cycle_arr[NUM_CALIBRE] = {0};
