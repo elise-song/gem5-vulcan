@@ -1174,16 +1174,9 @@ class BaseCache : public ClockedObject
 
     MSHR *allocateMissBuffer(PacketPtr pkt, Tick time, bool sched_send = true)
     {
-        // DOLMA: a restricted (still-unsafe) access never reaches here on
-        // a miss -- recvTimingReq() answers it with a RESTRICTED_MISS
-        // response instead, so no MSHR is allocated and nothing goes
-        // downstream. The allocOnFill() guard below is therefore a
-        // belt-and-braces backstop for any path that does reach this with
-        // the flag still set: such a line is never installed in the tag
-        // array, which denies the classic flush+reload channel.
-        MSHR *mshr = mshrQueue.allocate(
-            pkt->getBlockAddr(blkSize), blkSize, pkt, time, order++,
-            allocOnFill(pkt->cmd) && !pkt->req->isRestricted());
+        MSHR *mshr =
+            mshrQueue.allocate(pkt->getBlockAddr(blkSize), blkSize, pkt, time,
+                               order++, allocOnFill(pkt->cmd));
 
         if (mshrQueue.isFull()) {
             setBlocked((BlockedCause)MSHRQueue_MSHRs);
