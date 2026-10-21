@@ -539,19 +539,6 @@ class BaseCache : public ClockedObject
     virtual bool recvTimingReq(PacketPtr pkt);
 
     /**
-     * Checks whether a just-missed request should be answered immediately
-     * without servicing the miss (no MSHR allocation, no downstream
-     * traffic), and does so if applicable.
-     * @param pkt The request that missed.
-     * @param satisfied Whether access() already satisfied the request.
-     * @param request_time The tick at which the response would be sent.
-     * @return true if the request was answered here and recvTimingReq()
-     *         should return immediately.
-     */
-    bool bypassMissServiceIfRestricted(PacketPtr pkt, bool satisfied,
-                                       Tick request_time);
-
-    /**
      * Handling the special case of uncacheable write responses to
      * make recvTimingResp less cluttered.
      */
@@ -1187,12 +1174,16 @@ class BaseCache : public ClockedObject
 
     MSHR *allocateMissBuffer(PacketPtr pkt, Tick time, bool sched_send = true)
     {
-        // bypassMissServiceIfRestricted() in base.cc already answers a
-        // restricted miss before we ever get here, so this path never sees
-        // one; the isRestricted() check that used to be here was dead code.
-        MSHR *mshr =
-            mshrQueue.allocate(pkt->getBlockAddr(blkSize), blkSize, pkt, time,
-                               order++, allocOnFill(pkt->cmd));
+        // DOLMA: a restricted (still-unsafe) access never reaches here on
+        // a miss -- recvTimingReq() answers it with a RESTRICTED_MISS
+        // response instead, so no MSHR is allocated and nothing goes
+        // downstream. The allocOnFill() guard below is therefore a
+        // belt-and-braces backstop for any path that does reach this with
+        // the flag still set: such a line is never installed in the tag
+        // array, which denies the classic flush+reload channel.
+        MSHR *mshr = mshrQueue.allocate(
+            pkt->getBlockAddr(blkSize), blkSize, pkt, time, order++,
+            allocOnFill(pkt->cmd) && !pkt->req->isRestricted());
 
         if (mshrQueue.isFull()) {
             setBlocked((BlockedCause)MSHRQueue_MSHRs);
