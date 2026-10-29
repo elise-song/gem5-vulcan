@@ -121,7 +121,8 @@ LRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
             count++;
     }
     if (count < 2) {
-        warn("not enough unlocked ways did not lock");
+        // TEMP: bypass lock to isolate pre-lock baseline timing; remove later
+        warn("DEBUG: count < 2, skipping lock");
         return;
     }
     data->locked = true;
