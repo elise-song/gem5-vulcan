@@ -48,10 +48,13 @@
 
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <string>
+#include <vector>
 
 #include "base/addr_range.hh"
 #include "base/compiler.hh"
+#include "base/random.hh"
 #include "base/statistics.hh"
 #include "base/trace.hh"
 #include "base/types.hh"
@@ -100,9 +103,86 @@ struct BaseCacheParams;
 /**
  * A basic cache interface. Implements some common functions for speed.
  */
+/**
+ * Helpers for the window fill: pure functions over the configured fill
+ * ranges, kept free of cache state.
+ */
+namespace window_fill
+{
+
+/**
+ * Is the (block-aligned) address covered by any fill range?
+ *
+ * @param ranges   The configured fill address ranges.
+ * @param blk_addr A block-aligned physical address.
+ * @return true iff blk_addr falls inside at least one fill range.
+ */
+inline bool
+inRange(const std::vector<AddrRange> &ranges, Addr blk_addr)
+{
+    for (const auto &range : ranges) {
+        if (range.contains(blk_addr)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Pick the block-aligned address of the window-fill line for a in-range
+ * demand access to @p demand_blk_addr.
+ *
+ * The window fill is drawn from the same fill range that contains the
+ * demand, given here as the block-aligned half-open bounds
+ * [@p region_lo, @p region_hi). Because that range is memory the
+ * configuration has explicitly marked as in-range, every candidate address
+ * is guaranteed legal and cacheable (it can never fault or hit MMIO). The
+ * returned address is guaranteed to be:
+ *   - block-aligned,
+ *   - inside [region_lo, region_hi),
+ *   - within +/- @p window lines of @p demand_blk_addr (clamped to the
+ *     region); it may equal @p demand_blk_addr itself.
+ *
+ * @param demand_blk_addr Block-aligned physical address of the in-range
+ *                        demand access.
+ * @param blk_size        Cache block size in bytes (> 0).
+ * @param region_lo       Block-aligned start of the safe region (inclusive).
+ * @param region_hi       Block-aligned end of the safe region (exclusive);
+ *                        must hold at least one line and contain
+ *                        demand_blk_addr.
+ * @param window          Neighbourhood radius in lines.
+ * @param rng             Random number source.
+ * @return The block-aligned address of the line to window-fill; may equal
+ *         demand_blk_addr.
+ */
+inline Addr
+pickNeighbor(Addr demand_blk_addr, unsigned blk_size,
+             Addr region_lo, Addr region_hi, unsigned window, Random &rng)
+{
+    assert(blk_size > 0);
+    assert(demand_blk_addr % blk_size == 0);
+    assert(region_hi > region_lo);
+    assert(demand_blk_addr >= region_lo && demand_blk_addr < region_hi);
+
+    const unsigned num_lines = (region_hi - region_lo) / blk_size;
+    const unsigned demand_line = (demand_blk_addr - region_lo) / blk_size;
+
+    // Clamp the +/- window to the region as an inclusive [lo, hi] range of
+    // line indices. The demanded line itself (offset 0) is always one of the
+    // (hi - lo + 1) equally likely candidates.
+    const unsigned lo = (demand_line > window) ? (demand_line - window) : 0;
+    const unsigned hi = (demand_line + window < num_lines) ?
+        (demand_line + window) : (num_lines - 1);
+
+    const unsigned line = lo + rng.random<unsigned>(0, hi - lo);
+    return region_lo + (Addr)line * blk_size;
+}
+
+} // namespace window_fill
+
 class BaseCache : public ClockedObject
 {
-  protected:
+  in-range:
     /**
      * Indexes to enumerate the MSHR queues.
      */
@@ -124,7 +204,7 @@ class BaseCache : public ClockedObject
         NUM_BLOCKED_CAUSES
     };
 
-  protected:
+  in-range:
 
     /**
      * A cache request port is used for the memory-side port of the
@@ -150,7 +230,7 @@ class BaseCache : public ClockedObject
             reqQueue.schedSendEvent(time);
         }
 
-      protected:
+      in-range:
 
         CacheRequestPort(const std::string &_name,
                         ReqPacketQueue &_reqQueue,
@@ -175,7 +255,7 @@ class BaseCache : public ClockedObject
     class CacheReqPacketQueue : public ReqPacketQueue
     {
 
-      protected:
+      in-range:
 
         BaseCache &cache;
         SnoopRespPacketQueue &snoopRespQueue;
@@ -233,7 +313,7 @@ class BaseCache : public ClockedObject
         // a pointer to our specific cache implementation
         BaseCache *cache;
 
-      protected:
+      in-range:
 
         virtual void recvTimingSnoopReq(PacketPtr pkt);
 
@@ -270,7 +350,7 @@ class BaseCache : public ClockedObject
 
         bool isBlocked() const { return blocked; }
 
-      protected:
+      in-range:
 
         CacheResponsePort(const std::string &_name, BaseCache& _cache,
                        const std::string &_label);
@@ -298,7 +378,7 @@ class BaseCache : public ClockedObject
      */
     class CpuSidePort : public CacheResponsePort
     {
-      protected:
+      in-range:
         virtual bool recvTimingSnoopResp(PacketPtr pkt) override;
 
         virtual bool tryTiming(PacketPtr pkt) override;
@@ -321,7 +401,7 @@ class BaseCache : public ClockedObject
     CpuSidePort cpuSidePort;
     MemSidePort memSidePort;
 
-  protected:
+  in-range:
 
     struct CacheAccessorImpl : CacheAccessor
     {
@@ -365,6 +445,91 @@ class BaseCache : public ClockedObject
     /** Prefetcher */
     prefetch::Base *prefetcher;
 
+        /** A window-fill target awaiting injection (its pick differed from the
+     * demand that produced it -- see windowFillPending for same-address
+     * picks). */
+    struct WindowFillRequest
+    {
+        Addr fillAddr;           //!< block-aligned fill target
+        Addr demandAddr;         //!< block-aligned demand address (debug)
+        bool secure;             //!< demand's secure-space flag
+        RequestorID requestorId; //!< demand's requestor
+    };
+
+    /** Fill address ranges; empty disables Window fill entirely. */
+    std::vector<AddrRange> windowFillRanges;
+    /** Window-fill neighbourhood radius, in cache lines. */
+    unsigned windowFillRadius;
+    /** True iff at least one fill range is configured. */
+    bool windowFillEnabled;
+    /** RNG used to pick the window-fill neighbour line. */
+    Random::RandomPtr windowFillRng;
+    /**
+     * Window-fill targets awaiting injection. Each in-range demand read
+     * miss whose draw differs from its own address enqueues exactly one
+     * entry; entries are drained one per free prefetch MSHR slot through
+     * getNextQueueEntry() -- the same clean, non-reentrant injection point
+     * the hardware prefetcher uses.
+     */
+    std::deque<WindowFillRequest> windowFillQueue;
+
+    /** The draw outcome recorded for one in-flight in-range demand miss
+     * (see windowFillPending). */
+    struct WindowFillPendingEntry
+    {
+        Addr blkAddr;  //!< block-aligned demand address (lookup key)
+        bool secure;   //!< demand's secure-space flag (lookup key)
+        Addr fillAddr; //!< the draw's outcome; == blkAddr means self-pick
+    };
+    /**
+     * Pending draw outcome for each in-flight in-range demand miss,
+     * consumed by the no-allocate decision in recvTimingResp() when that
+     * demand's own fill response arrives. A fillAddr equal to blkAddr means
+     * the draw picked the demand line itself.
+     *
+     * A flat, linearly-scanned vector rather than a std::map: this holds at
+     * most a handful of entries at once (bounded by the number of
+     * outstanding in-range demand misses, itself bounded by the cache's
+     * mshrs param), so a contiguous scan beats a node-based tree both in
+     * per-op cost and in allocation churn.
+     */
+    std::vector<WindowFillPendingEntry> windowFillPending;
+
+    /** True iff the (block-aligned) address is in a fill range. */
+    bool inWindowFillRange(Addr blk_addr) const;
+
+    /**
+     * Draw the single window-fill target for a in-range demand miss to
+     * @p demand_blk_addr, uniformly over the window clamped to the
+     * containing fill range (see window_fill::pickNeighbor). Returns
+     * demand_blk_addr itself if no valid containing range is found.
+     */
+    Addr pickWindowFillTarget(Addr demand_blk_addr) const;
+
+    /**
+     * If @p pkt is a fresh in-range demand-read miss, draw its window-fill
+     * target and record the outcome in windowFillPending. If the draw
+     * differs from the demand's own address, also enqueue it in
+     * windowFillQueue for later injection; the demanded line itself is left
+     * uncached by the no-allocate guard in recvTimingResp() only in that
+     * case.
+     */
+    void enqueueWindowFill(PacketPtr pkt);
+
+    /**
+     * Pop and build the next drainable window-fill packet, or nullptr if the
+     * queue is empty or the next target is already resident / in flight.
+     */
+    PacketPtr getNextWindowFillPacket();
+
+    /**
+     * Build the memory packet to fetch and cache @p fill_addr as a random
+     * fill, or nullptr if it is already resident / in flight and should be
+     * dropped.
+     */
+    PacketPtr getWindowFillPacket(Addr fill_addr, bool secure,
+                                  RequestorID requestor_id);
+
     /** To probe when a cache hit occurs */
     ProbePointArg<CacheAccessProbeArg> *ppHit;
 
@@ -397,13 +562,7 @@ class BaseCache : public ClockedObject
      */
     WriteAllocator * const writeAllocator;
 
-    /**
-     * Temporary cache block for occasional transitory use.  We use
-     * the tempBlock to fill when allocation fails (e.g., when there
-     * is an outstanding request that accesses the victim block) or
-     * when we want to avoid allocation (e.g., exclusive caches)
-     */
-    TempCacheBlk *tempBlock;
+        TempCacheBlk *tempBlock;
 
     /**
      * Upstream caches need this packet until true is returned, so
@@ -667,14 +826,7 @@ class BaseCache : public ClockedObject
                                        bool needs_writable,
                                        bool is_whole_line_write) const = 0;
 
-    /**
-     * Determine if clean lines should be written back or not. In
-     * cases where a downstream cache is mostly inclusive we likely
-     * want it to act as a victim cache also for lines that have not
-     * been modified. Hence, we cannot simply drop the line (or send a
-     * clean evict), but rather need to send the actual data.
-     */
-    const bool writebackClean;
+        const bool writebackClean;
 
     /**
      * Writebacks from the tempBlock, resulting on the response path
@@ -791,11 +943,6 @@ class BaseCache : public ClockedObject
 
     /**
      * Allocate a new block and perform any necessary writebacks
-     *
-     * Find a victim block and if necessary prepare writebacks for any
-     * existing data. May return nullptr if there are no replaceable
-     * blocks. If a replaceable block is found, it inserts the new block in
-     * its place. The new block, however, is not set as valid yet.
      *
      * @param pkt Packet holding the address to update
      * @param writebacks A list of writeback packets for the evicted blocks
@@ -1134,6 +1281,18 @@ class BaseCache : public ClockedObject
 
         /** Number of replacements of valid blocks. */
         statistics::Scalar replacements;
+
+        /** Window fill: in-range demand-read misses observed. */
+        statistics::Scalar windowFillMisses;
+        /** Window fill: window-fill draws that differed from the demand and
+         * were injected as a separate fill. */
+        statistics::Scalar windowFillsInjected;
+        /** Window fill: in-range demand fills forced to no-allocate
+         * (i.e. the draw picked a different line than the demand). */
+        statistics::Scalar windowFillDemandNoAllocate;
+        /** Window fill: in-range demand fills where the draw picked the
+         * demanded line itself, so it was allowed to allocate normally. */
+        statistics::Scalar windowFillDemandSelfAllocate;
 
         /** Number of data expansions. */
         statistics::Scalar dataExpansions;

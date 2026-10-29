@@ -45,10 +45,14 @@
 
 #include "mem/cache/base.hh"
 
+#include <algorithm>
+
 #include "base/compiler.hh"
+#include "base/intmath.hh"
 #include "base/logging.hh"
 #include "debug/Cache.hh"
 #include "debug/CacheComp.hh"
+#include "debug/WindowFill.hh"
 #include "debug/CachePort.hh"
 #include "debug/CacheRepl.hh"
 #include "debug/CacheVerbose.hh"
@@ -90,6 +94,11 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       compressor(p.compressor),
       partitionManager(p.partitioning_manager),
       prefetcher(p.prefetcher),
+      windowFillRanges(p.window_fill_ranges.begin(),
+                       p.window_fill_ranges.end()),
+      windowFillRadius(std::max<unsigned>(1, p.window_fill_radius)),
+      windowFillEnabled(!p.window_fill_ranges.empty()),
+      windowFillRng(Random::genRandom()),
       writeAllocator(p.write_allocator),
       writebackClean(p.writeback_clean),
       tempBlockWriteback(nullptr),
@@ -446,6 +455,12 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
             // a miss (outbound) just as forwardLatency, neglecting the
             // lookupLatency component.
             allocateMissBuffer(pkt, forward_time);
+
+            // Window fill: a fresh in-range demand-read miss enqueues exactly
+            // one random neighbour fill, injected later from
+            // getNextQueueEntry(). The demanded line itself is left uncached by
+            // the no-allocate guard in recvTimingResp().
+            enqueueWindowFill(pkt);
         }
     }
 }
@@ -603,8 +618,36 @@ BaseCache::recvTimingResp(PacketPtr pkt)
         DPRINTF(Cache, "Block for addr %#llx being updated in Cache\n",
                 pkt->getAddr());
 
-        const bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
+        bool allocate = (writeAllocator && mshr->wasWholeLineWrite) ?
             writeAllocator->allocate() : mshr->allocOnFill();
+
+        if (allocate && windowFillEnabled &&
+            initial_tgt->pkt->isRead() &&
+            !initial_tgt->pkt->req->isPrefetch() &&
+            inWindowFillRange(pkt->getAddr())) {
+            const Addr resp_addr = pkt->getAddr();
+            const bool resp_secure = pkt->isSecure();
+            const auto it = std::find_if(
+                windowFillPending.begin(), windowFillPending.end(),
+                [resp_addr, resp_secure](const WindowFillPendingEntry &e) {
+                    return e.blkAddr == resp_addr && e.secure == resp_secure;
+                });
+            const bool self_pick =
+                it != windowFillPending.end() && it->fillAddr == resp_addr;
+            if (it != windowFillPending.end()) {
+                // Order doesn't matter here, so swap-and-pop instead of a
+                // shifting erase.
+                *it = windowFillPending.back();
+                windowFillPending.pop_back();
+            }
+            if (self_pick) {
+                stats.windowFillDemandSelfAllocate++;
+            } else {
+                allocate = false;
+                stats.windowFillDemandNoAllocate++;
+            }
+        }
+
         blk = handleFill(pkt, blk, writebacks, allocate);
         assert(blk != nullptr);
         ppFill->notify(CacheAccessProbeArg(pkt, accessor));
@@ -663,6 +706,12 @@ BaseCache::recvTimingResp(PacketPtr pkt)
                     prefetcher->nextPrefetchReadyTime(), clockEdge());
                 if (next_pf_time != MaxTick)
                     schedMemSideSendEvent(next_pf_time);
+            }
+
+            // Likewise, this freed slot may let a pending window fill drain.
+            if (windowFillEnabled && !windowFillQueue.empty() &&
+                mshrQueue.canPrefetch() && !isBlocked()) {
+                schedMemSideSendEvent(clockEdge());
             }
         }
 
@@ -950,8 +999,27 @@ BaseCache::getNextQueueEntry()
         return miss_mshr;
     }
 
-    // fall through... no pending requests.  Try a prefetch.
+    // fall through... no pending requests.
     assert(!miss_mshr && !wq_entry);
+
+    // Window fill: inject one pending window-fill target into a free
+    // prefetch MSHR slot, using the same (non-reentrant) injection point and
+    // drop checks as the hardware prefetcher below. Only draws that differ
+    // from their own demand's address reach this queue at all -- see
+    // enqueueWindowFill()/windowFillPending.
+    if (windowFillEnabled && !windowFillQueue.empty() &&
+        mshrQueue.canPrefetch() && !isBlocked()) {
+        PacketPtr pkt = getNextWindowFillPacket();
+        if (pkt) {
+            assert(pkt->req->requestorId() < system->maxRequestors());
+            stats.cmdStats(pkt).mshrMisses[pkt->req->requestorId()]++;
+            stats.windowFillsInjected++;
+            // Send straight away, so do not schedule the send.
+            return allocateMissBuffer(pkt, curTick(), false);
+        }
+    }
+
+    // Try a prefetch.
     if (prefetcher && mshrQueue.canPrefetch() && !isBlocked()) {
         // If we have a miss queue slot, we can try a prefetch
         PacketPtr pkt = prefetcher->getPacket();
@@ -993,6 +1061,132 @@ BaseCache::getNextQueueEntry()
 }
 
 bool
+BaseCache::inWindowFillRange(Addr blk_addr) const
+{
+    return windowFillEnabled &&
+        window_fill::inRange(windowFillRanges, blk_addr);
+}
+
+Addr
+BaseCache::pickWindowFillTarget(Addr demand_blk_addr) const
+{
+    // Find the fill range that contains the demand; the window fill is
+    // drawn from within it, so any candidate it returns is always a legal,
+    // cacheable address.
+    for (const auto &range : windowFillRanges) {
+        if (!range.contains(demand_blk_addr)) {
+            continue;
+        }
+        // Block-aligned half-open bounds of the safe region.
+        const Addr region_lo = roundUp(range.start(), blkSize);
+        const Addr region_hi = roundDown(range.end(), blkSize);
+        if (region_hi > region_lo && demand_blk_addr >= region_lo &&
+            demand_blk_addr < region_hi) {
+            return window_fill::pickNeighbor(demand_blk_addr, blkSize,
+                                             region_lo, region_hi,
+                                             windowFillRadius, *windowFillRng);
+        }
+        break;
+    }
+    // No valid containing region (degenerate/misaligned range): nothing to
+    // randomise over, so the demand itself is the only legal choice.
+    return demand_blk_addr;
+}
+
+void
+BaseCache::enqueueWindowFill(PacketPtr pkt)
+{
+    // Only genuine in-range demand *reads* trigger a window fill. Writes,
+    // writebacks, hardware/software prefetches, and the injected window fill
+    // itself (a prefetch) are all excluded, so the mechanism cannot recurse.
+    if (!windowFillEnabled || !pkt->isRead() || !pkt->isDemand() ||
+        pkt->req->isPrefetch()) {
+        return;
+    }
+
+    const Addr blk_addr = pkt->getBlockAddr(blkSize);
+    if (!inWindowFillRange(blk_addr)) {
+        return;
+    }
+
+    stats.windowFillMisses++;
+
+    const Addr fill_addr = pickWindowFillTarget(blk_addr);
+    windowFillPending.push_back({blk_addr, pkt->isSecure(), fill_addr});
+
+    if (fill_addr == blk_addr) {
+        DPRINTF(WindowFill,
+                "window-fill draw for in-range demand %#llx "
+                "picked itself; its own fill will allocate normally\n",
+                blk_addr);
+        return;
+    }
+
+    windowFillQueue.push_back(
+        {fill_addr, blk_addr, pkt->isSecure(), pkt->req->requestorId()});
+    DPRINTF(WindowFill,
+            "enqueue window fill %#llx for in-range demand "
+            "%#llx (queue=%d)\n",
+            fill_addr, blk_addr, windowFillQueue.size());
+
+    // Kick the memory-side send machinery so getNextQueueEntry() drains the
+    // injection from its own (non-reentrant) context, rather than allocating a
+    // miss buffer here in the middle of demand-miss handling.
+    schedMemSideSendEvent(clockEdge(forwardLatency));
+}
+
+PacketPtr
+BaseCache::getNextWindowFillPacket()
+{
+    while (!windowFillQueue.empty()) {
+        const WindowFillRequest rf = windowFillQueue.front();
+        windowFillQueue.pop_front();
+
+        PacketPtr pkt =
+            getWindowFillPacket(rf.fillAddr, rf.secure, rf.requestorId);
+        if (!pkt) {
+            // Target already resident / in flight; drop and try the next.
+            DPRINTF(WindowFill,
+                    "window fill %#llx for in-range demand "
+                    "%#llx dropped (resident/in-flight)\n",
+                    rf.fillAddr, rf.demandAddr);
+            continue;
+        }
+        DPRINTF(WindowFill,
+                "injecting window fill %#llx for in-range "
+                "demand %#llx\n",
+                pkt->getAddr(), rf.demandAddr);
+        return pkt;
+    }
+    return nullptr;
+}
+
+PacketPtr
+BaseCache::getWindowFillPacket(Addr fill_addr, bool secure,
+                               RequestorID requestor_id)
+{
+    if (tags->findBlock({fill_addr, secure}) ||
+        mshrQueue.findMatch(fill_addr, secure) ||
+        writeBuffer.findMatch(fill_addr, secure)) {
+        return nullptr;
+    }
+
+    // Build an ordinary prefetch-style read for the window-fill target. It
+    // is flagged as a prefetch so it is never itself treated as in-range
+    // (no recursion) and allocates on fill like any other prefetch.
+    RequestPtr req = std::make_shared<Request>(
+        fill_addr, blkSize, Request::PREFETCH, requestor_id);
+    if (secure) {
+        req->setFlags(Request::SECURE);
+    }
+    req->taskId(context_switch_task_id::Prefetcher);
+
+    PacketPtr pkt = new Packet(req, MemCmd::HardPFReq);
+    pkt->allocate();
+    return pkt;
+}
+
+bool
 BaseCache::handleEvictions(std::vector<CacheBlk*> &evict_blks,
     PacketList &writebacks)
 {
@@ -1013,12 +1207,9 @@ BaseCache::handleEvictions(std::vector<CacheBlk*> &evict_blks,
         }
     }
 
-    // The victim will be replaced by a new entry, so increase the replacement
-    // counter if a valid block is being replaced
     if (replacement) {
         stats.replacements++;
 
-        // Evict valid blocks associated to this victim block
         for (auto& blk : evict_blks) {
             if (blk->isValid()) {
                 evictBlock(blk, writebacks);
@@ -1083,13 +1274,10 @@ BaseCache::updateCompressionData(CacheBlk *&blk, const uint64_t* data,
                 compression_size, evict_blks,
                 blk->getPartitionId());
 
-            // It is valid to return nullptr if there is no victim
             if (!victim) {
                 return false;
             }
 
-            // If the victim block is itself the block won't need to be moved,
-            // and the victim should not be evicted
             if (blk == victim) {
                 victim_itself = true;
                 auto it = std::find_if(evict_blks.begin(), evict_blks.end(),
@@ -1097,7 +1285,6 @@ BaseCache::updateCompressionData(CacheBlk *&blk, const uint64_t* data,
                 evict_blks.erase(it);
             }
 
-            // Print victim block's information
             DPRINTF(CacheRepl, "Data %s replacement victim: %s\n",
                 op_name, victim->print());
         } else {
@@ -1669,7 +1856,6 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
     // Get address
     const Addr addr = pkt->getAddr();
 
-    // Get secure bit
     const bool is_secure = pkt->isSecure();
 
     // Block size and compression related access latency. Only relevant if
@@ -1693,16 +1879,13 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
     // get partitionId from Packet
     const auto partition_id = partitionManager ?
         partitionManager->readPacketPartitionID(pkt) : 0;
-    // Find replacement victim
     std::vector<CacheBlk*> evict_blks;
     CacheBlk *victim = tags->findVictim({addr, is_secure}, blk_size_bits,
                                         evict_blks, partition_id);
 
-    // It is valid to return nullptr if there is no victim
     if (!victim)
         return nullptr;
 
-    // Print victim block's information
     DPRINTF(CacheRepl, "Replacement victim: %s\n", victim->print());
 
     // Try to evict blocks; if it fails, give up on allocation
@@ -1710,7 +1893,6 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
         return nullptr;
     }
 
-    // Insert new block at victimized entry
     tags->insertBlock(pkt, victim);
 
     // If using a compressor, set compression data. This must be done after
@@ -1726,8 +1908,7 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
 void
 BaseCache::invalidateBlock(CacheBlk *blk)
 {
-    // If block is still marked as prefetched, then it hasn't been used
-    if (blk->wasPrefetched()) {
+    if (blk->wasPrefetched() && prefetcher) {
         prefetcher->prefetchUnused();
     }
 
@@ -2260,83 +2441,99 @@ BaseCache::CacheCmdStats::regStatsFromParent()
 }
 
 BaseCache::CacheStats::CacheStats(BaseCache &c)
-    : statistics::Group(&c), cache(c),
+    : statistics::Group(&c),
+      cache(c),
 
-    ADD_STAT(demandHits, statistics::units::Count::get(),
-             "number of demand (read+write) hits"),
-    ADD_STAT(overallHits, statistics::units::Count::get(),
-             "number of overall hits"),
-    ADD_STAT(demandHitLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) hit ticks"),
-    ADD_STAT(overallHitLatency, statistics::units::Tick::get(),
-            "number of overall hit ticks"),
-    ADD_STAT(demandMisses, statistics::units::Count::get(),
-             "number of demand (read+write) misses"),
-    ADD_STAT(overallMisses, statistics::units::Count::get(),
-             "number of overall misses"),
-    ADD_STAT(demandMissLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) miss ticks"),
-    ADD_STAT(overallMissLatency, statistics::units::Tick::get(),
-             "number of overall miss ticks"),
-    ADD_STAT(demandAccesses, statistics::units::Count::get(),
-             "number of demand (read+write) accesses"),
-    ADD_STAT(overallAccesses, statistics::units::Count::get(),
-             "number of overall (read+write) accesses"),
-    ADD_STAT(demandMissRate, statistics::units::Ratio::get(),
-             "miss rate for demand accesses"),
-    ADD_STAT(overallMissRate, statistics::units::Ratio::get(),
-             "miss rate for overall accesses"),
-    ADD_STAT(demandAvgMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall miss latency in ticks"),
-    ADD_STAT(overallAvgMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall miss latency"),
-    ADD_STAT(blockedCycles, statistics::units::Cycle::get(),
-            "number of cycles access was blocked"),
-    ADD_STAT(blockedCauses, statistics::units::Count::get(),
-            "number of times access was blocked"),
-    ADD_STAT(avgBlocked, statistics::units::Rate<
-                statistics::units::Cycle, statistics::units::Count>::get(),
-             "average number of cycles each access was blocked"),
-    ADD_STAT(writebacks, statistics::units::Count::get(),
-             "number of writebacks"),
-    ADD_STAT(demandMshrHits, statistics::units::Count::get(),
-             "number of demand (read+write) MSHR hits"),
-    ADD_STAT(overallMshrHits, statistics::units::Count::get(),
-             "number of overall MSHR hits"),
-    ADD_STAT(demandMshrMisses, statistics::units::Count::get(),
-             "number of demand (read+write) MSHR misses"),
-    ADD_STAT(overallMshrMisses, statistics::units::Count::get(),
-            "number of overall MSHR misses"),
-    ADD_STAT(overallMshrUncacheable, statistics::units::Count::get(),
-             "number of overall MSHR uncacheable misses"),
-    ADD_STAT(demandMshrMissLatency, statistics::units::Tick::get(),
-             "number of demand (read+write) MSHR miss ticks"),
-    ADD_STAT(overallMshrMissLatency, statistics::units::Tick::get(),
-             "number of overall MSHR miss ticks"),
-    ADD_STAT(overallMshrUncacheableLatency, statistics::units::Tick::get(),
-             "number of overall MSHR uncacheable ticks"),
-    ADD_STAT(demandMshrMissRate, statistics::units::Ratio::get(),
-             "mshr miss ratio for demand accesses"),
-    ADD_STAT(overallMshrMissRate, statistics::units::Ratio::get(),
-             "mshr miss ratio for overall accesses"),
-    ADD_STAT(demandAvgMshrMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr miss latency"),
-    ADD_STAT(overallAvgMshrMissLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr miss latency"),
-    ADD_STAT(overallAvgMshrUncacheableLatency, statistics::units::Rate<
-                statistics::units::Tick, statistics::units::Count>::get(),
-             "average overall mshr uncacheable latency"),
-    ADD_STAT(replacements, statistics::units::Count::get(),
-             "number of replacements"),
-    ADD_STAT(dataExpansions, statistics::units::Count::get(),
-             "number of data expansions"),
-    ADD_STAT(dataContractions, statistics::units::Count::get(),
-             "number of data contractions"),
-    cmd(MemCmd::NUM_MEM_CMDS)
+      ADD_STAT(demandHits, statistics::units::Count::get(),
+               "number of demand (read+write) hits"),
+      ADD_STAT(overallHits, statistics::units::Count::get(),
+               "number of overall hits"),
+      ADD_STAT(demandHitLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) hit ticks"),
+      ADD_STAT(overallHitLatency, statistics::units::Tick::get(),
+               "number of overall hit ticks"),
+      ADD_STAT(demandMisses, statistics::units::Count::get(),
+               "number of demand (read+write) misses"),
+      ADD_STAT(overallMisses, statistics::units::Count::get(),
+               "number of overall misses"),
+      ADD_STAT(demandMissLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) miss ticks"),
+      ADD_STAT(overallMissLatency, statistics::units::Tick::get(),
+               "number of overall miss ticks"),
+      ADD_STAT(demandAccesses, statistics::units::Count::get(),
+               "number of demand (read+write) accesses"),
+      ADD_STAT(overallAccesses, statistics::units::Count::get(),
+               "number of overall (read+write) accesses"),
+      ADD_STAT(demandMissRate, statistics::units::Ratio::get(),
+               "miss rate for demand accesses"),
+      ADD_STAT(overallMissRate, statistics::units::Ratio::get(),
+               "miss rate for overall accesses"),
+      ADD_STAT(demandAvgMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall miss latency in ticks"),
+      ADD_STAT(overallAvgMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall miss latency"),
+      ADD_STAT(blockedCycles, statistics::units::Cycle::get(),
+               "number of cycles access was blocked"),
+      ADD_STAT(blockedCauses, statistics::units::Count::get(),
+               "number of times access was blocked"),
+      ADD_STAT(avgBlocked,
+               statistics::units::Rate<statistics::units::Cycle,
+                                       statistics::units::Count>::get(),
+               "average number of cycles each access was blocked"),
+      ADD_STAT(writebacks, statistics::units::Count::get(),
+               "number of writebacks"),
+      ADD_STAT(demandMshrHits, statistics::units::Count::get(),
+               "number of demand (read+write) MSHR hits"),
+      ADD_STAT(overallMshrHits, statistics::units::Count::get(),
+               "number of overall MSHR hits"),
+      ADD_STAT(demandMshrMisses, statistics::units::Count::get(),
+               "number of demand (read+write) MSHR misses"),
+      ADD_STAT(overallMshrMisses, statistics::units::Count::get(),
+               "number of overall MSHR misses"),
+      ADD_STAT(overallMshrUncacheable, statistics::units::Count::get(),
+               "number of overall MSHR uncacheable misses"),
+      ADD_STAT(demandMshrMissLatency, statistics::units::Tick::get(),
+               "number of demand (read+write) MSHR miss ticks"),
+      ADD_STAT(overallMshrMissLatency, statistics::units::Tick::get(),
+               "number of overall MSHR miss ticks"),
+      ADD_STAT(overallMshrUncacheableLatency, statistics::units::Tick::get(),
+               "number of overall MSHR uncacheable ticks"),
+      ADD_STAT(demandMshrMissRate, statistics::units::Ratio::get(),
+               "mshr miss ratio for demand accesses"),
+      ADD_STAT(overallMshrMissRate, statistics::units::Ratio::get(),
+               "mshr miss ratio for overall accesses"),
+      ADD_STAT(demandAvgMshrMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr miss latency"),
+      ADD_STAT(overallAvgMshrMissLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr miss latency"),
+      ADD_STAT(overallAvgMshrUncacheableLatency,
+               statistics::units::Rate<statistics::units::Tick,
+                                       statistics::units::Count>::get(),
+               "average overall mshr uncacheable latency"),
+      ADD_STAT(replacements, statistics::units::Count::get(),
+               "number of replacements"),
+      ADD_STAT(windowFillMisses, statistics::units::Count::get(),
+               "Window fill: in-range demand-read misses observed"),
+      ADD_STAT(windowFillsInjected, statistics::units::Count::get(),
+               "Window fill: window-fill draws injected as a separate fill"),
+      ADD_STAT(windowFillDemandNoAllocate, statistics::units::Count::get(),
+               "Window fill: in-range demand fills forced to no-allocate"),
+      ADD_STAT(windowFillDemandSelfAllocate, statistics::units::Count::get(),
+               "Window fill: in-range demand fills where the draw picked "
+               "the demand itself and was allowed to allocate normally"),
+      ADD_STAT(dataExpansions, statistics::units::Count::get(),
+               "number of data expansions"),
+      ADD_STAT(dataContractions, statistics::units::Count::get(),
+               "number of data contractions"),
+      cmd(MemCmd::NUM_MEM_CMDS)
 {
     for (int idx = 0; idx < MemCmd::NUM_MEM_CMDS; ++idx)
         cmd[idx].reset(new CacheCmdStats(c, MemCmd(idx).toString()));

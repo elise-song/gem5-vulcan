@@ -141,15 +141,6 @@ class BaseCache(ClockedObject):
 
     system = Param.System(Parent.any, "System we belong to")
 
-    # Determine if this cache sends out writebacks for clean lines, or
-    # simply clean evicts. If this cache does not have a downstream cache,
-    # the cache should not writeback clean lines not to waste memory
-    # bandwidth. If this cache has a downstream cache whose clusivity is
-    # mostly exclusive (i.e., victim cache), this shoule be set to True.
-    # If not, there will never be any spills from read-only caches (e.g.,
-    # L1I cache, MMU cache of ARM) to the downstream cache.
-    # In case of the downstream cache is mostly inclusive, this should be
-    # set to False.
     writeback_clean = Param.Bool(False, "Writeback clean lines")
 
     # Control whether this cache should be mostly inclusive or mostly
@@ -168,6 +159,14 @@ class BaseCache(ClockedObject):
     # in the current cache. Typically, this would be enabled in the
     # data cache.
     write_allocator = Param.WriteAllocator(NULL, "Write allocator")
+
+    window_fill_ranges = VectorParam.AddrRange(
+        [], "Address ranges whose demand loads use Window fill (empty = off)"
+    )
+    # Spatial neighbourhood radius, in cache lines, for the window fill.
+    window_fill_radius = Param.Unsigned(
+        8, "Window-fill neighbourhood radius in cache lines (+/-)"
+    )
 
 
 class Cache(BaseCache):
