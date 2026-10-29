@@ -42,8 +42,8 @@
 #define __CACHE_TAGGED_ENTRY_HH__
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <unordered_map>
 #include <vector>
 
 #include "base/cprintf.hh"
@@ -143,20 +143,52 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     const bool contextKeyed;
 
     /**
-     * Per-context keys, generated lazily the first time a context is
-     * seen. Mutable because it is populated from the const lookup path.
+     * The key unit keeps a bounded number of resident context keys rather
+     * than growing an unbounded per-context map, modeling the fact that a
+     * real key unit only keeps a limited amount of key state resident
+     * on-chip. 64 slots is generously above any realistic number of
+     * contexts concurrently active on this cache level. A context maps
+     * onto a slot via (context % kKeyTableSlots), direct-mapped-cache
+     * style.
+     *
+     * Sizing the table generously keeps collisions rare in practice, but
+     * correctness does not depend on avoiding them: each slot records
+     * WHICH context it currently holds a key for (see KeySlot below), so a
+     * lookup only reuses the resident key if the slot's recorded owner
+     * matches the requesting context. A collision costs an extra key
+     * derivation and an evicted slot -- never a shared key between two
+     * different contexts.
      */
-    mutable std::unordered_map<ContextID, uint64_t> contextKeys;
+    static constexpr std::size_t kKeyTableSlots = 64;
+
+    /**
+     * A single resident key-table entry: which context currently owns
+     * this slot (InvalidContextID if never populated) and that context's
+     * key. Tagging each slot with its owner is what makes a bounded table
+     * safe to share across more contexts than it has slots for: a slot is
+     * only ever handed back for the context it was actually derived for.
+     */
+    struct KeySlot
+    {
+        ContextID context = InvalidContextID;
+        uint64_t key = 0;
+    };
+
+    /**
+     * Resident key table, indexed by slotFor(context). Mutable because it
+     * is populated from the const lookup path.
+     */
+    mutable std::vector<KeySlot> keyTable_;
 
     /**
      * Optional fixed keys (from the Python param) indexed by context, used
      * to make experiments reproducible. Contexts beyond this vector, or
      * with a zero entry, get a fresh random key instead.
      */
-    const std::vector<uint64_t> fixedKeys;
+    const std::vector<uint64_t> fixedKeys_;
 
     /** RNG used to generate per-context keys with adequate entropy. */
-    Random::RandomPtr rng;
+    Random::RandomPtr rng_;
 
     /**
      * Experiment-only override of the active context. When set (via
@@ -164,12 +196,19 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * over the per-request contextId so that a traffic-generator workload,
      * whose requests carry no context, can still drive distinct keys.
      */
-    bool activeContextSet = false;
-    ContextID activeContext = 0;
+    bool overrideActive_ = false;
+    ContextID overrideContext_ = 0;
 
     /** Registry of live context-keyed instances, so the override can be
      * applied globally. */
-    static std::vector<TaggedSetAssociative*> allPolicies;
+    static std::vector<TaggedSetAssociative *> liveInstances_;
+
+    /** Map a context onto its resident key-table slot. */
+    std::size_t
+    slotFor(ContextID context) const
+    {
+        return static_cast<std::size_t>(context) % kKeyTableSlots;
+    }
 
     /**
      * Resolve the effective context for a lookup: the experiment override
@@ -177,16 +216,19 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * context 0 for requests that carry none).
      */
     ContextID
-    resolveContext(ContextID raw) const
+    normalizeContext(ContextID raw) const
     {
-        if (activeContextSet) {
-            return activeContext;
+        if (overrideActive_) {
+            return overrideContext_;
         }
         return (raw != InvalidContextID) ? raw : 0;
     }
 
-    /** Get (generating on first use) the key for a context. */
-    uint64_t getContextKey(ContextID context) const;
+    /**
+     * Get (populating or reclaiming a slot on first use / on a collision)
+     * the resident key for a context.
+     */
+    uint64_t keyForContext(ContextID context) const;
 
     /**
      * Keyed set index for a given lookup key and way. The full line address
@@ -194,10 +236,10 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
      * address-, way- and context-specific.
      */
     uint32_t
-    extractSet(const KeyType &key, const uint32_t way) const
+    computeWaySet(const KeyType &key, const uint32_t way) const
     {
         const uint64_t line_addr = key.address >> setShift;
-        const uint64_t ckey = getContextKey(resolveContext(key.context));
+        const uint64_t ckey = keyForContext(normalizeContext(key.context));
         return wayIndexHash(line_addr, way, ckey) & setMask;
     }
 
