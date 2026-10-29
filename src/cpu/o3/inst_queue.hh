@@ -57,6 +57,7 @@
 #include "cpu/o3/mem_dep_unit.hh"
 #include "cpu/o3/store_set.hh"
 #include "cpu/op_class.hh"
+#include "cpu/reg_class.hh"
 #include "cpu/timebuf.hh"
 #include "enums/SMTQueuePolicy.hh"
 #include "sim/eventq.hh"
@@ -335,6 +336,9 @@ class InstructionQueue
      * untainted (or squashed) back onto the ready lists. Only used when
      * cpu->moreTransmitInsts is enabled. */
     void wakeUntaintInsts();
+
+    /** Wakes all dependents waiting on a destination register. */
+    int wakeDependents(PhysRegIdPtr dest_reg);
 
     /** Adds a ready memory instruction to the ready list. */
     void addReadyMemInst(const DynInstPtr &ready_inst);
