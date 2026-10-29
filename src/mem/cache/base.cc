@@ -1695,10 +1695,9 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
         partitionManager->readPacketPartitionID(pkt) : 0;
     // Find replacement victim
     std::vector<CacheBlk*> evict_blks;
-    CacheBlk *victim = tags->findVictim(
-        {addr, is_secure,
-         pkt->req->hasContextId() ? pkt->req->contextId() : InvalidContextID},
-        blk_size_bits, evict_blks, partition_id);
+    CacheBlk *victim =
+        tags->findVictim({addr, is_secure, contextIdFor(pkt)}, blk_size_bits,
+                         evict_blks, partition_id);
 
     // It is valid to return nullptr if there is no victim
     if (!victim)
