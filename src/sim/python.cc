@@ -26,6 +26,7 @@
  */
 
 #include "pybind11/pybind11.h"
+#include "mem/cache/tags/tagged_entry.hh"
 #include "sim/init.hh"
 #include "sim/port.hh"
 
@@ -34,6 +35,23 @@ namespace gem5
 
 namespace
 {
+
+// Force the context used for keyed set indexing on every context-keyed
+// cache, so that a workload whose requests carry no contextId (e.g. a
+// traffic generator) can still be driven through distinct per-context
+// mappings from a config.
+void
+setIndexContext(int64_t context)
+{
+    TaggedSetAssociative::setActiveContextAll((ContextID)context);
+}
+
+// Drop the override and fall back to per-request contextId.
+void
+clearIndexContext()
+{
+    TaggedSetAssociative::clearActiveContextAll();
+}
 
 void
 sim_pybind(pybind11::module_ &m_internal)
@@ -44,6 +62,10 @@ sim_pybind(pybind11::module_ &m_internal)
         .def("bind", &Port::bind)
         .def("name", &Port::name)
         ;
+    m.def("setIndexContext", &setIndexContext,
+          "Force the context used for keyed set indexing");
+    m.def("clearIndexContext", &clearIndexContext,
+          "Clear the keyed-set-index context override");
 }
 EmbeddedPyBind embed_("sim", &sim_pybind);
 

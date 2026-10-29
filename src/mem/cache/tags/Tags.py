@@ -63,6 +63,26 @@ class TaggedSetAssociative(TaggedIndexingPolicy):
     # Get the entry size from the parent (tags)
     entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
 
+    # Skewed, keyed set index: each way's set is a keyed hash of the line
+    # address, with the key selected by the requestor context of the lookup
+    context_keyed = Param.Bool(
+        False, "Use a per-context keyed set index for each way"
+    )
+
+    # RNG seed used to generate per-context keys. -1 uses gem5's global seed.
+    # Fix this (together with a fixed set of contexts) to make an experiment
+    # reproducible across runs.
+    key_seed = Param.Int(
+        -1, "RNG seed for per-context key generation; -1 = global seed"
+    )
+
+    # Optional fixed per-context keys, indexed by contextId. A context with
+    # no entry here (or a zero entry) is assigned a fresh random key on
+    # first use.
+    context_keys = VectorParam.UInt64(
+        [], "Fixed per-context keys, indexed by context id"
+    )
+
 
 class BaseTags(ClockedObject):
     type = "BaseTags"
