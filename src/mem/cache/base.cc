@@ -85,26 +85,39 @@ BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
 
 BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
     : ClockedObject(p),
-      cpuSidePort (p.name + ".cpu_side_port", *this, "CpuSidePort"),
+
+      // Ports and top-level wiring to the rest of the memory system.
+      cpuSidePort(p.name + ".cpu_side_port", *this, "CpuSidePort"),
       memSidePort(p.name + ".mem_side_port", this, "MemSidePort"),
       accessor(*this),
+
+      // Miss and write-buffer bookkeeping.
       mshrQueue("MSHRs", p.mshrs, 0, p.demand_mshr_reserve, p.name),
       writeBuffer("write buffer", p.write_buffers, p.mshrs, p.name),
+
+      // Tag/data storage, optional compression, and partitioning.
       tags(p.tags),
       compressor(p.compressor),
       partitionManager(p.partitioning_manager),
+
+      // Prefetching.
       prefetcher(p.prefetcher),
+
       windowFillRanges(p.window_fill_ranges.begin(),
                        p.window_fill_ranges.end()),
-      windowFillRadius(std::max<unsigned>(0, p.window_fill_radius)),
+      windowFillRadius(0),
       windowFillEnabled(!p.window_fill_ranges.empty()),
       windowFillRng(Random::genRandom()),
+
+      // Write allocation policy and temp-block writeback handling.
       writeAllocator(p.write_allocator),
       writebackClean(p.writeback_clean),
       tempBlockWriteback(nullptr),
-      writebackTempBlockAtomicEvent([this]{ writebackTempBlockAtomic(); },
+      writebackTempBlockAtomicEvent([this] { writebackTempBlockAtomic(); },
                                     name(), false,
                                     EventBase::Delayed_Writeback_Pri),
+
+      // Cache geometry and access latencies.
       blkSize(blk_size),
       lookupLatency(p.tag_latency),
       dataLatency(p.data_latency),
@@ -112,18 +125,25 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
       fillLatency(p.data_latency),
       responseLatency(p.response_latency),
       sequentialAccess(p.sequential_access),
+
+      // MSHR target handling and coherence/clusivity behavior.
       numTarget(p.tgts_per_mshr),
       forwardSnoops(true),
       clusivity(p.clusivity),
       isReadOnly(p.is_read_only),
       replaceExpansions(p.replace_expansions),
       moveContractions(p.move_contractions),
+
+      // General miss-handling bookkeeping.
       blocked(0),
       order(0),
       noTargetMSHR(nullptr),
       missCount(p.max_miss_count),
+
+      // Address ranges served, and the enclosing system.
       addrRanges(p.addr_ranges.begin(), p.addr_ranges.end()),
       system(p.system),
+
       stats(*this)
 {
     // the MSHR queue has no reserve entries as we check the MSHR
@@ -1073,20 +1093,21 @@ BaseCache::pickWindowFillTarget(Addr demand_blk_addr) const
     // Find the fill range that contains the demand; the window fill is
     // drawn from within it, so any candidate it returns is always a legal,
     // cacheable address.
-    for (const auto &range : windowFillRanges) {
-        if (!range.contains(demand_blk_addr)) {
-            continue;
-        }
+    const auto range_it =
+        std::find_if(windowFillRanges.begin(), windowFillRanges.end(),
+                     [demand_blk_addr](const AddrRange &range) {
+                         return range.contains(demand_blk_addr);
+                     });
+    if (range_it != windowFillRanges.end()) {
         // Block-aligned half-open bounds of the safe region.
-        const Addr region_lo = roundUp(range.start(), blkSize);
-        const Addr region_hi = roundDown(range.end(), blkSize);
+        const Addr region_lo = roundUp(range_it->start(), blkSize);
+        const Addr region_hi = roundDown(range_it->end(), blkSize);
         if (region_hi > region_lo && demand_blk_addr >= region_lo &&
             demand_blk_addr < region_hi) {
             return window_fill::pickNeighbor(demand_blk_addr, blkSize,
                                              region_lo, region_hi,
                                              windowFillRadius, *windowFillRng);
         }
-        break;
     }
     // No valid containing region (degenerate/misaligned range): nothing to
     // randomise over, so the demand itself is the only legal choice.
