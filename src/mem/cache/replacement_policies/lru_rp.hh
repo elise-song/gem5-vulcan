@@ -53,11 +53,13 @@ class LRU : public Base
     {
         /** Tick on which the entry was last touched. */
         Tick lastTouchTick;
+        /** Non-zero while the entry is locked down (not a victim candidate). */
+        int locked;
 
         /**
          * Default constructor. Invalidate data.
          */
-        LRUReplData() : lastTouchTick(0) {}
+        LRUReplData() : lastTouchTick(0), locked(0) {}
     };
 
   public:
@@ -107,6 +109,19 @@ class LRU : public Base
      * @return A shared pointer to the new replacement data.
      */
     std::shared_ptr<ReplacementData> instantiateEntry() override;
+
+    /**
+     * Lock an entry down so it is skipped by victim selection. Refuses when
+     * fewer than two of the set's ways would remain unlocked.
+     *
+     * @param replacement_data Replacement data of the entry to lock.
+     * @param candidates All entries of the set the entry belongs to.
+     */
+    static void lock(const std::shared_ptr<ReplacementData>& replacement_data,
+                     const ReplacementCandidates& candidates);
+
+    /** Release a locked entry and mark it most recently used. */
+    static void unlock(const std::shared_ptr<ReplacementData>& replacement_data);
 };
 
 } // namespace replacement_policy

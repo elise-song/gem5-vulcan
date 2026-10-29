@@ -48,11 +48,12 @@
 #include "base/compiler.hh"
 #include "base/logging.hh"
 #include "debug/Cache.hh"
-#include "debug/CacheComp.hh"
+#include "debug/CacheComp.hh" // compression
 #include "debug/CachePort.hh"
-#include "debug/CacheRepl.hh"
+#include "debug/CacheRepl.hh" // replacement policy
 #include "debug/CacheVerbose.hh"
 #include "debug/HWPrefetch.hh"
+#include "debug/PseudoInst.hh"
 #include "mem/cache/compressors/base.hh"
 #include "mem/cache/mshr.hh"
 #include "mem/cache/mshr_queue.hh"
@@ -64,9 +65,52 @@
 #include "params/BaseCache.hh"
 #include "params/WriteAllocator.hh"
 #include "sim/cur_tick.hh"
+#include "mem/packet_access.hh"
+#include "mem/cache/replacement_policies/lru_rp.hh"
 
 namespace gem5
 {
+
+std::vector<BaseCache *> BaseCache::cachelist;
+
+void
+BaseCache::lockCacheLine(Addr addr)
+{
+    Addr blk_addr = tags->blkAlign(addr);
+    DPRINTF(PseudoInst, "lockCacheLine: vaddr %#x aligned to %#x\n", 
+            addr, blk_addr);
+
+
+    CacheBlk *blk = tags->findBlock({blk_addr, false});
+    if (blk && blk->isValid()) {
+        ReplacementCandidates candidates;
+        int maxWays = tags->getWayAllocationMax();
+        for (int way = 0; way < maxWays; way++) {
+            ReplaceableEntry *entry = tags->findBlockBySetAndWay(blk->getSet(), way);
+            if (entry) {
+                candidates.push_back(entry);
+            }
+        }
+        replacement_policy::LRU::lock(blk->replacementData, candidates);
+        DPRINTF(PseudoInst, "Locked cache line at addr %#x\n", blk_addr);
+    } else {
+        warn("lockCacheLine: addr %#x not found\n", blk_addr);
+    }
+}
+
+void
+BaseCache::unlockCacheLine(Addr addr)
+{
+    Addr blk_addr = tags->blkAlign(addr);
+    DPRINTF(PseudoInst, "lockCacheLine: addr %#x aligned to %#x\n", addr, blk_addr);
+    CacheBlk *blk = tags->findBlock({blk_addr, false});
+    if (blk && blk->isValid()) {
+        replacement_policy::LRU::unlock(blk->replacementData);
+        DPRINTF(PseudoInst, "Unlocked cache line at addr %#x\n", blk_addr);
+    } else {
+        warn("unlockCacheLine: addr %#x not found\n", blk_addr);
+    }
+}
 
 BaseCache::CacheResponsePort::CacheResponsePort(const std::string &_name,
                                           BaseCache& _cache,
@@ -141,11 +185,15 @@ BaseCache::BaseCache(const BaseCacheParams &p, unsigned blk_size)
         "Compressed cache %s does not have a compression algorithm", name());
     if (compressor)
         compressor->setCache(this);
+    cachelist.push_back(this);
 }
 
 BaseCache::~BaseCache()
 {
     delete tempBlock;
+    cachelist.erase(
+        std::remove(cachelist.begin(), cachelist.end(), this),
+        cachelist.end());
 }
 
 void
@@ -453,6 +501,24 @@ BaseCache::handleTimingReqMiss(PacketPtr pkt, MSHR *mshr, CacheBlk *blk,
 void
 BaseCache::recvTimingReq(PacketPtr pkt)
 {
+    // what is the PACKET's type of request, address, data, and size?
+
+    // what is the REQUEST's address (physical and virtual) and size?
+
+    // hijack time: set a new address for the first 256 requests, where each
+    // request touches a different block. hint: set both the packet's address
+    // and the request's physical address
+
+    // set a new size
+
+    // choose read or write, and change the request type
+    // hint: check out MemCmd in packet.hh
+
+    // if you chose write, you can also set the data in the packet
+    // hint: check out packet_access.hh. What is endianness?
+
+    // verify that you changed the packet and request as expected
+
     // anything that is merely forwarded pays for the forward latency and
     // the delay provided by the crossbar
     Tick forward_time = clockEdge(forwardLatency) + pkt->headerDelay;
@@ -521,6 +587,7 @@ BaseCache::recvTimingReq(PacketPtr pkt)
             schedMemSideSendEvent(next_pf_time);
         }
     }
+
 }
 
 void

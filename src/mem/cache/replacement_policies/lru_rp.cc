@@ -31,6 +31,7 @@
 #include <cassert>
 #include <memory>
 
+#include "base/logging.hh"
 #include "params/LRURP.hh"
 #include "sim/cur_tick.hh"
 
@@ -76,8 +77,17 @@ LRU::getVictim(const ReplacementCandidates& candidates) const
     assert(candidates.size() > 0);
 
     // Visit all candidates to find victim
-    ReplaceableEntry* victim = candidates[0];
+    ReplaceableEntry* victim = nullptr;
     for (const auto& candidate : candidates) {
+        auto data = std::static_pointer_cast<LRUReplData>(
+            candidate->replacementData);
+        if (data->locked) {
+            continue;
+        }
+        if (victim == nullptr) {
+            victim = candidate;
+            continue;
+        }
         // Update victim entry if necessary
         if (std::static_pointer_cast<LRUReplData>(
                     candidate->replacementData)->lastTouchTick <
@@ -94,6 +104,35 @@ std::shared_ptr<ReplacementData>
 LRU::instantiateEntry()
 {
     return std::shared_ptr<ReplacementData>(new LRUReplData());
+}
+
+void
+LRU::lock(const std::shared_ptr<ReplacementData>& replacement_data,
+          const ReplacementCandidates& candidates)
+{
+    auto data = std::static_pointer_cast<LRUReplData>(replacement_data);
+    if (data->locked)
+        return;
+    int count = 0;
+    for (const auto& candidate : candidates) {
+        auto candidateData = std::static_pointer_cast<LRUReplData>(
+            candidate->replacementData);
+        if (!candidateData->locked)
+            count++;
+    }
+    if (count < 2) {
+        warn("not enough unlocked ways did not lock");
+        return;
+    }
+    data->locked = true;
+}
+
+void
+LRU::unlock(const std::shared_ptr<ReplacementData>& replacement_data)
+{
+    auto data = std::static_pointer_cast<LRUReplData>(replacement_data);
+    data->locked = 0;
+    data->lastTouchTick = curTick();
 }
 
 } // namespace replacement_policy

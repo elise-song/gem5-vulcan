@@ -70,6 +70,9 @@
 #include "sim/stat_control.hh"
 #include "sim/stats.hh"
 #include "sim/system.hh"
+#include "mem/cache/base.hh"
+#include "arch/generic/mmu.hh"
+#include "mem/request.hh"
 
 namespace gem5
 {
@@ -614,6 +617,54 @@ m5Hypercall(ThreadContext *tc, uint64_t hypercall_id)
     DPRINTF(PseudoInst, "pseudo_inst::m5Hypercall(%i)\n", hypercall_id);
     exitSimLoopWithHypercall("m5_hypercall instruction encountered", 0,
     curTick(),0, std::map<std::string, std::string>(), hypercall_id, true);
+}
+
+void
+cacheLock(ThreadContext *tc, uint64_t cache_line_addr)
+{
+    DPRINTF(PseudoInst, "pseudo_inst::cacheLock(%#x)\n", cache_line_addr);
+    
+    //translate virtual address to physical
+    Addr paddr;
+    auto req = std::make_shared<Request>(
+        cache_line_addr, 8, 0, tc->contextId());
+    req->setVirt(cache_line_addr, 8, 0, 
+                 tc->getCpuPtr()->dataRequestorId(),
+                 tc->pcState().instAddr());
+    
+    auto *mmu = tc->getMMUPtr();
+    mmu->translateFunctional(req, tc, BaseMMU::Read);
+    paddr = req->getPaddr();
+    
+    DPRINTF(PseudoInst, "cacheLock: vaddr %#x -> paddr %#x\n", 
+            cache_line_addr, paddr);
+    
+    for (auto *cache : BaseCache::cachelist) {
+        cache->lockCacheLine(paddr);
+    }
+}
+
+void
+cacheUnlock(ThreadContext *tc, uint64_t cache_line_addr)
+{
+    DPRINTF(PseudoInst, "pseudo_inst::cacheLock(%#x)\n", cache_line_addr);
+    
+    Addr paddr;
+    auto req = std::make_shared<Request>(
+        cache_line_addr, 8, 0, tc->contextId());
+    req->setVirt(cache_line_addr, 8, 0, 
+                 tc->getCpuPtr()->dataRequestorId(),
+                 tc->pcState().instAddr());
+    
+    auto *mmu = tc->getMMUPtr();
+    mmu->translateFunctional(req, tc, BaseMMU::Read);
+    paddr = req->getPaddr();
+    
+    DPRINTF(PseudoInst, "cacheunLock: vaddr %#x -> paddr %#x\n", 
+            cache_line_addr, paddr);
+    for (auto *cache : BaseCache::cachelist) {
+        cache->unlockCacheLine(paddr);
+    }
 }
 
 } // namespace pseudo_inst
