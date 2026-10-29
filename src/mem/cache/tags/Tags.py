@@ -63,6 +63,13 @@ class TaggedSetAssociative(TaggedIndexingPolicy):
     # Get the entry size from the parent (tags)
     entry_size = Param.Int(Parent.entry_size, "entry size in bytes")
 
+    # Derive the set index from a keyed permutation of the line address
+    # instead of its low bits
+    keyed_index = Param.Bool(False, "Use a keyed set index")
+
+    # Optional file with fixed S-box/P-box tables for the keyed index
+    box_file = Param.String("", "Path to S-box/P-box file")
+
 
 class BaseTags(ClockedObject):
     type = "BaseTags"

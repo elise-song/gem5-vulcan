@@ -42,6 +42,8 @@
 #define __CACHE_TAGGED_ENTRY_HH__
 
 #include <cassert>
+#include <string>
+#include <vector>
 
 #include "base/cprintf.hh"
 #include "base/types.hh"
@@ -71,35 +73,53 @@ template class IndexingPolicyTemplate<TaggedTypes>;
  * This version of set associative indexing deals with
  * a Lookup structure made of address and secure bit.
  * It extracts the address but discards the secure bit which
- * is used for tagging only
+ * is used for tagging only.
+ *
+ * With keyed_index enabled the set is not taken directly from the
+ * address bits: the line address is first passed through a keyed
+ * Feistel network (per-round S-box/P-box substitution-permutation with
+ * random round keys drawn at construction, or loaded from box_file) and
+ * the set is taken from the result. The tag then holds the full line
+ * address so that a block's address can be regenerated without inverting
+ * the network.
  */
 class TaggedSetAssociative : public TaggedIndexingPolicy
 {
   protected:
-    virtual uint32_t
-    extractSet(const KeyType &key) const
-    {
-        return (key.address >> setShift) & setMask;
-    }
+    virtual uint32_t extractSet(const KeyType &key) const;
+
+  private:
+    /** Width in bits of each Feistel half. */
+    static const int halfWidth = 16;
+    /** Number of Feistel rounds. */
+    int numRounds = 4;
+    /** Per-round keys. */
+    uint16_t roundKeys[4];
+    /** Per-round S-boxes: each output bit is the XOR of the listed inputs. */
+    std::vector<int> sbox[4][halfWidth];
+    /** Per-round bit permutations. */
+    std::vector<int> pbox[4];
+
+    const bool keyedIndex;
+    const std::string boxFile;
+
+    uint32_t encrypt(const uint32_t line_addr) const;
+    uint16_t round(const uint16_t input, int stage) const;
+    uint16_t substitute(const uint32_t input, int stage) const;
+    uint16_t permutate(const uint16_t input, int stage) const;
+    void parseBoxFile(const std::string &path);
 
   public:
     PARAMS(TaggedSetAssociative);
-    TaggedSetAssociative(const Params &p)
-      : TaggedIndexingPolicy(p, p.size / p.entry_size, floorLog2(p.entry_size))
-    {}
+    TaggedSetAssociative(const Params &p);
 
     std::vector<ReplaceableEntry*>
-    getPossibleEntries(const KeyType &key) const override
-    {
-        return sets[extractSet(key)];
-    }
+    getPossibleEntries(const KeyType &key) const override;
 
-    Addr
-    regenerateAddr(const KeyType &key,
-                   const ReplaceableEntry *entry) const override
-    {
-        return (key.address << tagShift) | (entry->getSet() << setShift);
-    }
+    Addr regenerateAddr(const KeyType &key,
+                        const ReplaceableEntry *entry) const override;
+
+    Addr extractTag(const Addr addr) const override;
 };
 
 /**
