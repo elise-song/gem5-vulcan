@@ -152,6 +152,17 @@ class CacheBlk : public TaggedEntry
      * on the block since the last store. */
     std::list<Lock> lockList;
 
+    /**
+     * Whether this block is pinned to the context that inserted it. A
+     * pinned block may only be evicted by an incoming line that is itself
+     * pinned and owned by the same context (see _pinOwner).
+     */
+    bool _pinned = false;
+
+    /** Owning context of a pinned block. Only meaningful if
+     * _pinned is true. */
+    ContextID _pinOwner = InvalidContextID;
+
   public:
     CacheBlk() : TaggedEntry()
     {
@@ -185,6 +196,9 @@ class CacheBlk : public TaggedEntry
         setCoherenceBits(other.coherence);
         setTaskId(other.getTaskId());
         setPartitionId(other.getPartitionId());
+        if (other.isPinned()) {
+            setPinned(other.getPinOwner());
+        }
         setWhenReady(curTick());
         setRefCount(other.getRefCount());
         setSrcRequestorId(other.getSrcRequestorId());
@@ -212,6 +226,8 @@ class CacheBlk : public TaggedEntry
         setRefCount(0);
         setSrcRequestorId(Request::invldRequestorId);
         lockList.clear();
+        _pinned = false;
+        _pinOwner = InvalidContextID;
     }
 
     /**
@@ -292,6 +308,23 @@ class CacheBlk : public TaggedEntry
 
     /** Getter for _partitionId */
     uint64_t getPartitionId() const { return _partitionId; }
+
+    /** Whether this block is pinned. */
+    bool isPinned() const { return _pinned; }
+
+    /** Owning context of a pinned block. */
+    ContextID getPinOwner() const { return _pinOwner; }
+
+    /**
+     * Pin this block to the given owning context. Used by BaseSetAssoc on
+     * insertion of a line that falls in one of its pinned ranges.
+     */
+    void
+    setPinned(ContextID owner)
+    {
+        _pinned = true;
+        _pinOwner = owner;
+    }
 
     /** Get the number of references to this block since insertion. */
     unsigned getRefCount() const { return _refCount; }

@@ -1232,9 +1232,18 @@ BaseCache::satisfyRequest(PacketPtr pkt, CacheBlk *blk, bool, bool)
         blk->clearCoherenceBits(CacheBlk::DirtyBit);
     } else {
         assert(pkt->isInvalidate());
-        invalidateBlock(blk);
-        DPRINTF(CacheVerbose, "%s for %s (invalidation)\n", __func__,
-                pkt->print());
+        if (blk->isPinned()) {
+            // Pinned block: a cache-maintenance or coherence invalidation
+            // (e.g. clflush) does not evict it. Leave the block, and its
+            // data, untouched.
+            tags->notifyFlushSuppressed(blk);
+            DPRINTF(CacheVerbose, "%s for %s (invalidation suppressed, "
+                    "block is pinned)\n", __func__, pkt->print());
+        } else {
+            invalidateBlock(blk);
+            DPRINTF(CacheVerbose, "%s for %s (invalidation)\n", __func__,
+                    pkt->print());
+        }
     }
 }
 
@@ -1693,10 +1702,15 @@ BaseCache::allocateBlock(const PacketPtr pkt, PacketList &writebacks)
     // get partitionId from Packet
     const auto partition_id = partitionManager ?
         partitionManager->readPacketPartitionID(pkt) : 0;
+    // Requests from non-CPU sources (traffic generators, DMA, etc.) have
+    // no context ID; fall back to the sentinel tags implementations
+    // already expect for "unknown requester".
+    const ContextID context_id =
+        pkt->req->hasContextId() ? pkt->req->contextId() : InvalidContextID;
     // Find replacement victim
     std::vector<CacheBlk*> evict_blks;
     CacheBlk *victim = tags->findVictim({addr, is_secure}, blk_size_bits,
-                                        evict_blks, partition_id);
+                                        evict_blks, partition_id, context_id);
 
     // It is valid to return nullptr if there is no victim
     if (!victim)

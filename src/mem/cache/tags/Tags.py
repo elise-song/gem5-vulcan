@@ -123,6 +123,14 @@ class BaseSetAssoc(BaseTags):
         Parent.replacement_policy, "Replacement policy"
     )
 
+    # Lines whose address falls in one of these ranges are pinned, on
+    # insertion, to the context that brought them in: only an incoming
+    # pinned line of the same context may evict them, and cache
+    # maintenance invalidations leave them in place.
+    pinned_ranges = VectorParam.AddrRange(
+        [], "Address ranges whose lines are pinned to the inserting context"
+    )
+
 
 class SectorTags(BaseTags):
     type = "SectorTags"

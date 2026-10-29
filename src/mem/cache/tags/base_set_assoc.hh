@@ -47,6 +47,7 @@
 #define __MEM_CACHE_TAGS_BASE_SET_ASSOC_HH__
 
 #include <cstdint>
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -57,6 +58,7 @@
 #include "mem/cache/replacement_policies/base.hh"
 #include "mem/cache/replacement_policies/replaceable_entry.hh"
 #include "mem/cache/tags/base.hh"
+#include "base/addr_range.hh"
 #include "mem/cache/tags/indexing_policies/base.hh"
 #include "mem/cache/tags/partitioning_policies/partition_manager.hh"
 #include "mem/packet.hh"
@@ -86,6 +88,27 @@ class BaseSetAssoc : public BaseTags
 
     /** Replacement policy */
     replacement_policy::Base *replacementPolicy;
+
+    /** Address ranges whose lines are pinned, on insertion, to the
+     * context that brought them in. */
+    const std::vector<AddrRange> pinnedRanges;
+
+    struct PinStats : public statistics::Group
+    {
+        PinStats(BaseTagStats &base_group);
+
+        /** Number of blocks pinned on insertion. */
+        statistics::Scalar pinnedBlocks;
+
+        /** Number of allocations that bypassed the cache because every
+         * replacement candidate was a pinned line the incoming request
+         * was not allowed to evict. */
+        statistics::Scalar bypassOnPinnedVictim;
+
+        /** Number of invalidation/flush attempts suppressed because the
+         * targeted block was pinned. */
+        statistics::Scalar flushSuppressedPinned;
+    } pinStats;
 
   public:
     /** Convenience typedef. */
@@ -156,39 +179,90 @@ class BaseSetAssoc : public BaseTags
     }
 
     /**
-     * Find replacement victim based on address. The list of evicted blocks
-     * only contains the victim.
+     * Determine whether an address falls within one of the configured
+     * pinned ranges.
      *
-     * @param addr Address to find a victim for.
-     * @param is_secure True if the target memory space is secure.
+     * @param addr The address to check.
+     * @param ranges The set of pinned ranges.
+     * @return True if addr is in a pinned range.
+     */
+    static bool
+    inPinnedRange(Addr addr, const std::vector<AddrRange> &ranges)
+    {
+        for (const auto &range : ranges) {
+            if (range.contains(addr)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determine whether a candidate victim may be evicted by an incoming
+     * line: a pinned candidate can only be evicted by an incoming line
+     * that is itself pinned and owned by the same context. Unpinned
+     * candidates are always evictable.
+     *
+     * @param candidate The candidate victim block.
+     * @param incoming_pinned Whether the incoming line will be pinned.
+     * @param incoming_owner Owning context of the incoming line, if
+     *        pinned. Ignored if incoming_pinned is false.
+     * @return True if candidate may be evicted.
+     */
+    static bool
+    canEvict(const CacheBlk *candidate, bool incoming_pinned,
+             ContextID incoming_owner)
+    {
+        if (!candidate->isPinned()) {
+            // Unpinned lines are always evictable.
+            return true;
+        }
+
+        // A pinned candidate can only be evicted by an incoming line that
+        // is itself pinned and owned by the same context.
+        return incoming_pinned && (candidate->getPinOwner() == incoming_owner);
+    }
+
+    /**
+     * Remove from entries every candidate that the incoming line is not
+     * allowed to evict, per canEvict().
+     *
+     * @param entries Candidate victims; filtered in place.
+     * @param incoming_pinned Whether the incoming line will be pinned.
+     * @param incoming_owner Owning context of the incoming line, if
+     *        pinned.
+     */
+    static void
+    filterEvictable(std::vector<ReplaceableEntry *> &entries,
+                    bool incoming_pinned, ContextID incoming_owner)
+    {
+        entries.erase(std::remove_if(entries.begin(), entries.end(),
+            [incoming_pinned, incoming_owner](ReplaceableEntry *entry) {
+                const CacheBlk *blk = static_cast<const CacheBlk *>(entry);
+                return !canEvict(blk, incoming_pinned, incoming_owner);
+            }), entries.end());
+    }
+
+    /**
+     * Find replacement victim based on address. The list of evicted blocks
+     * only contains the victim. Pinned candidates that the incoming
+     * request is not allowed to evict are removed before consulting the
+     * replacement policy; if no candidate remains, nullptr is returned so
+     * the caller bypasses the cache instead of evicting a pinned line.
+     *
+     * @param key Address (and secure bit) to find a victim for.
      * @param size Size, in bits, of new block to allocate.
      * @param evict_blks Cache blocks to be evicted.
      * @param partition_id Partition ID for resource management.
+     * @param context_id Context ID of the requestor.
      * @return Cache block to be replaced.
      */
     CacheBlk* findVictim(const CacheBlk::KeyType& key,
                          const std::size_t size,
                          std::vector<CacheBlk*>& evict_blks,
-                         const uint64_t partition_id=0) override
-    {
-        // Get possible entries to be victimized
-        std::vector<ReplaceableEntry*> entries =
-            indexingPolicy->getPossibleEntries(key);
-
-        // Filter entries based on PartitionID
-        if (partitionManager) {
-            partitionManager->filterByPartition(entries, partition_id);
-        }
-
-        // Choose replacement victim from replacement candidates
-        CacheBlk* victim = entries.empty() ? nullptr :
-            static_cast<CacheBlk*>(replacementPolicy->getVictim(entries));
-
-        // There is only one eviction for this replacement
-        evict_blks.push_back(victim);
-
-        return victim;
-    }
+                         const uint64_t partition_id=0,
+                         const ContextID context_id=InvalidContextID)
+                         override;
 
     /**
      * Insert the new block into the cache and update replacement data.
@@ -211,9 +285,27 @@ class BaseSetAssoc : public BaseTags
 
         // Update replacement policy
         replacementPolicy->reset(blk->replacementData, pkt);
+
+        // Pin lines from the configured ranges to the inserting context
+        if (inPinnedRange(pkt->getAddr(), pinnedRanges)) {
+            const ContextID owner = pkt->req->hasContextId()
+                                        ? pkt->req->contextId()
+                                        : InvalidContextID;
+            blk->setPinned(owner);
+            pinStats.pinnedBlocks++;
+        }
     }
 
     void moveBlock(CacheBlk *src_blk, CacheBlk *dest_blk) override;
+
+    /**
+     * Notified by BaseCache when a cache-maintenance or coherence
+     * invalidation targeting a pinned block was suppressed (the block
+     * itself is left untouched by the caller).
+     *
+     * @param blk The pinned block whose invalidation was suppressed.
+     */
+    void notifyFlushSuppressed(CacheBlk *blk) override;
 
     /**
      * Limit the allocation for the cache ways.

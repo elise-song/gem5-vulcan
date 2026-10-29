@@ -48,6 +48,9 @@
 #include <string>
 
 #include "base/intmath.hh"
+#include "base/trace.hh"
+#include "debug/CacheRepl.hh"
+#include "mem/request.hh"
 
 namespace gem5
 {
@@ -55,7 +58,8 @@ namespace gem5
 BaseSetAssoc::BaseSetAssoc(const Params &p)
     :BaseTags(p), allocAssoc(p.assoc), blks(p.size / p.block_size),
      sequentialAccess(p.sequential_access),
-     replacementPolicy(p.replacement_policy)
+     replacementPolicy(p.replacement_policy),
+     pinnedRanges(p.pinned_ranges), pinStats(stats)
 {
     // There must be a indexing policy
     fatal_if(!p.indexing_policy, "An indexing policy is required");
@@ -103,6 +107,68 @@ BaseSetAssoc::invalidate(CacheBlk *blk)
 
     // Invalidate replacement data
     replacementPolicy->invalidate(blk->replacementData);
+}
+
+CacheBlk*
+BaseSetAssoc::findVictim(const CacheBlk::KeyType &key,
+                         const std::size_t size,
+                         std::vector<CacheBlk*> &evict_blks,
+                         const uint64_t partition_id,
+                         const ContextID context_id)
+{
+    // Get possible entries to be victimized
+    std::vector<ReplaceableEntry*> entries =
+        indexingPolicy->getPossibleEntries(key);
+
+    // Filter entries based on PartitionID
+    if (partitionManager) {
+        partitionManager->filterByPartition(entries, partition_id);
+    }
+
+    // Whether the incoming line will itself be pinned, had it been
+    // inserted (see insertBlock)
+    const bool incoming_pinned = inPinnedRange(key.address, pinnedRanges);
+
+    // Remove candidates the incoming request is not allowed to evict
+    filterEvictable(entries, incoming_pinned, context_id);
+
+    CacheBlk *victim = nullptr;
+    if (entries.empty()) {
+        // No eligible victim remains: service this request without
+        // caching it, rather than evicting a pinned line.
+        pinStats.bypassOnPinnedVictim++;
+        DPRINTF(CacheRepl, "no evictable victim for addr %#llx, "
+                "bypassing allocation\n", key.address);
+    } else {
+        // Choose replacement victim from the remaining candidates
+        victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(entries));
+    }
+
+    // There is only one eviction for this replacement
+    evict_blks.push_back(victim);
+
+    return victim;
+}
+
+void
+BaseSetAssoc::notifyFlushSuppressed(CacheBlk *blk)
+{
+    pinStats.flushSuppressedPinned++;
+    DPRINTF(CacheRepl, "suppressed invalidation of pinned block "
+            "%s (owner %d)\n", blk->print(), blk->getPinOwner());
+}
+
+BaseSetAssoc::PinStats::PinStats(BaseTagStats &base_group)
+    : statistics::Group(&base_group),
+    ADD_STAT(pinnedBlocks, statistics::units::Count::get(),
+             "Number of blocks pinned on insertion"),
+    ADD_STAT(bypassOnPinnedVictim, statistics::units::Count::get(),
+             "Number of allocations that bypassed the cache because no "
+             "evictable victim existed among the replacement candidates"),
+    ADD_STAT(flushSuppressedPinned, statistics::units::Count::get(),
+             "Number of cache-maintenance/coherence invalidations "
+             "suppressed on pinned blocks")
+{
 }
 
 void
