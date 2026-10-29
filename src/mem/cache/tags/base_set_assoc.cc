@@ -129,19 +129,21 @@ BaseSetAssoc::findVictim(const CacheBlk::KeyType &key,
     // inserted (see insertBlock)
     const bool incoming_pinned = inPinnedRange(key.address, pinnedRanges);
 
-    // Remove candidates the incoming request is not allowed to evict
-    filterEvictable(entries, incoming_pinned, context_id);
-
     CacheBlk *victim = nullptr;
-    if (entries.empty()) {
-        // No eligible victim remains: service this request without
-        // caching it, rather than evicting a pinned line.
-        pinStats.bypassOnPinnedVictim++;
-        DPRINTF(CacheRepl, "no evictable victim for addr %#llx, "
-                "bypassing allocation\n", key.address);
-    } else {
-        // Choose replacement victim from the remaining candidates
-        victim = static_cast<CacheBlk*>(replacementPolicy->getVictim(entries));
+    if (!entries.empty()) {
+        CacheBlk *candidate =
+            static_cast<CacheBlk *>(replacementPolicy->getVictim(entries));
+        if (canEvict(candidate, incoming_pinned, context_id)) {
+            victim = candidate;
+        } else {
+            // Replacement policy's chosen candidate is not allowed to be
+            // replaced
+            pinStats.bypassOnPinnedVictim++;
+            DPRINTF(CacheRepl,
+                    "replacement policy's chosen victim for addr %#llx is "
+                    "pinned and ineligible, bypassing allocation\n",
+                    key.address);
+        }
     }
 
     // There is only one eviction for this replacement
