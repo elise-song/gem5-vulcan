@@ -63,6 +63,7 @@ class TaggedTypes
       private:
         bool _hasContextId;
         ContextID _contextid;
+        Addr _indexAddr;
 
       public:
         Addr address;
@@ -70,18 +71,27 @@ class TaggedTypes
 
         KeyType(Addr addr, bool sec)
             : _hasContextId(false),
+              _indexAddr(addr),
               address(addr),
               secure(sec)
         {}
 
         KeyType(PacketPtr pkt)
             : _hasContextId(pkt->req->hasContextId()),
+              _indexAddr(pkt->req->hasVaddr() ? pkt->req->getVaddr()
+                                              : pkt->getAddr()),
               address(pkt->getAddr()),
               secure(pkt->isSecure())
         {
             if (_hasContextId) {
                 _contextid = pkt->req->contextId();
             }
+        }
+
+        Addr
+        indexAddr() const
+        {
+            return _indexAddr;
         }
 
         bool
@@ -115,7 +125,7 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
     virtual uint32_t
     extractSet(const KeyType &key) const
     {
-        Addr address = key.address;
+        Addr address = key.indexAddr();
         if (key.hasContextId()) {
             address += key.getContextId() << setShift;
             DPRINTF(Cache,
@@ -138,15 +148,22 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
         return sets[extractSet(key)];
     }
 
+    /**
+     * The set index comes from the virtual address, so the tag must hold
+     * every physical address bit above the block offset to keep physical
+     * lines that share a set from aliasing.
+     */
+    Addr
+    extractTag(const Addr addr) const override
+    {
+        return addr >> setShift;
+    }
+
     Addr
     regenerateAddr(const KeyType &key,
                    const ReplaceableEntry *entry) const override
     {
-        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
-        if (key.hasContextId()) {
-            address -= key.getContextId() << setShift;
-        }
-        return address;
+        return key.address << setShift;
     }
 };
 
