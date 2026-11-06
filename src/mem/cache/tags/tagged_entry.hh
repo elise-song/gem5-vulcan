@@ -63,6 +63,7 @@ class TaggedTypes
       private:
         bool _hasContextId;
         ContextID _contextid;
+        Addr _indexAddr;
 
       public:
         Addr address;
@@ -70,18 +71,27 @@ class TaggedTypes
 
         KeyType(Addr addr, bool sec)
             : _hasContextId(false),
+              _indexAddr(addr),
               address(addr),
               secure(sec)
         {}
 
         KeyType(PacketPtr pkt)
             : _hasContextId(pkt->req->hasContextId()),
+              _indexAddr(pkt->req->hasVaddr() ? pkt->req->getVaddr()
+                                              : pkt->getAddr()),
               address(pkt->getAddr()),
               secure(pkt->isSecure())
         {
             if (_hasContextId) {
                 _contextid = pkt->req->contextId();
             }
+        }
+
+        Addr
+        indexAddr() const
+        {
+            return _indexAddr;
         }
 
         bool
@@ -118,6 +128,7 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
         Addr address = key.address;
         if (key.hasContextId()) {
             address += key.getContextId() << setShift;
+            address = key.indexAddr();
             DPRINTF(Cache,
                     "TaggedSetAssociative::extractSet: add context id %d\n",
                     key.getContextId());
@@ -138,15 +149,22 @@ class TaggedSetAssociative : public TaggedIndexingPolicy
         return sets[extractSet(key)];
     }
 
+    /**
+     * The set index comes from the virtual address, so the tag must hold
+     * every physical address bit above the block offset to keep physical
+     * lines that share a set from aliasing.
+     */
+    Addr
+    extractTag(const Addr addr) const override
+    {
+        return addr >> setShift;
+    }
+
     Addr
     regenerateAddr(const KeyType &key,
                    const ReplaceableEntry *entry) const override
     {
-        Addr address = (key.address << tagShift) | (entry->getSet() << setShift);
-        if (key.hasContextId()) {
-            address -= key.getContextId() << setShift;
-        }
-        return address;
+        return key.address << setShift;
     }
 };
 
